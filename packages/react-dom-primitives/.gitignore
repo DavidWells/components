@@ -6,7 +6,7 @@ yarn-debug.log*
 yarn-error.log*
 
 # ignore generated primatives
-src/primatives
+src/primitives
 dist
 # Runtime data
 pids

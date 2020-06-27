@@ -2,7 +2,7 @@ const copyTemplate = require('copy-template-dir')
 const path = require('path')
 const fs = require('fs')
 const tagList = require('../src/tagList')
-const primativeDir = path.join(__dirname, '../src/primatives')
+const primativeDir = path.join(__dirname, '../src/primitives')
 
 /* if directory exists delete it first */
 
@@ -21,8 +21,8 @@ for (var i = 0; i < tagList.length; i++) {
 
 function makePrimativeComponent(name, runFinalCallback) {
   const vars = { name: name }
-  const inDir = path.join(__dirname, `../src/templates/primative`)
-  const outDir = path.join(__dirname, `../src/primatives/${name}`)
+  const inDir = path.join(__dirname, `../src/templates/primitive`)
+  const outDir = path.join(__dirname, `../src/primitives/${name}`)
 
   if (fs.existsSync(outDir)) {
     // console.log('directory exists delete')

@@ -1,4 +1,4 @@
-/*eslint-disable no-var */
+/* eslint-disable no-var */
 var path = require('path')
 var packageInfo = require('./package.json')
 var webpack = require('webpack')
@@ -8,7 +8,7 @@ aliases['../utils/createFunctionalComponent'] = path.resolve(__dirname) + '/src/
 aliases['../utils/createClassComponent'] = path.resolve(__dirname) + '/src/utils/createClassComponent.js'
 
 var entryPoints = {
-  index: './src/primatives/index.js',
+  index: './src/primitives/index.js',
 }
 function capitalize (string) {
   return string.charAt(0).toUpperCase() + string.slice(1)
@@ -19,8 +19,8 @@ console.log('PROD')
 for (var i = 0; i < tagList.length; i++) {
   var primative = tagList[i]
   /* define entryPoints  */
-  // entryPoints[primative] = ['./src/primatives/' + primative]
-  entryPoints[capitalize(primative)] = ['./src/primatives/' + primative + '/' + primative + '.functional.js']
+  // entryPoints[primative] = ['./src/primitives/' + primative]
+  entryPoints[capitalize(primative)] = ['./src/primitives/' + primative + '/' + primative + '.functional.js']
 }
 
 var externals = [

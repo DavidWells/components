@@ -1,6 +1,7 @@
 {
   "name": "@davidwells/components-example",
   "version": "1.0.0",
+  "private": true,
   "description": "form component",
   "author": "DavidWells",
   "license": "MIT",

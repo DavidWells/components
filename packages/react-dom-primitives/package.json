@@ -11,15 +11,15 @@
     "build:class": "webpack --config webpack.production.class.config.js --colors --progress --inline",
     "build:functional": "webpack --config webpack.production.config.js --colors --progress --inline",
     "build:utils": "webpack --config webpack.production.utils.config.js --colors --progress --inline",
-    "build:index": "babel src/primatives/index.js --out-file dist/index.js",
-    "babel": "babel src/primatives/A/A.functional.js --out-file dist/test.js",
+    "build:index": "babel src/primitives/index.js --out-file dist/index.js",
+    "babel": "babel src/primitives/A/A.functional.js --out-file dist/test.js",
     "copypackage": "cp -rf package.json dist && cp -rf README.md dist",
     "dist": "cd dist && npm publish"
   },
   "author": "David Wells",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/DavidWells/react-primatives.git"
+    "url": "git+https://github.com/DavidWells/react-primitives.git"
   },
   "peerDependencies": {
     "react": "^0.16"

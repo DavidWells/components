@@ -17,8 +17,8 @@ function capitalize (string) {
 for (var i = 0; i < tagList.length; i++) {
   var primative = tagList[i]
   /* define entryPoints  */
-  // entryPoints[primative] = ['./src/primatives/' + primative]
-  entryPoints[capitalize(primative)] = ['./src/primatives/' + primative + '/' + primative + '.class.js']
+  // entryPoints[primative] = ['./src/primitives/' + primative]
+  entryPoints[capitalize(primative)] = ['./src/primitives/' + primative + '/' + primative + '.class.js']
 }
 
 const externals = [
