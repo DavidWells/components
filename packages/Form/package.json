@@ -1,6 +1,6 @@
 {
   "name": "@davidwells/components-form",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "React Form Component",
   "author": "DavidWells",
   "license": "MIT",
@@ -12,15 +12,18 @@
     "node": ">=10"
   },
   "scripts": {
-    "build": "microbundle-crl --no-compress --format modern,cjs",
-    "start": "microbundle-crl watch --no-compress --format modern,cjs",
-    "prepare": "run-s build",
+    "build": "../../node_modules/.bin/microbundle-crl --no-compress --format modern,cjs",
+    "start": "../../node_modules/.bin/microbundle-crl watch --no-compress --format modern,cjs",
+    "prepare": "../../node_modules/.bin/run-s build",
     "lint": "npm run test:lint",
-    "test": "run-s test:unit test:lint test:build",
-    "test:build": "run-s build",
+    "test": "../../node_modules/.bin/run-s test:unit test:lint test:build",
+    "test:build": "../../node_modules/.bin/run-s build",
     "test:lint": "eslint .",
     "test:unit": "cross-env CI=1 react-scripts test --env=jsdom",
-    "test:watch": "react-scripts test --env=jsdom"
+    "test:watch": "react-scripts test --env=jsdom",
+    "release:patch": "npm version patch && npm publish",
+    "release:minor": "npm version minor && npm publish",
+    "release:major": "npm version major && npm publish"
   },
   "dependencies": {
     "get-form-data": "^2.0.0"

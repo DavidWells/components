@@ -12,14 +12,14 @@ function grabNodes(node) {
 
 export default class Form extends React.Component {
   componentDidMount() {
-    const inputNodes = grabNodes(node)
+    const inputNodes = grabNodes(this.node)
     for (var i = 0; i < inputNodes.length; i++) {
       inputNodes[i].addEventListener('invalid', fixScroll)
     }
   }
 
   componentWillUnmount() {
-    const inputNodes = grabNodes(node)
+    const inputNodes = grabNodes(this.node)
     for (var i = 0; i < inputNodes.length; i++) {
       inputNodes[i].removeEventListener('invalid', fixScroll)
     }
