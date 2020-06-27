@@ -1,0 +1,7 @@
+build/
+dist/
+example/
+node_modules/
+.snapshots/
+*.min.js
+packages/**/src/templates/**
