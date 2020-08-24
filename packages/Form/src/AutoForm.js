@@ -13,7 +13,7 @@ export default class AutoForm extends React.Component {
     const data = getFormData.getFieldData(form, name, { trim: this.props.trim })
     const change = {}
     change[name] = data
-    this.props.onChange(e, name, data, change)
+    this.props.onChange(e, name, data, change, form)
   }
 
   _onSubmit = (e) => {
