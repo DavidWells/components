@@ -1,6 +1,6 @@
 {
   "name": "react-dom-primitives",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Base set of React DOM Components",
   "main": "index.js",
   "scripts": {

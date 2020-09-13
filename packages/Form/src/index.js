@@ -34,19 +34,22 @@ export default class Form extends React.Component {
   }
 
   render() {
-    const { id, onChange, trimOnSubmit, children, name, ...rest } = this.props
+    const { id, onChange, className, formClassName, trimOnSubmit, children, name, ...rest } = this.props
     return (
-      <AutoForm
-        ref={(node) => { this.node = node }}
-        name={name}
-        id={id}
-        trimOnSubmit={trimOnSubmit}
-        onChange={onChange}
-        onSubmit={this.handleSubmit}
-        {...rest}
-      >
-        {children}
-      </AutoForm>
+      <div ref={(node) => { this.node = node }} className={className}>
+        <AutoForm
+          ref={(node) => { this.node = node }}
+          name={name}
+          id={id}
+          trimOnSubmit={trimOnSubmit}
+          onChange={onChange}
+          onSubmit={this.handleSubmit}
+          className={formClassName}
+          {...rest}
+        >
+          {children}
+        </AutoForm>
+      </div>
     )
   }
 }
