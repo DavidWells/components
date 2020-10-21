@@ -1,0 +1,43 @@
+{
+  "name": "@davidwells/components-flex",
+  "version": "1.0.0",
+  "description": "React Flex Component",
+  "author": "DavidWells",
+  "license": "MIT",
+  "repository": "DavidWells/components",
+  "main": "dist/index.js",
+  "module": "dist/index.modern.js",
+  "source": "src/index.js",
+  "engines": {
+    "node": ">=10"
+  },
+  "scripts": {
+    "build": "../../node_modules/.bin/microbundle-crl --no-compress --format modern,cjs",
+    "start": "../../node_modules/.bin/microbundle-crl watch --no-compress --format modern,cjs",
+    "prepare": "../../node_modules/.bin/run-s build",
+    "lint": "npm run test:lint",
+    "test": "../../node_modules/.bin/run-s test:unit test:lint test:build",
+    "test:build": "../../node_modules/.bin/run-s build",
+    "test:lint": "eslint .",
+    "test:unit": "cross-env CI=1 react-scripts test --env=jsdom",
+    "test:watch": "react-scripts test --env=jsdom",
+    "release:patch": "npm version patch && npm publish",
+    "release:minor": "npm version minor && npm publish",
+    "release:major": "npm version major && npm publish"
+  },
+  "dependencies": {
+    "clsx": "^1.1.1",
+    "prop-types": "^15.7.2"
+  },
+  "peerDependencies": {
+    "react": "^16.0.0"
+  },
+  "devDependencies": {
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
+    "react-scripts": "^3.4.1"
+  },
+  "files": [
+    "dist"
+  ]
+}

@@ -1,0 +1,115 @@
+.flexDefault {
+  flex-direction: row;
+  box-sizing: border-box;
+  display: flex;
+  flex-wrap: nowrap;
+  flex: 1 0 auto;
+  justify-content: space-between;
+  align-content: space-between;
+  align-items: stretch;
+}
+.flexAuto {
+  flex: 0 0 auto;
+}
+.column {
+  flex-direction: column;
+  /* flex-grow: 1; */
+  flex-shrink: 1;
+}
+.fullScreen {
+  min-height: 100vh;
+}
+.fullWidth {
+  width: 100%;
+}
+.initialBasis {
+  flex-basis: initial;
+}
+.columnHeight {
+  min-width: 0;
+}
+.rowHeight, .noGrow {
+  flex-grow: 0;
+  flex-shrink: 0;
+}
+.flexGrow {
+  flex-grow: 1;
+}
+/*********************
+ Horizontal alignment
+*********************/
+.colLeft, .colHorizontalDefault {
+  align-items: flex-start;
+}
+.rowLeft, .rowHorizontalDefault {
+  justify-content: flex-start;
+}
+.colRight {
+  align-items: flex-end;
+}
+.rowRight {
+  justify-content: flex-end;
+}
+.colHorizontalMiddle {
+  align-items: center;
+}
+.rowHorizontalMiddle {
+  justify-content: center;
+}
+.colHorizontalSpaceAround {
+  align-items: space-around;
+}
+.rowHorizontalSpaceAround {
+  justify-content: space-around;
+}
+.colHorizontalSpaceBetween {
+  align-items: space-between;
+}
+.rowHorizontalSpaceBetween {
+  justify-content: space-between;
+}
+/*********************
+ Vertical alignmen
+*********************/
+.colTop, .colDefault {
+  justify-content: flex-start;
+}
+.rowTop {
+  align-items: flex-start;
+  align-content: flex-start;
+}
+.colBottom {
+  justify-content: flex-end;
+}
+.rowBottom {
+  align-items: flex-end;
+  align-content: flex-end;
+}
+.colMiddle {
+  justify-content: center;
+}
+.rowMiddle, .rowDefault {
+  align-items: center;
+  align-content: center;
+}
+.colFill {
+  justify-content: space-between;
+}
+.rowFill {
+  align-items: stretch;
+  align-content: stretch;
+}
+.colAround {
+  justify-content: space-around;
+}
+.rowAround {
+  align-items: space-around;
+  align-content: space-around;
+}
+.colBetween {
+  justify-content: space-between;
+}
+.rowBetween {
+  align-items: space-between;
+  align-content: space-between;
+}
