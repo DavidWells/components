@@ -40,7 +40,7 @@ const Flex = ({
     // Handle Fraction
     if (typeof WIDTH === 'string' && WIDTH.indexOf('/') > -1) {
       WIDTH = fractionStringToNumber(WIDTH)
-      console.log('fixed with', WIDTH)
+      // console.log('fixed with', WIDTH)
     }
     // Set width
     inlineStyles.width = WIDTH
