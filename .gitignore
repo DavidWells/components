@@ -8,7 +8,6 @@ yarn-error.log*
 # Dist
 dist
 packages/**/dist
-packages/**/package-lock.json
 
 # Runtime data
 pids
