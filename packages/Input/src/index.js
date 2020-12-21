@@ -1,39 +1,25 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import classNames from 'clsx'
-import styles from './Input.css'
 
 const propTypes = {
-  /** Custom CSS Classes */
-  className: PropTypes.string,
-  /** Placeholder text */
-  placeholder: PropTypes.string,
+  /* Custom CSS classes */
+  classes: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.object
+  ]),
   /** Set type of HTML5 input */
   type: PropTypes.string,
   /** Set current value */
   value: PropTypes.string,
-  /** visual styles */
-  kind: PropTypes.oneOf(['default']),
+  /** Placeholder text */
+  placeholder: PropTypes.string,
   /** disable input field if true */
   isDisabled: PropTypes.bool,
   /** make field required */
   isRequired: PropTypes.bool,
-  /** field validation. Can be regex, function, or keyName from validation utils */
-  validation: PropTypes.oneOfType([
-    PropTypes.string,
-    PropTypes.func,
-    PropTypes.object
-  ]),
-  /** Custom Validation rules object for validation string to match against */
-  validationRules: PropTypes.object,
-  /** Custom Classname when input valid */
-  validClassName: PropTypes.string,
-  /** Custom Classname when input invalid */
-  invalidClassName: PropTypes.string,
-  /** Custom Error text */
-  errorMessage: PropTypes.string,
-  /** Custom Error text CSS class */
-  errorMessageClassName: PropTypes.string,
+  /** Make textarea instead of input */
+  isTextArea: PropTypes.bool,
   /** Run function onBlur */
   onBlur: PropTypes.func,
   /** Run function onChange */
@@ -42,63 +28,92 @@ const propTypes = {
   onFocus: PropTypes.func,
   /** Run function onKeyPress */
   onKeyPress: PropTypes.func,
+  /** Field validation. Can be regex, function, or keyName from validation utils */
+  validation: PropTypes.oneOfType([
+    PropTypes.func,
+    PropTypes.object,
+    PropTypes.instanceOf(RegExp)
+  ]),
+  /** Custom Error text */
+  errorMessage: PropTypes.string,
   /** debounce validation timeout */
   debounce: PropTypes.number,
-  /** Make textarea instead of input */
-  isTextArea: PropTypes.bool,
   /** (dont use unless necessry) Set to use outside state and disable debounce */
   isControlled: PropTypes.bool,
+  /** debounce validation timeout */
+  disableGlobalClasses: PropTypes.bool,
 }
 
 const defaultProps = {
+  type: 'text',
   isDisabled: false,
   isRequired: false,
-  type: 'text',
-  kind: 'default',
   debounce: 1000,
-  validClassName: styles.valid,
-  invalidClassName: styles.invalid
+  classPrefix: '',
+  errorMessage: 'Invalid Value',
+  classes: {},
+  disableGlobalClasses: false
 }
 
-/**
- * See all `components/Input/utils/validation` for prebaked validation
- */
 class Input extends Component {
   constructor(props, context) {
     super(props, context)
+    const { value, isTextArea, classes, classPrefix, disableGlobalClasses, onChange, isControlled } = props
     this.state = {
-      isValid: this.doValidation(props.value).isValid,
-      blurRanOnce: (props.value) ? true : false,
+      // isValid: this.validateInputValue(value).isValid, async cant be in constructor
+      blurRanOnce: (value) ? true : false,
       // Timeout ID
-      tid: void 0, // eslint-disable-line
+      tid: void 0,
+    }
+    // Set component name
+    const tag = isTextArea ? 'textarea' : 'input'
+    const prefix = postFixer(classPrefix)
+    this.componentBaseName = `${prefix}component-${tag}`
+
+    this.isControlled = Boolean(isControlled || typeof value === 'string' && onChange)
+
+    // Set invalid classes
+    this.invalidClasses = classNames({
+      [classes.inputInvalid]: classes.inputInvalid,
+      [`${this.componentBaseName}-invalid`]: !disableGlobalClasses
+    }).split(' ')
+
+    // Set valid classes
+    this.validClasses = classNames({
+      [classes.inputValid]: classes.inputValid,
+      [`${this.componentBaseName}-valid`]: !disableGlobalClasses
+    }).split(' ')
+
+    this.actions = {
+      blur: this.blur,
+      focus: this.focus,
+      clear: this.clear,
+      setError: this.setError,
+      setValid: this.setValid
     }
   }
   componentDidMount() {
-    setTimeout(() => {
+    setTimeout(async () => {
       // sometimes value is set via the DOM. This updates initial state
-      if (this.textInput) {
-        const value = this.textInput.value
-        if (value) {
-          const inputData = this.doValidation(value)
-          this.setState({
-            tid: void 0,  // eslint-disable-line
-            isValid: inputData.isValid,
-            errorMessage: inputData.errorMessage,
-            value
-          }, this.doVisibleValidation(inputData))
-        }
+      const inputRef = this.getRef()
+      if (inputRef && inputRef.value) {
+        const inputData = await this.validateInputValue(inputRef.value)
+        this.setState({
+          tid: void 0,
+          isValid: inputData.isValid,
+          errorMessage: inputData.errorMessage,
+          value: inputRef.value
+        }, this.setVisibleValidation(inputData))
       }
     }, 0)
   }
   shouldComponentUpdate(nextProps, nextState) {
     const keys = Object.keys(nextProps)
     const { value, isValid } = this.state
-
     // if value invalid, always update
     if (!isValid) {
       return true
     }
-
     // We only consider the search term from the state
     if (value !== nextState.value) {
       return true
@@ -108,55 +123,89 @@ class Input extends Component {
     if (keys.length !== Object.keys(this.props).length) {
       return true
     }
-
     // > Different properties
     const changed = keys.some(key => nextProps[key] !== this.props[key])
-
     if (changed) {
       return true
     }
-
     return false
   }
   componentWillUnmount() {
     const { tid } = this.state
     window.clearTimeout(tid)
   }
-  doValidation(value) {
-    const { validation, errorMessage, validationRules } = this.props
-    const defaultMessage = errorMessage || 'Invalid Value'
-    // console.log('validation', validation)
-    // console.log('do validation', value)
-    // console.log('formValidation', formValidation)
-    if (typeof validation === 'string' && validationRules && validationRules[validation]) {
-      // check pattern in validations formValidation obj
+  async validateInputValue(value) {
+    const { validation, errorMessage, isRequired } = this.props
+
+    // If actions.setError called, persist its error on blur
+    if (this.state.externalError && !isRequired && value !== '') {
       return {
         value: value,
-        isValid: validationRules[validation].pattern.test(value),
-        errorMessage: validationRules[validation].message || defaultMessage
+        isValid: false,
+        errorMessage: this.state.errorMessage
       }
-    } else if (typeof validation === 'object' && validation.pattern) {
+    }
+
+    /* If field is NOT required and is empty again */
+    if (!isRequired && value === '') {
+      return {
+        value: value,
+        isEmpty: true,
+        isValid: true
+      }
+    }
+
+    if (isRequired && value === '') {
+      return {
+        value: value,
+        isRequired: true,
+        isValid: false,
+        errorMessage: 'Required value'
+      }
+    }
+
+    if (!validation) {
+      // return early no validation
+    }
+
+    /* If field has already been validated return early */
+    if (this.state.isValid && (this.state.value === value)) {
+      // console.log('Already validated', value)
+      // return {
+      //   value: value,
+      //   isValid: true,
+      //   errorMessage: ''
+      // }
+    }
+
+    if (typeof validation === 'object' && validation.pattern) {
       // if validation object is used
       return {
         value: value,
         isValid: validation.pattern.test(value),
-        errorMessage: validation.message || defaultMessage
+        errorMessage: validation.message || errorMessage
       }
-    } else if (validation instanceof RegExp) {
-      // check regex passed in
+    }
+
+    // check regex passed in
+    if (validation instanceof RegExp) {
       return {
         value: value,
         isValid: validation.test(value),
-        errorMessage: errorMessage || defaultMessage
-      }
-    } else if (typeof validation === 'function') {
-      // do custom function for validation
-      return {
-        value: value,
-        isValid: validation(value),
-        errorMessage: errorMessage || defaultMessage
+        errorMessage: errorMessage
       }
     }
+
+    // do custom function for validation
+    if (typeof validation === 'function') {
+      const validationReturn = await validation(value)
+      return {
+        value: value,
+        isValid: validationReturn.isValid,
+        errorMessage: validationReturn.message
+      }
+    }
+
     // default field is valid if no validation
     return {
       value: value,
@@ -165,72 +214,107 @@ class Input extends Component {
     }
   }
   handleChange = (event) => {
-    const { tid } = this.state
-    const { debounce, isControlled, validation } = this.props
+    /*
+    if (this.isControlled) {
+      console.log('NO DELAY')
+      // because debounce, fake event is passed back
+      this.props.onChange({ target: this.getRef() }, event.target.value, {
+        isValid: 'x',
+        actions: this.actions,
+      })
+      return
+    }
+    */
 
+    const { tid } = this.state
+    const { debounce, validation } = this.props
     // If has validation, apply debouncer
     let deboundTimeout = (validation) ? debounce : 0
-
     // If form values controlled by outside state ignore debounce
-    if (isControlled) {
+    if (this.isControlled) {
       deboundTimeout = 0
     }
-
     if (tid) {
       clearTimeout(tid)
     }
-
     this.setState({
       value: event.target.value,
       tid: setTimeout(this.emitDelayedChange, deboundTimeout),
     })
   }
-  emitDelayedChange = () => {
-    const { value } = this.state
-    const { onChange } = this.props
-
-    const inputData = this.doValidation(value)
-
+  setError = (message = '', external = true) => {
     this.setState({
-      tid: void 0,  // eslint-disable-line
-      isValid: inputData.isValid,
-      errorMessage: inputData.errorMessage
-    }, this.doVisibleValidation(inputData))
+      tid: void 0,
+      isValid: false,
+      errorMessage: message,
+      externalError: external
+    })
 
-    if (onChange) {
-      // because debounce, fake event is passed back
-      const fakeEvent = {}
-      fakeEvent.target = this.textInput
-      onChange(fakeEvent, value, inputData.isValid)
-    }
+    this.setInvalidClasses()
+    // set fake blur so validation will show
+    this.setFakeBlur()
   }
-  doVisibleValidation(inputData) {
-    const { validation, validClassName, invalidClassName } = this.props
-    const { isValid, value } = inputData
-    if (validation && !isValid) {
-      // has validation and is not valid!
-      if (this.textInput.value) {
-        this.textInput.classList.remove(validClassName)
-        this.textInput.classList.add(invalidClassName)
-        // set fake blur so validation will show
-        this.setFakeBlur()
-        // show error message
-        this.prompt()
-      }
-    } else if (validation && isValid) {
-      // has validation and is valid!
-      this.textInput.classList.remove(invalidClassName)
-      this.textInput.classList.add(validClassName)
+  setValid = () => {
+    this.setState({
+      tid: void 0,
+      isValid: true,
+      errorMessage: ''
+    })
+    this.setValidClasses()
+  }
+  getRef() {
+    const { inputRef } = this.props
+    if (inputRef && inputRef.current) {
+      return inputRef.current
     }
+    return this.textInput
+  }
+  setValidClasses() {
+    const inputRef = this.getRef()
+    inputRef.classList.remove(...this.invalidClasses)
+    inputRef.classList.add(...this.validClasses)
+  }
+  setInvalidClasses() {
+    const inputRef = this.getRef()
+    inputRef.classList.remove(...this.validClasses)
+    inputRef.classList.add(...this.invalidClasses)
+  }
+  resetClasses() {
+    const inputRef = this.getRef()
+    inputRef.classList.remove(...this.invalidClasses)
+    inputRef.classList.remove(...this.validClasses)
+  }
+  setVisibleValidation(inputData) {
+    const inputRef = this.getRef()
+    // console.log('inputData', inputData)
+    // console.log('inputRef.value', inputRef.value)
+    // console.log('inputData.message', inputData.errorMessage)
+
+    if (!this.props.validation) {
+      return
+    }
+
+    if (inputData.isRequired) {
+      this.setInvalidClasses()
+    }
+
+    // Input value is not valid!
+    if (!inputData.isValid && inputRef.value) {
+      this.setError(inputData.errorMessage, false)
+    }
+    // Input value is valid!
+    if (inputData.isValid && inputRef.value) {
+      this.setValidClasses()
+    }
+
     // If input is empty and the validation is bad, remove the valid class
-    if (!value && !isValid) {
-      this.textInput.classList.remove(validClassName)
+    if (!inputData.value && !inputData.isValid) {
+      inputRef.classList.remove(...this.validClasses)
+      // this.setInvalidClasses()
     }
   }
   setFakeBlur = () => {
-    this.setState({
-      blurRanOnce: true
-    })
+    this.setState({ blurRanOnce: true })
   }
   handleFocus = (event) => {
     const { onFocus, readOnly } = this.props
@@ -245,123 +329,195 @@ class Input extends Component {
       onFocus(event, event.target.value, isValid)
     }
   }
-  prompt = (cb) => {
-    const { value } = this.state
-    // const { onChange } = this.props
-
-    const inputData = this.doValidation(value)
-
-    this.setState({
-      tid: void 0,  // eslint-disable-line
-      isValid: inputData.isValid,
-      errorMessage: inputData.errorMessage
-    }, () => {
-      if (cb) {
-        cb(inputData)
-      }
-    })
-  }
   handleClick = (event) => {
     const { onClick } = this.props
-    if (onClick) {
-      onClick(event)
-    }
-    if (this.textInput.value) {
+    if (onClick) onClick(event)
+
+    if (this.getRef().value) {
       // make onClick 'trigger' a blur
       this.setFakeBlur()
     }
   }
-  handleBlur = (event) => {
-    const { onBlur, validClassName } = this.props
-    const { isValid } = this.state
-    if (onBlur) {
-      onBlur(event, event.target.value, isValid)
+  emitDelayedChange = async () => {
+    const value = this.state.value
+    const inputData = await this.validateInputValue(value)
+    // console.log('emitDelayedChange inputData', inputData)
+
+    /* If field is NOT required and is empty again */
+    if (inputData.isEmpty) {
+      // Reset validation classes
+      this._resetInput()
+    } else if (inputData.isRequired) {
+      // Set is required valid state
+      this.setState({
+        tid: void 0,
+        isValid: inputData.isValid,
+        errorMessage: inputData.errorMessage
+      }, this.setVisibleValidation(inputData))
+    } else if (!inputData.isValid) {
+      // Set valid state
+      this.setState({
+        tid: void 0,
+        isValid: inputData.isValid,
+        errorMessage: inputData.errorMessage
+      }, this.setVisibleValidation(inputData))
+    } else if (inputData.isValid) {
+      // Set error invalid state
+      this.setState({
+        tid: void 0,
+        isValid: inputData.isValid,
+        errorMessage: inputData.errorMessage
+      }, this.setVisibleValidation(inputData))
     }
 
+    if (this.props.onChange) {
+      // because debounce, fake event is passed back
+      this.props.onChange({ target: this.getRef() }, value, {
+        isValid: inputData.isValid,
+        actions: this.actions,
+      })
+    }
+  }
+  handleBlur = async (event) => {
+    // const { isValid } = this.state
+    let inputData = {}
     if (event.target.value) {
-      // only show if input has some value
-      this.prompt((inputData) => {
-        this.doVisibleValidation(inputData)
+      inputData = await this.validateInputValue(event.target.value)
+      // inputData.isValid
+      this.setState({
+        tid: void 0,
+        isValid: inputData.isValid,
+        errorMessage: inputData.errorMessage
+      }, () => {
+        this.setVisibleValidation(inputData)
       })
     }
 
     if (!event.target.value) {
-      this.textInput.classList.remove(validClassName)
+      this.getRef().classList.remove(...this.validClasses)
     }
-    // console.log('this.state.', this.state)
-    // console.log('this.state.blurRanOnce', this.state.blurRanOnce)
-    // console.log('event.target.value', event.target.value)
+
     // Set blur state to show validations
     if (!this.state.blurRanOnce && event.target.value) {
       // capture focus if input wrong
       this.setState({
         blurRanOnce: true
+      // })
       }, this.captureFocusWhenInvalid())
     }
-  }
-  captureFocusWhenInvalid() {
-    if (!this.state.isValid) {
-      // not sure about this guy. Results in different form tabbing behavior
-      // this.focus()
+
+    if (this.props.onBlur) {
+      this.props.onBlur(event, event.target.value, {
+        isValid: inputData.isValid,
+        actions: this.actions,
+      })
     }
   }
-  showValidation() {
+
+  captureFocusWhenInvalid() {
+    if (!this.state.isValid && this.props.isRequired) {
+      // not sure about this guy. Results in different form tabbing behavior
+      this.focus()
+    }
+  }
+  select = () => {
+    this.getRef().select()
+  }
+  blur = () => {
+    this.getRef().blur()
+  }
+  focus = () => {
+    this.getRef().focus()
+  }
+  clear = () => {
+    const { onChange } = this.props
+    const inputRef = this.getRef()
+    this._resetInput(() => {
+      if (inputRef) inputRef.value = ''
+      if (onChange) {
+        // Fire on change event on clear
+        onChange({ target: inputRef }, '')
+      }
+    })
+  }
+  _resetInput = (callback) => {
+    this.setState({
+      blurRanOnce: false,
+      errorMessage: null,
+      value: ''
+    }, () => {
+      this.resetClasses()
+      if (callback) callback()
+    })
+  }
+
+  renderValidation() {
     const { isValid, errorMessage, blurRanOnce } = this.state
-    const { errorMessageClassName } = this.props
+    const { disableGlobalClasses, classes } = this.props
     if (isValid) {
       return null
-    } else if (blurRanOnce) {
-      const classes = classNames(styles.validation, errorMessageClassName)
+    }
+    // Dont show validation, if no blur
+    if (!blurRanOnce) {
+      return null
+    }
+    // Error message might not be resolved yet
+    if (!errorMessage) {
+      return null
+    }
+
+    const errorClasses = classNames({
+      [classes.errorMessage]: true,
+      [`${this.componentBaseName}-error`]: !disableGlobalClasses
+    })
+
+    // Default render
+    if (typeof errorMessage === 'string' || isElement(errorMessage)) {
       return (
-        <div className={classes} onClick={this.focus}>
+        <div className={errorClasses} onClick={this.focus}>
           {errorMessage}
         </div>
       )
     }
-  }
-  select = () => {
-    this.textInput.select()
-  }
-  blur = () => {
-    this.textInput.blur()
-  }
-  focus = () => {
-    this.textInput.focus()
+
+    // If functional or class component
+    return smartRender(errorMessage, {
+      value: this.state.value,
+      isValid: this.state.isValid,
+      actions: this.actions,
+      classes: errorClasses
+    })
   }
   render() {
     const {
+      classes,
       className,
       isDisabled,
       isRequired,
-      validation, // eslint-disable-line
-      invalidClassName, // eslint-disable-line
-      validClassName, // eslint-disable-line
+      isTextArea,
+      validation,
       errorMessage,
-      errorMessageClassName, // eslint-disable-line
-      debounce, // eslint-disable-line
+      debounce,
       type,
       value,
-      kind,
-      beforeInputElement,
-      afterInputElement,
-      isTextArea,
+      inputRef,
+      before,
+      after,
+      classPrefix,
+      disableGlobalClasses,
       ...others
     } = this.props
 
-    // const { isValid } = this.state
-    // console.log('isValid', isValid)
+    const CLASSES = (!className) ? classes : { ...classes, ...{ input: className } }
+    const componentBaseName = this.componentBaseName
 
-    const classes = classNames(
-      className,
-      styles.input,
-      styles[kind],
-      {
-        'input-has-before-element': beforeInputElement,
-        'input-has-after-element': afterInputElement,
-        [styles.isTextArea]: isTextArea
-      },
-    )
-    // console.log('errorMessage', this.state.errorMessage)
+    const inputClasses = classNames({
+      [CLASSES.input]: CLASSES.input,
+      [componentBaseName]: !disableGlobalClasses
+    })
+
+    const defaultRef = (input) => this.textInput = input
+    const reffer = inputRef || defaultRef
 
     const inputProps = {
       ...others,
@@ -369,37 +525,52 @@ class Input extends Component {
       onBlur: this.handleBlur,
       onFocus: this.handleFocus,
       onClick: this.handleClick,
-      ref: (input) => {
-        this.textInput = input
-      },
+      ref: reffer,
       role: 'input',
       name: others.name || others.id || others.ref || formatName(others.placeholder),
       disabled: isDisabled,
       required: isRequired,
       type,
       value,
-      className: classes,
+      className: inputClasses,
     }
 
-    const inputElement = (isTextArea) ? <textarea {...inputProps} /> : <input {...inputProps} />
-
     const wrapperClasses = classNames(
-      styles.inputWrapper,
-      styles[`wrapper${kind}`],
-      {
-        'input-is-textarea': isTextArea
+      CLASSES.wrapper,
+      (disableGlobalClasses) ? {} : {
+        [`${componentBaseName}-wrapper`]: true,
+        [`${componentBaseName}-has-before`]: before,
+        [`${componentBaseName}-has-after`]: after,
       }
     )
 
+    const propsToPass = {
+      value: this.state.value,
+      isValid: this.state.isValid,
+      actions: this.actions
+    }
+
+    const afterContent = smartRender(after, propsToPass)
+    const inputElement = (isTextArea) ? <textarea {...inputProps} /> : <input {...inputProps} />
+    const beforeContent = smartRender(before, propsToPass)
+
     return (
       <div className={wrapperClasses}>
-        {this.showValidation()}
-        {beforeInputElement}
+        {beforeContent}
         {inputElement}
-        {afterInputElement}
+        {afterContent}
+        {this.renderValidation()}
       </div>
     )
   }
+}
+
+function postFixer(string, suffix = '-') {
+  if (!string) return ''
+  if (string.indexOf(suffix, string.length - suffix.length) !== -1) {
+    return string
+  }
+  return `${string}-`
 }
 
 function formatName(name) {
@@ -410,3 +581,57 @@ Input.propTypes = propTypes
 Input.defaultProps = defaultProps
 
 export default Input
+
+
+/**
+ * Smart render utils
+ */
+function isClassComponent(component) {
+  return typeof component === 'function' && component.prototype && !!component.prototype.isReactComponent
+}
+
+function isFunctionComponent(component) {
+  const str = String(component)
+  return typeof component === 'function' && str && str.includes('children:')
+}
+
+function isReactComponent(component) {
+  return isClassComponent(component) || isFunctionComponent(component)
+}
+
+function isElement(element) {
+  return React.isValidElement(element);
+}
+
+function isDOMTypeElement(element) {
+  return isElement(element) && typeof element.type === 'string';
+}
+
+function isCompositeTypeElement(element) {
+  return isElement(element) && typeof element.type === 'function';
+}
+
+function smartRender(componentOrString, propsToPass) {
+  if (!componentOrString) return null
+  // console.log('componentOrString', componentOrString)
+  // console.log('String(component)', String(componentOrString))
+
+  if (typeof componentOrString === 'string' || isElement(componentOrString)) {
+    // console.log('String or react element')
+    return componentOrString
+  }
+
+  if (isClassComponent(componentOrString)) {
+    // console.log('is uninstantiated class component')
+    const RenderComponent = componentOrString
+    return <RenderComponent {...propsToPass} />
+  }
+
+  if (isFunctionComponent(componentOrString)) {
+    // console.log('is uninstantiated functional component')
+    return componentOrString(propsToPass)
+  }
+
+  // throw new Error('Invalid component passed')
+  return null
+}
