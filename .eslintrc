@@ -29,7 +29,10 @@
     "react/jsx-handler-names": 0,
     "react/jsx-fragments": 0,
     "react/no-unused-prop-types": 0,
+    "react/jsx-curly-brace-presence": 0,
     "import/export": 0,
-    "import/no-named-as-default": 0
+    "import/no-named-as-default": 0,
+    "no-unneeded-ternary": 0,
+    "lines-between-class-members": 0
   }
 }
