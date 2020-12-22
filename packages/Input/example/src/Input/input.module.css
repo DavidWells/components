@@ -1,0 +1,148 @@
+$inputMedium: 44px;
+
+/* Default input theme */
+.wrapper {
+  position: relative;
+  &:hover, &:active, &:focus {
+
+  }
+}
+
+.input {
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 16px;
+  padding: 10px;
+  border: 1px solid black;
+  height: $inputMedium;
+  border-radius: 4px;
+  /* Set input placeholder color */
+  /* Set Direct sibling icon color */
+  + span {
+    fill: $grey;
+  }
+  /* + span:global(.component-icon) {
+    fill: $grey;
+  } */
+
+  /* Set Modifiers */
+  &:read-only {
+    cursor: pointer;
+  }
+  &:hover, &:active, &:focus {
+    border: 1px solid $accent5;
+    outline: none;
+    + span {
+      fill: $accent5;
+    }
+  }
+  &:disabled {
+    cursor: not-allowed;
+    background: #e6e6e6;
+  }
+  &.isTextArea {
+    padding: 13px 10px;
+  }
+  &.isValid {
+    color: $primary;
+  }
+  &.isInvalid {
+    border: 2px solid rgba(216, 0, 50, 0.54);
+    &:-internal-autofill-selected {
+      color: red !important;
+    }
+  }
+  &.hasIcon {
+    padding-left: 20px;
+  }
+  &.hasIcon {
+    padding-left: $inputMedium;
+  }
+}
+
+.icon {
+  height: $inputMedium;
+  top: 0;
+  left: 16px;
+  display: flex;
+  align-items: center;
+  position: absolute;
+  &:hover {
+    fill: $primary;
+  }
+}
+
+.clearSearch {
+  height: $inputMedium;
+  top: 0;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  position: absolute;
+  &:hover {
+    fill: $danger;
+  }
+}
+
+.validationMessage {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  top: resolve(-$inputMedium + 10px);
+  height: $inputMedium;
+  font-size: 13px;
+  user-select: none;
+  cursor: pointer;
+}
+
+/* Theme Kinds */
+.default {
+  &.wrapper {
+    &:hover, &:active, &:focus {
+      .input {
+        border-color: blue;
+        &.isInvalid {
+          border-color: $danger;
+        }
+        &.isValid {
+          border-color: $primary;
+        }
+      }
+    }
+  }
+  .input {
+    border: none;
+    font-size: 16px;
+    padding: 11px 15px;
+    display: inline-block;
+    border: 2px solid $grey;
+    outline: none;
+    transition: all 0.3s ease;
+    &.hasIcon {
+      padding-left: $inputMedium;
+    }
+    &.isInvalid {
+      border: 2px solid rgba(216, 0, 50, 0.54);
+      color: $danger;
+      + span {
+        fill: $danger;
+      }
+    }
+    &.isValid {
+      color: $primary;
+      border-color: $primary;
+      + span {
+        fill: $primary;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .validationMessage {
+    font-size: 11px;
+  }
+}
