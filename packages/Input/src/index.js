@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import classNames from 'clsx'
+import { smartRender, isElement } from '@davidwells/react-utils'
 
 const propTypes = {
   /* Custom CSS classes */
@@ -581,57 +582,3 @@ Input.propTypes = propTypes
 Input.defaultProps = defaultProps
 
 export default Input
-
-
-/**
- * Smart render utils
- */
-function isClassComponent(component) {
-  return typeof component === 'function' && component.prototype && !!component.prototype.isReactComponent
-}
-
-function isFunctionComponent(component) {
-  const str = String(component)
-  return typeof component === 'function' && str && str.includes('children:')
-}
-
-function isReactComponent(component) {
-  return isClassComponent(component) || isFunctionComponent(component)
-}
-
-function isElement(element) {
-  return React.isValidElement(element);
-}
-
-function isDOMTypeElement(element) {
-  return isElement(element) && typeof element.type === 'string';
-}
-
-function isCompositeTypeElement(element) {
-  return isElement(element) && typeof element.type === 'function';
-}
-
-function smartRender(componentOrString, propsToPass) {
-  if (!componentOrString) return null
-  // console.log('componentOrString', componentOrString)
-  // console.log('String(component)', String(componentOrString))
-
-  if (typeof componentOrString === 'string' || isElement(componentOrString)) {
-    // console.log('String or react element')
-    return componentOrString
-  }
-
-  if (isClassComponent(componentOrString)) {
-    // console.log('is uninstantiated class component')
-    const RenderComponent = componentOrString
-    return <RenderComponent {...propsToPass} />
-  }
-
-  if (isFunctionComponent(componentOrString)) {
-    // console.log('is uninstantiated functional component')
-    return componentOrString(propsToPass)
-  }
-
-  // throw new Error('Invalid component passed')
-  return null
-}
