@@ -1,6 +1,6 @@
 {
   "name": "style-guard",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Use proxies in dev to guard against potentially missing styles",
   "main": "index.js",
   "scripts": {

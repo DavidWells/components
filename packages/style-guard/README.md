@@ -42,6 +42,6 @@ export default function NavBar(props) {
 
 Resulting in an error like so:
 
-![image](https://user-images.githubusercontent.com/532272/72671761-fb152000-3a03-11ea-8546-98b33e297523.png)
+![image](https://user-images.githubusercontent.com/532272/103469934-54af5100-4d20-11eb-99d8-144a1065cf14.png)
 
 This will help prevent style regressions in dev mode
