@@ -1,0 +1,13 @@
+{
+  "name": "style-guard",
+  "version": "0.0.4",
+  "description": "Use proxies in dev to guard against potentially missing styles",
+  "main": "index.js",
+  "scripts": {
+    "release:patch": "npm version patch && npm publish",
+    "release:minor": "npm version minor && npm publish",
+    "release:major": "npm version major && npm publish"
+  },
+  "author": "David Wells",
+  "license": "MIT"
+}
