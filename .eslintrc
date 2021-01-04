@@ -22,6 +22,12 @@
     }
   },
   "rules": {
+    "no-unused-vars": [
+      "warn",
+      {
+        "varsIgnorePattern": "^[A-Z]"
+      }
+    ],
     "prefer/const": 0,
     "comma-dangle" : [0, "always-multiline"],
     "space-before-function-paren": 0,

@@ -5,3 +5,5 @@ node_modules/
 .snapshots/
 *.min.js
 packages/**/src/templates/**
+templates/**/**
+packages/react-dom-primitives/src/primitives

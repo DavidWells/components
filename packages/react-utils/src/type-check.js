@@ -20,9 +20,9 @@ export function isElement(element) {
 }
 
 export function isDOMTypeElement(element) {
-  return isElement(element) && typeof element.type === 'string';
+  return isElement(element) && typeof element.type === 'string'
 }
 
 export function isCompositeTypeElement(element) {
-  return isElement(element) && typeof element.type === 'function';
+  return isElement(element) && typeof element.type === 'function'
 }
