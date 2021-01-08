@@ -1,48 +1,48 @@
-"use strict";
+'use strict';
 /**
  * Fork from babel-plugin-auto-import
  */
 // https://github.com/michalkvasnicak/babel-plugin-css-modules-transform/blob/master/src/index.js
 // https://github.com/vslinko/babel-plugin-react-require/blob/master/src/index.js
-const { basename } = require("path")
-const template = require('@babel/template').default;
-Object.defineProperty(exports, "__esModule", { value: true });
-exports["default"] = _default;
+const { basename } = require('path')
+const template = require('@babel/template').default
+const not = require('logical-not')
 
-var not = require("logical-not");
+Object.defineProperty(exports, '__esModule', { value: true })
+exports['default'] = _default
 
-var ImportType = {
-  DEFAULT: Symbol("DEFAULT"),
-  MEMBER: Symbol("MEMBER"),
-  ANONYMOUS: Symbol("ANONYMOUS")
-};
+const ImportType = {
+  DEFAULT: Symbol('DEFAULT'),
+  MEMBER: Symbol('MEMBER'),
+  ANONYMOUS: Symbol('ANONYMOUS')
+}
 
-let matchExtensions = /\.module\.css$/i;
+const matchExtensions = /\.module\.css$/i
 
 function _default(_ref) {
-  var t = _ref.types;
+  var t = _ref.types
   return {
     visitor: {
       ImportDefaultSpecifier(path, _ref2) {
-        const { value } = path.parentPath.node.source;
-        let cache = []
+        const { value } = path.parentPath.node.source
+        // let cache = []
         if (matchExtensions.test(value)) {
           const niceFilePath = _ref2.file.opts.filename.replace(process.cwd(), '')
           const globalId = _ref2.file.opts.filename
-          const originalName =  path.node.local.name
-          console.log('CSS MODULE!', value)
-          console.log('path.node.local.name', originalName)
+          const originalName = path.node.local.name
+          // console.log('CSS MODULE!', value)
+          // console.log('path.node.local.name', originalName)
           // console.log('path.node', path.node)
           const modifiedCSSModuleImportName = '___' + originalName
           /* Change default css import name to `_${original}` */
           path.node.local.name = modifiedCSSModuleImportName
 
           /* Selector is wrong here. need parent if refactoring
-          var programBody = program.get("body");
+          var programBody = program.get('body');
           var currentImportDeclarations = programBody.reduce(toImportDeclarations, []);
           var identifier = path.node
           console.log('identifier', identifier)
-          const declaration = { "default": "styleGuard", "path": "style-guard" }
+          const declaration = { 'default': 'styleGuard', 'path': 'style-guard' }
           var importType = null;
           if (hasDefault(declaration, identifier)) {
             importType = ImportType.DEFAULT;
@@ -70,7 +70,7 @@ function _default(_ref) {
             // var importDeclaration = t.importDeclaration(
             //   [t.importDefaultSpecifier(t.identifier('styleGuard'))], t.stringLiteral('style-guard')
             // );
-            // const [ importThing ] = program.unshiftContainer("body", importDeclaration);
+            // const [ importThing ] = program.unshiftContainer('body', importDeclaration);
             // cache.push(globalId)
           }
           */
@@ -91,15 +91,15 @@ function _default(_ref) {
                 })
               )
             ]
-          );
-          program.unshiftContainer("body", varDeclarationTest)
+          )
+          program.unshiftContainer('body', varDeclarationTest)
         }
       },
       CallExpression(path, { file }) {
-        const { callee: { name: calleeName }, arguments: args } = path.node;
+        const { callee: { name: calleeName }, arguments: args } = path.node
 
         if (calleeName !== 'require' || !args.length || !t.isStringLiteral(args[0])) {
-          return;
+          return
         }
         const [{ value: stylesheetPath }] = args;
         if (matchExtensions.test(stylesheetPath)) {
@@ -108,59 +108,61 @@ function _default(_ref) {
       },
       // Handle imports for style-g
       Identifier: function Identifier(path, _ref2) {
-        var options = _ref2.opts,
-            file = _ref2.file;
+        var options = _ref2.opts
+        var file = _ref2.file
         if (not(path.isReferencedIdentifier())) {
-          return;
+          return
         }
-        var identifier = path.node,
-            scope = path.scope;
+        var identifier = path.node
+        var scope = path.scope
         if (isDefined(identifier, scope)) {
           // console.log('Is defined! exit')
-          return;
+          return
         }
         // include styleguard
-        var declarations = [
+        const declarations = [
           {
-            "default": "styleGuard",
-            "path": "style-guard"
+            default: 'styleGuard',
+            path: 'style-guard'
           }
         ]
         // var declarations = options.declarations;
         if (not(Array.isArray(declarations))) {
-          return;
+          return
         }
-        var filename = file.opts.filename ? basename(file.opts.filename) : "";
+        var filename = file.opts.filename ? basename(file.opts.filename) : ''
         declarations.some(handleDeclaration, {
           path: path,
           identifier: identifier,
           filename: filename
-        });
+        })
       }
     }
-  };
+  }
 
   function isDefined(identifier, _ref3) {
-    var bindings = _ref3.bindings,
-        parent = _ref3.parent;
-    var variables = Object.keys(bindings);
-    if (variables.some(has, identifier)) return true;
-    return parent ? isDefined(identifier, parent) : false;
+    var bindings = _ref3.bindings
+    var parent = _ref3.parent
+    var variables = Object.keys(bindings)
+    if (variables.some(has, identifier)) {
+      return true
+    }
+    return parent ? isDefined(identifier, parent) : false
   }
 
   function has(identifier) {
-    var name = this.name;
-    return identifier == name;
+    const name = this.name
+    return identifier === name
   }
 
   function handleDeclaration(declaration) {
-    var path = this.path,
-        identifier = this.identifier,
-        filename = this.filename;
+    var path = this.path
+    var identifier = this.identifier
+    var filename = this.filename
     if (not(declaration)) {
-      return;
+      return
     }
-    var importType = null;
+    var importType = null
 
     if (hasDefault(declaration, identifier)) {
       importType = ImportType.DEFAULT;
@@ -175,12 +177,12 @@ function _default(_ref) {
       var pathToModule = getPathToModule(declaration, filename);
       // console.log('pathToModulexxxx', pathToModule)
       insertImport(program, identifier, importType, pathToModule);
-      return true;
+      return true
     }
   }
 
   function hasDefault(declaration, identifier) {
-    return declaration["default"] == identifier.name;
+    return declaration['default'] === identifier.name;
   }
 
   function hasMember(declaration, identifier) {
@@ -194,7 +196,7 @@ function _default(_ref) {
   }
 
   function insertImport(program, identifier, type, pathToModule) {
-    var programBody = program.get("body");
+    var programBody = program.get('body');
     var currentImportDeclarations = programBody.reduce(toImportDeclarations, []);
     var importDidAppend;
     importDidAppend = currentImportDeclarations.some(importAlreadyExists, {
@@ -211,16 +213,18 @@ function _default(_ref) {
     if (importDidAppend) return;
     var specifiers = [];
 
-    if (type == ImportType.DEFAULT) {
-      specifiers.push(t.importDefaultSpecifier(identifier));
-    } else if (type == ImportType.MEMBER) {
-      specifiers.push(t.importSpecifier(identifier, identifier));
-    } else if (type == ImportType.ANONYMOUS) {}
+    if (type === ImportType.DEFAULT) {
+      specifiers.push(t.importDefaultSpecifier(identifier))
+    } else if (type === ImportType.MEMBER) {
+      specifiers.push(t.importSpecifier(identifier, identifier))
+    } else if (type === ImportType.ANONYMOUS) {
+
+    }
 
     // console.log('Do insert into', identifier)
     // Do insertion here
-    var importDeclaration = t.importDeclaration(specifiers, t.stringLiteral(pathToModule));
-    program.unshiftContainer("body", importDeclaration);
+    var importDeclaration = t.importDeclaration(specifiers, t.stringLiteral(pathToModule))
+    program.unshiftContainer('body', importDeclaration)
 
     /* Extra stuff I added
     console.log('identifier', identifier)
@@ -236,7 +240,7 @@ function _default(_ref) {
           )
         ]
     );
-    program.unshiftContainer("body", varDeclarationTest);
+    program.unshiftContainer('body', varDeclarationTest);
     const varDeclaration = t.variableDeclaration(
       'var',
         [
@@ -247,7 +251,7 @@ function _default(_ref) {
           )
         ]
     );
-    program.unshiftContainer("body", varDeclaration);
+    program.unshiftContainer('body', varDeclaration);
     */
   }
 
@@ -261,66 +265,68 @@ function _default(_ref) {
   }
 
   function importAlreadyExists(_ref4) {
-    var importDeclaration = _ref4.node;
-    var identifier = this.identifier,
-        type = this.type,
-        pathToModule = this.pathToModule;
+    var importDeclaration = _ref4.node
+    var identifier = this.identifier
+    var type = this.type
+    var pathToModule = this.pathToModule
 
-    if (importDeclaration.source.value == pathToModule) {
-      if (type == ImportType.ANONYMOUS) return true;
+    if (importDeclaration.source.value === pathToModule) {
+      if (type === ImportType.ANONYMOUS) return true;
       return importDeclaration.specifiers.some(checkSpecifierLocalName, identifier);
     }
   }
 
   function checkSpecifierLocalName(specifier) {
-    var identifier = this;
-    return specifier.local.name == identifier.name;
+    const identifier = this
+    return specifier.local.name === identifier.name
   }
 
   function addToImportDeclaration(importDeclarationPath) {
-    var identifier = this.identifier,
-        type = this.type,
-        pathToModule = this.pathToModule;
-    var node = importDeclarationPath.node;
-    if (node.source.value != pathToModule) return false;
-    var specifiers = node.specifiers;
+    var identifier = this.identifier
+    var type = this.type
+    var pathToModule = this.pathToModule
+    var node = importDeclarationPath.node
+    if (node.source.value !== pathToModule) {
+      return false
+    }
+    var specifiers = node.specifiers
 
-    if (type == ImportType.DEFAULT) {
+    if (type === ImportType.DEFAULT) {
       if (not(specifiers.some(hasImportDefaultSpecifier))) {
         var specifier = t.importDefaultSpecifier(identifier);
-        importDeclarationPath.unshiftContainer("specifiers", specifier);
-        return true;
+        importDeclarationPath.unshiftContainer('specifiers', specifier);
+        return true
       }
     }
 
-    if (type == ImportType.MEMBER) {
+    if (type === ImportType.MEMBER) {
       if (not(specifiers.some(hasSpecifierWithName, identifier))) {
-        var _specifier = t.importSpecifier(identifier, identifier);
+        var _specifier = t.importSpecifier(identifier, identifier)
 
-        importDeclarationPath.pushContainer("specifiers", _specifier);
-        return true;
+        importDeclarationPath.pushContainer('specifiers', _specifier)
+        return true
       }
     }
   }
 
   function hasImportDefaultSpecifier(node) {
-    return t.isImportDefaultSpecifier(node);
+    return t.isImportDefaultSpecifier(node)
   }
 
   function hasSpecifierWithName(node) {
-    if (not(t.isImportSpecifier(node))) return false;
-    var name = this.name;
-    return node.imported.name == name;
+    if (not(t.isImportSpecifier(node))) return false
+    const name = this.name
+    return node.imported.name === name
   }
 
   function getPathToModule(declaration, filename) {
-    if (declaration.path.includes("[name]")) {
-      var pattern = declaration.nameReplacePattern || "\\.js$";
-      var newSubString = declaration.nameReplaceString || "";
-      var name = filename.replace(new RegExp(pattern), newSubString);
-      return declaration.path.replace("[name]", name);
+    if (declaration.path.includes('[name]')) {
+      const pattern = declaration.nameReplacePattern || '\\.js$'
+      const newSubString = declaration.nameReplaceString || ''
+      const name = filename.replace(new RegExp(pattern), newSubString)
+      return declaration.path.replace('[name]', name)
     }
 
-    return declaration.path;
+    return declaration.path
   }
 }

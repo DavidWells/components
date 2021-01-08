@@ -2,6 +2,12 @@
 
 Use proxies in dev to guard against potentially missing styles for CSS modules.
 
+## Install
+
+```
+npm install babel-plugin-style-guard -D
+```
+
 To use, add to your babel config
 
 ```

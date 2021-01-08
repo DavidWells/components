@@ -1,8 +1,10 @@
 # Style Guard for CSS modules
 
-Use proxies in dev to guard against potentially missing styles for CSS modules
+Use proxies in dev to guard against potentially missing styles for CSS modules.
 
 Inspired from this [gist](https://gist.github.com/DavidWells/04e632a55b11c0ca53e9a8f41524d158)
+
+Automatically guard styles with the [babel-plugin-style-guard](https://www.npmjs.com/package/babel-plugin-style-guard)
 
 Example:
 
