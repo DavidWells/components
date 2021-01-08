@@ -5,18 +5,24 @@
   "dependencies": {
     "@davidwells/components-icon": "0.0.2",
     "@davidwells/components-input": "file:..",
+    "@davidwells/config-postcss": "0.0.12",
     "@davidwells/react-utils": "0.0.1",
     "@use-it/event-listener": "^0.1.6",
+    "babel-plugin-auto-import": "^1.1.0",
+    "lodash": "^4.17.20",
     "prop-types": "^15.7.2",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
     "react-scripts": "4.0.1"
   },
   "scripts": {
-    "start": "concurrently npm:dev-dev",
-    "dev-dev": "craco start",
+    "start": "rm -rf ./node_modules/.cache/babel-loader && concurrently npm:dev",
+    "dev": "craco start",
     "build": "craco build",
-    "test": "craco test"
+    "test": "craco test",
+    "postbuild": "node ./scripts/extract-media-queries.js",
+    "serve": "serve build",
+    "deploy": "netlify deploy -d build -p"
   },
   "browserslist": {
     "production": [
@@ -33,16 +39,29 @@
   "devDependencies": {
     "@craco/craco": "^6.0.0",
     "autoprefixer": "^9.8.6",
+    "babel-plugin-react-require": "^3.1.3",
+    "babel-plugin-style-guard": "0.0.4",
     "color": "^3.1.3",
     "concurrently": "^5.3.0",
+    "copy-webpack-plugin": "^7.0.0",
+    "cssnano": "^4.1.10",
+    "dedent": "^0.7.0",
+    "globby": "^11.0.1",
+    "html-webpack-tags-plugin": "^2.0.17",
     "icon-pipeline": "0.0.5",
+    "is-css-unit": "^1.0.0",
     "kleur": "^4.1.3",
     "pleeease-filters": "^4.0.0",
+    "postcss": "^8.2.1",
     "postcss-calc": "^7.0.5",
+    "postcss-cli": "^8.3.1",
     "postcss-color-function": "^4.1.0",
+    "postcss-combine-media-query": "^1.0.1",
+    "postcss-comment": "^2.0.0",
     "postcss-custom-media": "^7.0.8",
     "postcss-custom-properties": "9.2.0",
     "postcss-custom-selectors": "^5.1.2",
+    "postcss-extract-media-query": "^2.0.0",
     "postcss-flexbugs-fixes": "^4.2.1",
     "postcss-import": "^12.0.1",
     "postcss-initial": "3.0.2",
@@ -50,10 +69,15 @@
     "postcss-media-minmax": "^4.0.0",
     "postcss-mixins": "6.2.3",
     "postcss-nested": "4.2.3",
+    "postcss-nested-ancestors": "^2.0.0",
+    "postcss-nesting": "^7.0.1",
     "postcss-preset-env": "^6.7.0",
     "postcss-selector-matches": "^4.0.0",
     "postcss-selector-not": "^4.0.0",
     "postcss-simple-vars": "5.0.2",
+    "postcss-sort-media-queries": "^2.3.15",
+    "serve": "^11.3.2",
+    "tinycolor2": "^1.4.2",
     "validate-color": "^2.1.1"
   }
 }

@@ -1,5 +1,6 @@
 const Color = require('color')
 const validateColor = require("validate-color").default
+const dedent = require('dedent')
 
 let GLOBAL_TOKENS
 module.exports = (tokens) => {
@@ -35,6 +36,18 @@ module.exports = (tokens) => {
       `,
       'background-size': '158.51px 99.05px'*/
     },
+    /* Truncate text... */
+    truncate: {
+      overflow: 'hidden',
+      'text-overflow': 'ellipsis',
+      'white-space': 'nowrap',
+    },
+    /* Wrap words  */
+    wordWrap: {
+      'overflow-wrap': 'break-word',
+      'word-wrap': 'break-word'
+    },
+    /* Set placeholder text color  */
     placeholderColor: (_args, color) => {
       return {
         /* Chrome/Opera/Safari */
@@ -290,6 +303,42 @@ module.exports = (tokens) => {
         }
       }
     },
+    // Style external links
+    externalLink(_) {
+      const selector = dedent`
+        &[href^="http://"],
+        &[href^="https://"],
+        &[rel^="external"]
+      `
+      return {
+        [selector]: {
+          '@mixin-content': {},
+        }
+      }
+    },
+    inside(_, parentSelectors = '', childrenSelector = '') {
+      // console.log(require('util').inspect(_.nodes[0].raws, {showHidden: false, depth: null}))
+      return {
+        [`@nest ${parentSelectors} & ${childrenSelector}`]: {
+          '@mixin-content': {},
+        }
+      }
+    },
+    theme(_, kind = 'dark', extraSelectors = '') {
+      const hasParent = _ && _.parent && _.parent.selector
+      // console.log('xyz', _)
+      let selector = `@nest html[data-theme="${kind}"] ${extraSelectors} &`
+      if (!hasParent) {
+        selector = `html[data-theme="${kind}"] ${extraSelectors}`
+      }
+
+      // console.log(require('util').inspect(_.nodes[0].raws, {showHidden: false, depth: null}))
+      return {
+        [`${selector}`]: {
+          '@mixin-content': {},
+        }
+      }
+    },
     /**
      * Colorscheme mixin
      * @param {*} _
@@ -310,10 +359,15 @@ module.exports = (tokens) => {
         '&::after': pseudo
       }
     },
-    coverBackground: {
-      'background-repeat': 'no-repeat',
-      'background-size': 'cover',
-      'background-position': 'center',
+    // Background images used for full-width cover.
+    backgroundCover(_, imagePath = false, backgroundTop = 'center', backgroundLeft = 'center') {
+      return {
+        ...(imagePath) ? { 'background-image': `url(${imagePath})` } : {},
+        'background-repeat': 'no-repeat',
+        'background-size': 'cover',
+        'background-position': `${backgroundTop} ${backgroundLeft}`,
+        '@mixin-content': {}
+      }
     },
     /* Inline border mixins */
     borderInsetCustom: borderInset,
@@ -337,7 +391,36 @@ module.exports = (tokens) => {
     },
     borderInset(_, width = 1, color) {
       return borderInset(_, width, width, width, width, color)
+    },
+    /* Pseudo Elements */
+    pseudo(_, width = '100%', height = '100%', display = 'inline-block', pos = 'absolute', content = "''") {
+      return pseudo(_, width, height, display, pos, content)
+    },
+    pseudoBefore(_, width = 'auto', height = '100%', display = 'inline-block', pos = 'absolute', content = "'xx'") {
+      return {
+        ...pseudo(_, width, height, display, pos, content),
+        right: '100%',
+      }
+    },
+    pseudoAfter(_, width = 'auto', height = '100%', display = 'inline-block', pos = 'absolute', content = "'xx'") {
+      return {
+        ...pseudo(_, width, height, display, pos, content),
+        left: '100%',
+      }
     }
+    // N of X helpers https://github.com/LukyVj/family.scss/blob/master/source/src/_family.scss
+
+    // Width calculations https://github.com/mobify/spline/blob/develop/dist/utilities/dimensions/_dimensions.scss
+  }
+}
+
+function pseudo(_, width = '100%', height = '100%', display = 'inline-block', pos = 'absolute', content = "''") {
+  return {
+    content: `${content}`,
+    display: `${display}`,
+    position: `${pos}`,
+    width: `${width}`,
+    height: `${height}`,
   }
 }
 
@@ -406,6 +489,23 @@ function ensureColor(color, defaultColor) {
   throw new Error(`Invalid color "${color}" passed`)
 }
 /*
+// CSS variable shortcuts
+// Type mixins https://github.com/5310/footoscope.club/blob/43dc3655e7deb5746f7a8a91dbeb22007e3056f8/src/content/mock/index.css#L58
+@define-mixin type $name {
+  font-size: var(--type-$(name)-size, 1em);
+  font-weight: var(--type-$(name)-weight, 400);
+}
+// usage:
+:root {
+  --f3: 1.953rem;
+  --type-headline-3-size: var(--f3);
+  --type-headline-3-weight: 700;
+}
+h1 {
+  @mixin type headline-3;
+}
+
+
 // Visibility
 @define-mixin hide {
   opacity: 0;
@@ -529,6 +629,7 @@ function ensureColor(color, defaultColor) {
 
 
 /*
+fullwidth container
 https://github.com/Datawheel/authority-health/blob/ef35fb353220b058d280eed67a0638a7ac472459/app/css/mixins.css#L143
 */
 
@@ -566,6 +667,8 @@ contrain images? https://github.com/FlynnLeeGit/sfddmobile/blob/b0b8535446bc9778
 
 
 /*
+GRID
+https://cherry.design/css/cherry-grid
 
 https://github.com/abyMosa/elmboiler/blob/a1da27214d7b72ad9846cb653d1b8fc29c1326b2/src/assets/css/mixins/grid.css#L13
 
@@ -614,4 +717,695 @@ https://github.com/abyMosa/elmboiler/blob/a1da27214d7b72ad9846cb653d1b8fc29c1326
 @define-mixin make-col-offset $size{
     margin-left: calc( ($size / 12) * 100% );
 }
+*/
+
+/*
+Hairline borders
+@define-mixin top_1px $color {
+    position: relative;
+    &:after {
+        border-top:1px solid $color;
+        width:200%;
+        height:200%;
+        position:absolute;
+        top:0;
+        left:0;
+        z-index:0;
+        content:"";
+        transform:scale(0.5);
+        transform-origin:0 0;
+        box-sizing:border-box;
+    }
+}
+
+@define-mixin right_1px $color {
+    position: relative;
+    &:after {
+        border-right:1px solid $color;
+        width:200%;
+        height:200%;
+        position:absolute;
+        top:0;
+        left:0;
+        z-index:0;
+        content:"";
+        transform:scale(0.5);
+        transform-origin:0 0;
+        box-sizing:border-box;
+    }
+}
+
+@define-mixin bottom_1px $color {
+    position: relative;
+    &:after {
+        border-bottom:1px solid $color;
+        width:200%;
+        height:200%;
+        position:absolute;
+        top:0;
+        left:0;
+        z-index:0;
+        content:"";
+        transform:scale(0.5);
+        transform-origin:0 0;
+        box-sizing:border-box;
+    }
+}
+
+
+@define-mixin left_1px $color {
+    position: relative;
+    &:after {
+        border-left:1px solid $color;
+        width:200%;
+        height:200%;
+        position:absolute;
+        top:0;
+        left:0;
+        z-index:0;
+        content:"";
+        transform:scale(0.5);
+        transform-origin:0 0;
+        box-sizing:border-box;
+    }
+}
+
+@define-mixin all_1px $color {
+    position: relative;
+    &:after {
+        border:1px solid $color;
+        width:200%;
+        height:200%;
+        position:absolute;
+        top:0;
+        left:0;
+        z-index:0;
+        content:"";
+        transform:scale(0.5);
+        transform-origin:0 0;
+        box-sizing:border-box;
+    }
+}
+*/
+
+/*
+Ghost buttons
+https://github.com/egoist/hack/blob/b2b7c5f0f411520651ae3995e66d574bf28ff98f/src/css/mixins.css#L6
+*/
+
+/*
+Transitions
+https://github.com/bendyorke/pushupsio/blob/610cc966dbba2ccab11272f5049b9f4001aca61a/app/css/base/mixins.css#L76
+https://github.com/bendyorke/pushupsio/blob/610cc966dbba2ccab11272f5049b9f4001aca61a/app/css/Account.css#L19
+
+*/
+
+/*
+https://github.com/callumflack/callum-flack-blog/blob/6f94ae06f7cf9e4ff8ad548d6ef2bd999c3cadd7/assets/styles/utilities/helpers.css#L104
+  reset of all properties…
+  1. to initial values
+  2. to inheritable values, or else initial values
+
+@define-mixin is-initial {
+  all: initial;
+}
+
+@define-mixin is-unset {
+  all: unset;
+}
+*/
+
+/*
+// media queries
+@define-mixin at380 {
+  @media (min-width: 380px) {
+    @mixin-content;
+  }
+}
+@define-mixin mq $break {
+  @media (min-width: $break) { @mixin-content; }
+}
+
+@define-mixin mq-max $break {
+  @media (max-width: $break) { @mixin-content; }
+}
+*/
+
+
+/*
+CSS arrows
+https://github.com/zengzih/layout-ui/blob/dcae7c16ac13ec5521d4eedc3cf91551d130b959/src/styles/postcss/mixins/sc.mixins.util.css#L114
+@define-mixin setTopArrow $arrowsize $borderWidth $borderColor {
+	display: inline-block;
+    height: $arrowsize;
+    width: $arrowsize;
+    border-width: $borderWidth $borderWidth 0 0;
+    border-color: $borderColor;
+    border-style: solid;
+    / rotate(-45deg);
+    transform: matrix(0.71,-0.71,0.71,0.71,0,0);
+
+    position: relative;
+    top: -2px;
+}
+
+@define-mixin setRightArrow $arrowsize $borderWidth $borderColor {
+	display: inline-block;
+    height: $arrowsize;
+    width: $arrowsize;
+    border-width: $borderWidth $borderWidth 0 0;
+    border-color: $borderColor;
+    border-style: solid;
+
+    transform: matrix(0.71,0.71,-0.71,0.71,0,0); // rotate(45deg);
+
+    position: relative;
+    top: -2px;
+}
+
+@define-mixin setDownArrow $arrowsize $borderWidth $borderColor {
+	display: inline-block;
+    height: $arrowsize;
+    width: $arrowsize;
+    border-width: $borderWidth $borderWidth 0 0;
+    border-color: $borderColor;
+    border-style: solid;
+
+    transform: matrix(-0.71,0.71,-0.71,-0.71,0,0); // rotate(135deg);
+
+    position: relative;
+    top: -2px;
+}
+
+@define-mixin setLeftArrow $arrowsize $borderWidth $borderColor {
+	display: inline-block;
+    height: $arrowsize;
+    width: $arrowsize;
+    border-width: $borderWidth $borderWidth 0 0;
+    border-color: $borderColor;
+    border-style: solid;
+
+    transform: matrix(-0.71,-0.71,0.71,-0.71,0,0); // rotate(-135deg);
+
+    position: relative;
+    top: -2px;
+}
+
+@define-mixin _rotate $deg {
+	transform:rotate($deg);
+	-ms-transform:rotate($deg);
+	-moz-transform:rotate($deg);
+	-webkit-transform:rotate($deg);
+	-o-transform:rotate($deg);
+}
+
+@define-mixin _translate $x,$y {
+	transform: translate($x, $y);
+	-ms-transform: translate($x, $y);
+	-moz-transform: translate($x, $y);
+	-webkit-transform: translate($x, $y);
+	-o-transform: translate($x, $y);
+}
+
+@define-mixin _translateX $x {
+	transform: translateX($x);
+	-ms-transform: translateX($x);
+	-moz-transform: translateX($x);
+	-webkit-transform: translateX($x);
+	-o-transform: translateX($x);
+}
+
+@define-mixin _translateY $y {
+	transform: translateY($y);
+	-ms-transform: translateY($y);
+	-moz-transform: translateY($y);
+	-webkit-transform: translateY($y);
+	-o-transform: translateY($y);
+}
+*/
+
+/*
+Chevron
+https://github.com/scriptex/itcss/blob/0dab9583f2a75eb1cce8bb6ec2d45f5f36f28182/assets/tools/_chevron.css#L3
+
+@define-mixin chevron $dimensions: 1rem, $border-width: 0 0 1px 1px, $border-color: currentColor, $margin: auto, $rotation: 45deg {
+	content: '';
+	width: $dimensions;
+	height: $dimensions;
+	display: inline-block;
+	vertical-align: middle;
+	border-width: $border-width;
+	border-style: solid;
+	border-color: $border-color;
+	margin: $margin;
+	transform: rotate($rotation);
+	transform-origin: 50% 50%;
+	transition: all var(--timing) var(--easing);
+}
+*/
+
+
+/*
+Color varients
+https://github.com/cristianoliveira/react-lib-boilerplate/blob/de85472926480ff6bc8356f8efa38702dba99076/src/theme/_mixins.css#L3
+@define-mixin base-color $style {
+  $(style): color(var(--black) tint(35%));
+}
+
+@define-mixin dark-color $style {
+  $(style): color(var(--black) tint(11%));
+}
+
+@define-mixin light-color $style {
+  $(style): color(var(--black) tint(60%));
+}
+*/
+
+/*
+12 column grid via flex
+
+https://github.com/DEEP-IMPACT-AG/cherry-grid/blob/7588d6c131a64ddcfde859b6aca356d608a65ce6/src/Content/Col/Col.css#L3-L90
+*/
+
+
+/*
+// Breakpoints
+// https://github.com/Kataphratto/addaphratto/blob/f6d89edab03d8fb774db4230c511547ef73679bb/wp-content/themes/repowp/modules/css/base/mixins.css#L5
+@define-mixin breakpoint $value{
+
+    @if $value == mobile {
+      // da 480px
+      @media all and (min-width: 30em) { @mixin-content; }
+    }
+
+    @if $value == mobile_only{
+      /* da 768px
+      @media all and (max-width: 767px) { @mixin-content; }
+    }
+
+    @if $value == tablet_portrait{
+      // da 768px
+      @media all and (min-width: 48em) { @mixin-content; }
+    }
+
+    @if $value == tablet_landscape{
+      // da 1024px
+      @media all and (min-width: 64em) { @mixin-content; }
+    }
+
+    @if $value == desktop{
+      // da 1230px
+      @media all and (min-width: 76.875em) { @mixin-content; }
+    }
+}
+@mixin breakpoint desktop{
+		margin-top: 85px;
+	}
+*/
+
+/*
+// https://github.com/Kataphratto/addaphratto/blob/f6d89edab03d8fb774db4230c511547ef73679bb/wp-content/themes/repowp/modules/css/base/mixins.css#L39
+@define-mixin Thin{
+    font-family: 'Libre Franklin', sans-serif;
+    font-weight: 100;
+}
+@define-mixin ExtraLightItalic{
+    font-family: 'Libre Franklin', sans-serif;
+    font-weight: 200;
+    font-style: italic;
+}
+@define-mixin Light{
+    font-family: 'Libre Franklin', sans-serif;
+    font-weight: 300;
+}
+@define-mixin Regular{
+    font-family: 'Libre Franklin', sans-serif;
+    font-weight: 400;
+}
+@define-mixin SemiBold{
+    font-family: 'Libre Franklin', sans-serif;
+    font-weight: 600;
+}
+@define-mixin Bold{
+    font-family: 'Libre Franklin', sans-serif;
+    font-weight: 700;
+}
+// usage
+@define-mixin Title{
+    @mixin Thin;
+    font-size: 32px;
+    line-height: 32px;
+    color: $menu-color;
+
+    @mixin breakpoint tablet_portrait{
+        font-size: 44px;
+        line-height: 44px;
+    }
+}
+
+
+
+/* Hidden Text
+
+// "Display none effect", without using display:none. Perfect for SEO.
+
+@define-mixin hiddenText{
+    display:block !important;
+    border:0 !important;
+    margin:0 !important;
+    padding:0 !important;
+    font-size:0 !important;
+    line-height:0 !important;
+    width:0 !important;
+    height:0 !important;
+    overflow:hidden !important;
+}
+*/
+
+
+/*********************
+MIN SIZING
+@define-mixin min-size $height, $width {
+  height: $height;
+  min-height: $height;
+  width: $width;
+  min-width: $width;
+}
+
+MAX HEIGHT
+@define-mixin max-height $height {
+  height: $height;
+  max-height: $height;
+}
+*********************/
+
+
+/*
+// https://github.com/ivolimasilva/ivolimasilva.github.io/blob/a3a87e7af7615637920e01049b1ecf1bfbdb39c8/src/shared/styles/mixins/themes.css#L1
+@define-mixin theme-light $selector: null {
+    @media (prefers-color-scheme: light) {
+        body:not([data-theme]) {
+            @mixin-content;
+        }
+    }
+
+    @media (prefers-color-scheme: dark) {
+        body[data-theme] {
+            @mixin-content;
+        }
+    }
+}
+
+@define-mixin theme-dark $selector: null {
+    @media (prefers-color-scheme: dark) {
+        body:not([data-theme]) {
+            @mixin-content;
+        }
+    }
+
+    @media (prefers-color-scheme: light) {
+        body[data-theme] {
+            @mixin-content;
+        }
+    }
+}
+
+// usage:
+@mixin theme-light {
+  background-color: var(--background-color-light);
+}
+// in type https://github.com/ivolimasilva/ivolimasilva.github.io/blob/a3a87e7af7615637920e01049b1ecf1bfbdb39c8/src/shared/styles/global/typography.css#L20
+@mixin theme-light {
+    color: var(--color-black);
+}
+@mixin theme-dark {
+    color: var(--color-white);
+}
+*/
+
+
+/*
+https://github.com/engageinteractive/core/blob/master/src/scss/utility/_mixins.scss#L389
+	Responsive ratio
+	Used for creating scalable elements that maintain the same ratio
+	example:
+	.element {
+		@include responsive-ratio(400, 300);
+	}
+
+@mixin responsive-ratio($x,$y, $pseudo: false) {
+	$padding: unquote( ( $y / $x ) * 100 + '%' );
+
+	@if $pseudo {
+		&::before {
+			@include pseudo($pos: relative);
+			width: 100%;
+			padding-top: $padding;
+		}
+	} @else {
+		padding-top: $padding;
+	}
+}
+
+*/
+
+
+/*
+REM calc
+// example: @include rem("margin", 10, 5, 10, 5);
+// example: @include rem("font-size", 14);
+https://github.com/ryanburgess/SASS-Useful-Mixins/blob/master/mixins/_rem.scss#L16
+
+@mixin rem($property, $values...) {
+  $n: length($values);
+  $i: 1;
+
+  $pxlist: ();
+  $remlist: ();
+
+  @while $i <= $n {
+    $itemVal: (nth($values, $i));
+    @if $itemVal != "auto"{
+      $pxlist: append($pxlist, $itemVal + px);
+      //$remlist: append($remlist, ($itemVal / 10) + rem); // Use this if you've set HTML font size value to 62.5%
+      $remlist: append($remlist, ($itemVal / 16) + rem);
+    } @else {
+      $pxlist: append($pxlist, auto);
+      $remlist: append($remlist, auto);
+    }
+
+    $i: $i + 1;
+  }
+
+  #{$property}: $pxlist;
+  #{$property}: $remlist;
+}
+
+>>>>>>>>>>>>>>>also
+
+function fontSize(mixin, px) {
+    const pxNumb = px * 1 // convert String to Number
+    return {
+        'font-size': (pxNumb / 16) + 'rem',
+        [`@media (min-width: ${breakpoints.md})`]: {
+            'font-size': ((pxNumb + 2) / 16) + 'rem',
+        },
+    };
+}
+
+>>>>>>>>>>>>>>>also
+
+@mixin font-size($font-size, $line-height: normal, $letter-spacing: normal) {
+  font-size: $font-size * 1px;
+  // font-size: $font-size * 0.1rem;
+  // example using rem values and 62.5% font-size so 1rem = 10px
+
+  @if $line-height==normal {
+    line-height: normal;
+  } @else {
+    line-height: $line-height / $font-size;
+  }
+
+  @if $letter-spacing==normal {
+    letter-spacing: normal;
+  } @else {
+    letter-spacing: #{$letter-spacing / $font-size}em;
+  }
+}
+
+//
+p {
+  @include font-size(12, 18, 1.2);
+  // returns
+  font-size: 12px;
+  line-height: 1.5; // 18 / 12
+  letter-spacing: 0.1em;
+}
+
+Also
+
+https://github.com/mobify/spline/blob/develop/dist/functions/rem/_rem.scss#L14
+
+*/
+
+
+/*
+// https://dev.to/alemesa/10-awesome-sass-scss-mixins-5ci2
+@mixin fade($type) {
+  @if $type== "hide" {
+    visibility: hidden;
+    opacity: 0;
+    transition: visibility 1s, opacity 1s;
+  } @else if $type== "show" {
+    visibility: visible;
+    opacity: 1;
+    transition: visibility 1s, opacity 1s;
+  }
+}
+*/
+
+/*
+Background transition
+https://codepen.io/alemesa/pen/XWbXLNK
+@mixin background-transition($initial, $hover, $inversed: false) {
+  background: linear-gradient(
+    90deg,
+    $hover 0%,
+    $hover 50%,
+    $initial 50%,
+    $initial 100%
+  );
+  background-repeat: no-repeat;
+  background-size: 200% 100%;
+
+  background-position: right bottom;
+  @if $inversed {
+    background-position: left bottom;
+  }
+  transition: background-position 0.25s ease-out;
+
+  &:hover {
+    background-position: left bottom;
+    @if $inversed {
+      background-position: right bottom;
+    }
+  }
+}
+// usage
+&:nth-of-type(1) {
+  @include background-transition(#4CAF50, #3F51B5);
+}
+
+&:nth-of-type(2) {
+  color: #424242;
+  @include background-transition(#FFEE58, #e57373, true);
+}
+
+&:nth-of-type(3) {
+  @include background-transition(#311B92, #1976D2);
+}
+*/
+
+
+/*
+/ Generates a grow-then-shrink (or shrink-then-grow) animation using transform(scale).
+
+/ @example scss - Usage
+/   .foo {
+/     @include scale(0.5, 3s ease infinite alternate);
+/   }
+/ @example css - Result
+/   .foo {
+/     -webkit-animation: "scale-0-5" 3s ease infinite alternate;
+/     animation: "scale-0-5" 3s ease infinite alternate;
+/   }
+/  // -webkit- prefixed @keyframes are also generated
+/  @keyframes scale-0-5 {
+/    from, to {
+/      -webkit-transform: scale(1);
+/      -ms-transform: scale(1);
+/      transform: scale(1);
+/    }
+/    50% {
+/      -webkit-transform: scale(0.5);
+/      -ms-transform: scale(0.5);
+/      transform: scale(0.5);
+/    }
+/  }
+@mixin scale($scale-change:1.1, $animation-properties: 1s ease-in-out) {
+  $alias: 'scale-' + str-replace($scale-change + '', '.', '-');
+
+  @include keyframes($alias){
+    0%, 100% {
+      @include transform(scale(1));
+    }
+    50% {
+      @include transform(scale($scale-change));
+    }
+  }
+
+  @include prefix(animation, $alias $animation-properties, 'webkit');
+}
+
+
+Slide in from
+
+https://github.com/gillesbertaux/andy/blob/master/andy.scss#L659-L709
+
+*/
+
+
+/*
+absolute positioning
+// https://cssowl.owl-stars.com/documentation.html#cssowl-absolute
+.example-absolute-inside
+  > .top-center
+    +cssowl-absolute-inside(10px, 10px, top, center)
+  > .middle-right
+    +cssowl-absolute-inside(10px, 10px, middle, right)
+  > .bottom-center
+    +cssowl-absolute-inside(10px, 10px, bottom, center)
+  > .middle-left
+    +cssowl-absolute-inside(10px, 10px, middle, left)
+https://github.com/owl-stars/cssowl/blob/master/src/cssowl/absolute/absolute.yml
+ */
+
+
+/*
+Color swap
+https://github.com/davidtheclark/scut/blob/v1.4.0/src/general/_color-swap.scss
+*/
+
+/*
+Circle
+https://github.com/davidtheclark/scut/blob/v1.4.0/src/general/_circle.scss
+
+Triangle
+https://davidtheclark.github.io/scut/triangle.html
+
+Sidelined text
+https://davidtheclark.github.io/scut/side-lined.html
+*/
+
+
+/*
+Dashed line - https://oulu.github.io/articles/mixins/mixins-line.html
+
+.wrapper:after {
+  width: 100%;
+  display: block;
+  background-image: url('data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4gPHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJncmFkIiBncmFkaWVudFVuaXRzPSJvYmplY3RCb3VuZGluZ0JveCIgeDE9IjAuMCIgeTE9IjAuNSIgeDI9IjEuMCIgeTI9IjAuNSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzAwMDAwMCIvPjxzdG9wIG9mZnNldD0iNjYuNjY2NjclIiBzdG9wLWNvbG9yPSIjMDAwMDAwIi8+PHN0b3Agb2Zmc2V0PSI2Ni42NjY2NyUiIHN0b3AtY29sb3I9IiMwMDAwMDAiIHN0b3Atb3BhY2l0eT0iMC4wIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMDAwMDAwIiBzdG9wLW9wYWNpdHk9IjAuMCIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JhZCkiIC8+PC9zdmc+IA==');
+  background-size: 100%;
+  background-image: linear-gradient(to right, #000000, #000000 66.66667%, rgba(0, 0, 0, 0) 66.66667%, rgba(0, 0, 0, 0) 100%);
+  background-size: 30px 30px;
+  height: 4px;
+  height: 0.4rem;
+}
+
+*/
+
+
+/*
+Animations
+https://github.com/colindresj/saffron/blob/master/saffron/entrances/_stretch.scss
 */

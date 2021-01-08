@@ -1,18 +1,36 @@
 const path = require('path')
-const { addBeforeLoader, addAfterLoader, loaderByName, getLoaders } = require("@craco/craco");
-const hotReloadPostCSS = require('./postcss-hot-loader')
+const HtmlWebpackTagsPlugin = require('html-webpack-tags-plugin')
+const { hotLoadPostCSS, webpackLoaderOptionUtil } = require('@davidwells/config-postcss')
+const { save } = require('./scripts/utils/persist')
+
+class PersistBuildHashWebpackPlugin {
+  apply(compiler) {
+    // Specify the event hook to attach to
+    compiler.hooks.emit.tapAsync('PersistBuildHashWebpackPlugin', (compilation, callback) => {
+      // Save build hash
+      save({ hash: compilation.hash }).then(() => callback())
+    })
+  }
+}
+
+// https://github.com/djaax/html-webpack-inline-style-plugin/blob/master/index.js
+// https://github.com/architgarg/html-webpack-injector/blob/master/index.js
 
 module.exports = async function({ env }) {
   const isEnvDevelopment = env === "development"
   const isEnvProduction = env === "production"
 
-  const postcssPlugins = hotReloadPostCSS({
+  const postcssPlugins = hotLoadPostCSS({
+    /* pass in build environment */
+    env: env,
     /* Path to postcss config. Must return function */
     configPath: path.resolve(__dirname, './postcss.config'),
     /* Path to design token variables. */
     variablesPath: path.resolve(__dirname, './src/_variables'),
     /* Path to CSS mixins file */
     mixinsPath: path.resolve(__dirname, './src/_mixins'),
+    /* Path to CSS functions file */
+    functionsPath: path.resolve(__dirname, './src/_functions'),
     /* custom variable overrides */
     variableOverrides: {
       addedVar: 'yellow'
@@ -24,6 +42,11 @@ module.exports = async function({ env }) {
   })
 
   return {
+    babel: {
+      plugins: [
+       'babel-plugin-style-guard',
+      ],
+    },
     eslint: {
      enable: false
     },
@@ -58,27 +81,45 @@ module.exports = async function({ env }) {
        //  process.exit(1)
         return {
           ...webpackConfig,
+          plugins: webpackConfig.plugins.concat([
+            new PersistBuildHashWebpackPlugin(),
+            new HtmlWebpackTagsPlugin({
+              tags: [{
+                path: `static/css/responsive.css`,
+                attributes: {
+                  id: 'responsive-css',
+                  name: 'bob'
+                },
+                hash: (outputPath, hash) => {
+                  return outputPath.replace(/\.css$/, `-${hash}.css`)
+                }
+              }]
+            }),
+          ])
+          /*
           plugins: (() => webpackConfig.plugins.map(plugin => {
-            /* if (plugin.constructor.name === 'MiniCssExtractPlugin') {
+            /if (plugin.constructor.name === 'MiniCssExtractPlugin') {
               plugin.options = {
                 ...plugin.options,
                 filename: '[name].css',
                 chunkFilename: '[name].chunk.css'
               }
-            } */
+            }
             return plugin;
-          }))(),
+          }))(),*/
         }
       }
     },
     style: {
       postcss: {
-        // plugins: createReactPostCSSConfig(postCSSPlugins),
         loaderOptions: (postcssLoaderOptions, { env, paths }) => {
           /* Hot reload modules */
+          // postcssLoaderOptions.map = env === 'development' ? { inline: true } : false
+          postcssLoaderOptions.parser = require('postcss-comment')
           postcssLoaderOptions.plugins = postcssPlugins
           return postcssLoaderOptions;
         }
+        // loaderOptions: webpackLoaderOptionUtil(postcssPlugins)
       },
     },
   }

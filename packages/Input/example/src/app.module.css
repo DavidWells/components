@@ -3,10 +3,89 @@ $theme-color: #fa6526;
 $background-color: #fff;
 $default-border-color: #d5d5d6;
 
+a {
+
+  @mixin externalLink {
+    color: pink !important;
+    font-weight: bold;
+  }
+
+}
+
+.Xyz {
+    &-part{
+      color: blue;
+    }
+    &:hover {
+        > .Xyz-part {
+          color: purple;
+        } /* Must manually repeat ".MyComponent" for each child */
+    }
+}
+
+.Abc {
+    &-part{}
+    &:hover {
+        > ^&-part {
+          color: orange;
+        } /* Skip ":hover" inheritance here */
+    }
+}
+
+
+
+.levelOne {
+  .levelTwo {
+      .levelThree {
+          .levelFour {
+              & {
+                /*  & = ".levelOne .levelTwo .levelThree .levelFour" */
+                color: red;
+              }
+              ^& {
+                /*  ^& = ".levelOne .levelTwo .levelThree"          */
+                color: white;
+              }
+              ^^& {
+                /*  ^^& = ".levelOne .levelTwo"                   */
+                color: blue;
+              }
+              ^^^& {
+                /*   ^^^& = ".levelOne"                            */
+                color: green;
+              }
+              ^^^^& {
+                /*  ^^^^& = ""                                    */
+                color: purple;
+              }
+            }
+        }
+    }
+}
+
+.MyComponent {
+  position: relative;
+  display: inline-block;
+  &:before {
+    @mixin pseudoBefore;
+    background: yellow;
+  }
+  &:after {
+    @mixin pseudoAfter;
+    background: blue;
+  }
+  .test {
+    ^&.part {
+        color: red;
+    }
+  }
+}
+
 
 body {
   background: #eee;
   @mixin scrollBar 10px;
+
 }
 .rule {
   &:hover {

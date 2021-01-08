@@ -8,6 +8,8 @@ $inputMedium: 44px;
   }
 }
 
+.defaultWrapper {}
+
 .input {
   width: 100%;
   box-sizing: border-box;
@@ -144,5 +146,17 @@ $inputMedium: 44px;
 @media (max-width: 768px) {
   .validationMessage {
     font-size: 11px;
+  }
+}
+
+@media (max-width: 650px) {
+  .validationMessage {
+    font-size: 8px;
+  }
+}
+
+@media (max-width: 514px) {
+  .validationMessage {
+    font-size: 8px;
   }
 }
