@@ -14,7 +14,6 @@
   "scripts": {
     "build": "../../node_modules/.bin/microbundle-crl --no-compress --format modern,cjs",
     "start": "../../node_modules/.bin/microbundle-crl watch --no-compress --format modern,cjs",
-    "prepare": "../../node_modules/.bin/run-s build",
     "lint": "npm run test:lint",
     "test": "../../node_modules/.bin/run-s test:unit test:lint test:build",
     "test:build": "../../node_modules/.bin/run-s build",
@@ -40,5 +39,6 @@
   },
   "files": [
     "dist"
-  ]
+  ],
+  "gitHead": "67ae1d96a5f2e2e27e010a302db105306f7b8070"
 }

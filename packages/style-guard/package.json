@@ -9,5 +9,6 @@
     "release:major": "npm version major && npm publish"
   },
   "author": "David Wells",
-  "license": "MIT"
+  "license": "MIT",
+  "gitHead": "67ae1d96a5f2e2e27e010a302db105306f7b8070"
 }

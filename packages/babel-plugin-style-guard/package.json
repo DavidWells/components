@@ -14,5 +14,6 @@
     "@babel/template": "^7.12.7",
     "logical-not": "^1.0.7",
     "style-guard": "^0.1.0"
-  }
+  },
+  "gitHead": "67ae1d96a5f2e2e27e010a302db105306f7b8070"
 }
