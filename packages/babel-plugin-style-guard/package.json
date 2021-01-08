@@ -1,6 +1,6 @@
 {
   "name": "babel-plugin-style-guard",
-  "version": "0.0.4",
+  "version": "0.1.0",
   "description": "Guard CSS modules against potentially missing styles in dev mode",
   "main": "index.js",
   "scripts": {
@@ -13,6 +13,6 @@
   "dependencies": {
     "@babel/template": "^7.12.7",
     "logical-not": "^1.0.7",
-    "style-guard": "^0.0.5"
+    "style-guard": "^0.1.0"
   }
 }

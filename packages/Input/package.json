@@ -1,6 +1,6 @@
 {
   "name": "@davidwells/components-input",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "description": "React Input Component",
   "author": "DavidWells",
   "license": "MIT",
@@ -26,7 +26,7 @@
     "release:major": "npm version major && npm publish"
   },
   "dependencies": {
-    "@davidwells/react-utils": "^0.0.1",
+    "@davidwells/react-utils": "^0.1.0",
     "clsx": "^1.1.1"
   },
   "peerDependencies": {
