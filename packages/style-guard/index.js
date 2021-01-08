@@ -1,6 +1,6 @@
 const ENV = process && process.env && process.env.NODE_ENV
 
-module.exports = function styleGuard(styles, cssFile, srcFile, varName = '') {
+module.exports = function styleGuard (styles, cssFile, srcFile, varName = '') {
   if (ENV !== 'development' || typeof Proxy === 'undefined') {
     return styles
   }

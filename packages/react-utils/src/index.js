@@ -8,6 +8,7 @@ import {
   isCompositeTypeElement
 } from './type-check'
 
+
 export {
   smartRender,
   isClassComponent,
