@@ -88,12 +88,13 @@ module.exports = function getPostCSSPlugins({ variables, mixins, functions, env 
       // ]
     },
     /* https://github.com/hudochenkov/postcss-sorting - Keeps rules and at-rules content in a sorted order */
-    'postcss-sorting': sortingOptions,
-    'postcss-reporter': {
-      clearReportedMessages: true,
-      throwError: isProd,
-      sortByPosition: true
-    },
+    // These dont work for some reason. Result in Error: [object Object] is not a PostCSS plugin
+    // 'postcss-sorting': sortingOptions,
+    // 'postcss-reporter': {
+    //   clearReportedMessages: true,
+    //   throwError: isProd,
+    //   sortByPosition: true
+    // },
     /* Shrink all the things https://github.com/cssnano/cssnano */
     ...(!isProd) ? {} : {
       'cssnano': {
