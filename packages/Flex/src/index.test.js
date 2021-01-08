@@ -1,5 +1,5 @@
 /* global describe it expect */
-import Flex from './index'
+import { Flex } from './'
 
 describe('Flex', () => {
   it('is truthy', () => {
