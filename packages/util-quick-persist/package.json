@@ -1,0 +1,17 @@
+{
+  "name": "quick-persist",
+  "version": "0.0.1",
+  "description": "Quickly persist values to file system. Useful for tests & other temporary values",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DavidWells/components/packages/util-quick-persist"
+  },
+  "scripts": {
+    "release:patch": "npm version patch && npm publish",
+    "release:minor": "npm version minor && npm publish",
+    "release:major": "npm version major && npm publish"
+  },
+  "author": "David Wells",
+  "license": "MIT"
+}
