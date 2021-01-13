@@ -40,3 +40,17 @@ async function runExample() {
 runExample()
 
 ```
+
+By default values are written to `/node_modules/quick-persist/.cache`.
+
+You can use a custom path with the second arg
+
+```js
+const path = require('path')
+
+async function runExample() {
+  await save({ hello: 'there' }, path.resolve('my-custom-path'))
+  const val = await get('hello', path.resolve('my-custom-path'))
+  console.log(val)
+  // 'there'
+```
