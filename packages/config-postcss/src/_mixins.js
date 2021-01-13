@@ -1,6 +1,7 @@
 const Color = require('color')
 const validateColor = require("validate-color").default
 const dedent = require('dedent')
+// https://twitter.com/loige/status/1348944989573832704
 
 let GLOBAL_TOKENS
 module.exports = (tokens) => {

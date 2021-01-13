@@ -36,7 +36,7 @@
     "postcss-combine-media-query": "^1.0.1",
     "postcss-comment": "^2.0.0",
     "postcss-custom-media": "^7.0.8",
-    "postcss-custom-properties": "9.2.0",
+    "postcss-custom-properties": "^10.0.0",
     "postcss-custom-selectors": "^5.1.2",
     "postcss-extract-media-query": "^2.0.0",
     "postcss-flexbugs-fixes": "^4.2.1",
