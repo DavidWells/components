@@ -13,27 +13,30 @@ npm install quick-persist -D
 ```js
 const { save, get } = require('quick-persist')
 
-async function example() {
-  // Save values
+async function runExample() {
+  // Save single value
+  await save({ hello: 'there' })
+  // Save multiple values
   await save({
-    value: 'xyz',
+    value: '123',
     other: {
-      stuff: 'here'
+      stuff: 'abc'
     }
   })
-  // Get value by key using dotprop
+  // Get value by key using dot.prop
   const value = await get('value')
-  console.log('value', value)
-  // Get value by key using dotprop
+  console.log(value)
+  // "123"
   const otherValue = await get('other.stuff')
-  console.log('otherValue', otherValue)
-  // Get value
+  console.log(otherValue)
+  // "abc"
+
+  // Get All values
   const allValues = await get()
-  console.log('allValues', allValues)
+  console.log(allValues)
+  // "{hello: "there", value:"123",other:{"stuff":"abc"}}"
 }
 
-example()
-// value xyz
-// otherValue here
-// allValues { value: xyz }
+runExample()
+
 ```
