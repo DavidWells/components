@@ -120,6 +120,7 @@ module.exports = {
 
     'node/no-callback-literal': 'off',
 
+    'comma-dangle': 'off',
     'no-whitespace-before-property': 'off',
     'space-before-function-paren': 'off',
     'computed-property-spacing': 'off',
