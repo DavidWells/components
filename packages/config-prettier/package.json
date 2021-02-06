@@ -1,0 +1,10 @@
+{
+  "name": "@davidwells/prettier-config",
+  "version": "0.0.1",
+  "description": "My personal Prettier config",
+  "main": "index.json",
+  "license": "MIT",
+  "scripts": {
+    "docs": "../../node_modules/.bin/md-magic --path '**/*.md' --ignore 'node_modules'"
+  }
+}
