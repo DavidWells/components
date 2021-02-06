@@ -1,7 +1,7 @@
 {
   "name": "@davidwells/components-icon",
   "version": "0.1.1",
-  "description": "Icon component",
+  "description": "React Icon component",
   "author": "DavidWells",
   "license": "MIT",
   "repository": "DavidWells/components",

@@ -2,7 +2,7 @@
   "name": "@davidwells/components-example",
   "version": "1.0.1",
   "private": true,
-  "description": "form component",
+  "description": "Example component",
   "author": "DavidWells",
   "license": "MIT",
   "repository": "DavidWells/forms",
