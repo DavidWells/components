@@ -1,6 +1,6 @@
 {
   "name": "quick-persist",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Quickly persist values to file system. Useful for tests & other temporary values",
   "main": "index.js",
   "repository": {

@@ -49,8 +49,9 @@ You can use a custom path with the second arg
 const path = require('path')
 
 async function runExample() {
-  await save({ hello: 'there' }, path.resolve('my-custom-path'))
-  const val = await get('hello', path.resolve('my-custom-path'))
+  const customFilePath = path.resolve('my-custom-path')
+  await save({ hello: 'there' }, customFilePath)
+  const val = await get('hello', customFilePath)
   console.log(val)
   // 'there'
 ```
