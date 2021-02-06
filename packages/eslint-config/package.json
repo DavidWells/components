@@ -1,6 +1,6 @@
 {
   "name": "@davidwells/eslint-config",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "An ESLint shareable config",
   "keywords": [
     "eslint",
@@ -10,7 +10,8 @@
     "test": "eslint . && ./check-peer.js && yaspeller *.md",
     "release:patch": "npm version patch && npm publish",
     "release:minor": "npm version minor && npm publish",
-    "release:major": "npm version major && npm publish"
+    "release:major": "npm version major && npm publish",
+    "postinstall": "node ./postinstall.js"
   },
   "license": "MIT",
   "repository": "davidwells/components",
