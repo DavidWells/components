@@ -78,7 +78,7 @@ module.exports = {
         spaceBeforeFunctionParen: false,
         // breakLongMethodChains: true,
         breakLongMethodChains: false,
-        trailingComma: 'es5',
+        trailingComma: 'all',
         arrowParens: 'always',
         singleQuote: true,
         quoteProps: 'consistent',
