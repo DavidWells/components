@@ -1,7 +1,7 @@
 const path = require('path')
 const HtmlWebpackTagsPlugin = require('html-webpack-tags-plugin')
 const { hotLoadPostCSS, webpackLoaderOptionUtil } = require('@davidwells/config-postcss')
-const { save } = require('./scripts/utils/persist')
+const { save } = require('quick-persist')
 
 class PersistBuildHashWebpackPlugin {
   apply(compiler) {

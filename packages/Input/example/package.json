@@ -76,6 +76,7 @@
     "postcss-selector-not": "^4.0.0",
     "postcss-simple-vars": "5.0.2",
     "postcss-sort-media-queries": "^2.3.15",
+    "quick-persist": "0.0.1",
     "serve": "^11.3.2",
     "tinycolor2": "^1.4.2",
     "validate-color": "^2.1.1"
