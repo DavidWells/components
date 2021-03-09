@@ -26,8 +26,8 @@ Add to a pre or post build script
 {
   "name": "your-pkg-json",
   "scripts": {
-    "prebuild": "node ./persist-previous-assets.js",
-    "build": "react-scripts build"
+    "build": "react-scripts build",
+    "postbuild": "node ./persist-previous-assets.js",
   },
 }
 ```
