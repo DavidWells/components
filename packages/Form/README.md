@@ -28,3 +28,9 @@ class Example extends Component {
 ## License
 
 MIT © [DavidWells](https://github.com/DavidWells)
+
+## Other useful form libs
+
+- [@analytics/form-utils](https://www.npmjs.com/package/@analytics/form-utils)
+- [get-form-data](https://github.com/insin/get-form-data)
+- [formee](https://github.com/lukeed/formee)
