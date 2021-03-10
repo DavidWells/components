@@ -5,7 +5,7 @@
   "main": "index.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/DavidWells/components/packages/util-persist-previous-build-assets"
+    "url": "https://github.com/DavidWells/components/tree/master/packages/util-persist-previous-build-assets"
   },
   "scripts": {
     "release:patch": "npm version patch && npm publish",

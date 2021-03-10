@@ -3,6 +3,7 @@ const path = require('path')
 const got = require('got')
 const mkdirp = require('mkdirp')
 
+// eslint-disable-next-line promise/param-names
 const fileExists = (s) => new Promise(r => fs.access(s, fs.F_OK, e => r(!e)))
 
 module.exports = async function download(downloadUrl, outputPath) {
