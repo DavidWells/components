@@ -19,7 +19,7 @@ class LocalGit {
       return this.gitDiff
     }
     const base = this.options.base || 'master'
-    const head = 'HEAD'
+    const head = this.options.head || 'HEAD'
     this.gitDiff = await localGetDiff(base, head)
     return this.gitDiff
   }
@@ -32,15 +32,15 @@ class LocalGit {
   }
   async getPlatformGitRepresentation() {
     const base = this.options.base || 'master'
-    const head = 'HEAD'
+    const head = this.options.head || 'HEAD'
     const diff = await this.getGitDiff()
     // Array of commits
     const commits = await localGetCommits(base, head)
     const gitJSON = diffToGitJSONDSL(diff, commits)
     const config = {
       repo: process.cwd(),
-      baseSHA: this.options.base || 'master',
-      headSHA: 'HEAD',
+      baseSHA: base,
+      headSHA: head,
       getFileContents: localGetFileAtSHA,
       getFullDiff: localGetDiff
     }

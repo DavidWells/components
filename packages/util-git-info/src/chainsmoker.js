@@ -24,7 +24,7 @@ module.exports = function chainsmoker(keyedPaths) {
     }, {})
     return Object.assign(
       Object.assign({}, mapValues(keyedPaths, paths => paths.length > 0)),
-      Object.assign({}, foundFiles),
+      foundFiles,
       {
         getKeyedPaths: () => keyedPaths
       }
