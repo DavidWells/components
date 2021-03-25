@@ -17,13 +17,15 @@ module.exports = async function persistPreviousBuildAssets({ manifestUrl, output
   // Parse manifest
   const manifest = JSON.parse(content)
 
-  if (!manifest.files) {
+  const manifestContents = manifest.files || manifest
+
+  if (!manifestContents) {
     console.log(`No files found in manifest ${manifestUrl}`)
     return
   }
 
-  const filesToDownload = Object.keys(manifest.files).reduce((acc, curr) => {
-    const filePath = manifest.files[curr]
+  const filesToDownload = Object.keys(manifestContents).reduce((acc, curr) => {
+    const filePath = manifestContents[curr]
     if (filePath.match(/js$|css$/)) {
       acc = acc.concat(filePath)
     }
