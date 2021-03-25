@@ -18,7 +18,7 @@ const committer = `"committer": {"name": "${committerName}", "email": "${committ
 const formatJSON = `{ "sha": "${sha}", "parents": "${parents}", ${author}, ${committer}, "message": "${message}"},`
 
 const localGetCommits = (base, head) => {
-  return new Promise(done => {
+  return new Promise(resolve => {
     const args = ['log', `${base}...${head}`, `--pretty=format:${formatJSON}`]
     const child = spawn('git', args, { env: process.env })
     let stdOut = ''
@@ -38,21 +38,21 @@ const localGetCommits = (base, head) => {
     child.stderr.on('data', data => {
       stdErr += data.toString()
       console.error(`Could not get commits from git between ${base} and ${head}`)
-      throw new Error(cleanStack(data.toString()))
+      throw new Error(data.toString())
     })
     child.on('close', (code) => {
       if (code === 0) {
         // console.log(`exit_code = ${code}`);
         // console.log('no commits found')
-        return done(realCommits)
+        return resolve(realCommits)
       }
       // console.log(`exit_code = ${code}`);
-      return done(stdErr);
-    });
+      return resolve(stdErr)
+    })
     child.on('error', (error) => {
-      stdErr += error.toString();
-      if (stream_output) {
-        console.log(error.toString());
+      stdErr += error.toString()
+      if (stdOut || stdErr) {
+        console.log(error.toString())
       }
     })
   })

@@ -13,8 +13,8 @@ module.exports.gitJSONToGitDSL = (gitJSONRep, config) => {
   const getFullDiff = config.getStructuredDiffForFile
     ? null
     : memoize((base, head) => {
-        return config.getFullDiff(base, head)
-      }, (base, head) => `${base}...${head}`)
+      return config.getFullDiff(base, head)
+    }, (base, head) => `${base}...${head}`)
   /**
    * Takes a filename, and pulls from the PR the two versions of a file
    * where we then pass that off to the rfc6902 JSON patch generator.
@@ -145,11 +145,15 @@ module.exports.gitJSONToGitDSL = (gitJSONRep, config) => {
   const structuredDiffForFile = async filename => {
     let fileDiffs
     if (config.getStructuredDiffForFile) {
-      fileDiffs = await config.getStructuredDiffForFile(
-        config.baseSHA,
-        config.headSHA,
-        filename
-      )
+      try {
+        fileDiffs = await config.getStructuredDiffForFile(
+          config.baseSHA,
+          config.headSHA,
+          filename
+        )
+      } catch (err) {
+        console.log('config.getStructuredDiffForFile err', err)
+      }
     } else {
       const diff = await getFullDiff(config.baseSHA, config.headSHA)
       fileDiffs = parseDiff(diff)
@@ -198,6 +202,7 @@ module.exports.gitJSONToGitDSL = (gitJSONRep, config) => {
         .join(os.EOL)
     }
   }
+
   return {
     fileMatch: chainsmoker({
       modified: gitJSONRep.modified_files,
