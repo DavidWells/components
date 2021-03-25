@@ -6,7 +6,10 @@ const download = require('./utils/download')
 module.exports = async function persistPreviousBuildAssets({ manifestUrl, outputDir }) {
   const previousManifestPath = path.join(outputDir, 'asset-manifest-stale.json')
   const { origin } = new URL(manifestUrl)
-  await download(manifestUrl, previousManifestPath)
+
+  // download new manifest. Force download with true
+  await download(manifestUrl, previousManifestPath, true)
+
   let content
   try {
     content = await fs.readFile(previousManifestPath)
@@ -34,7 +37,8 @@ module.exports = async function persistPreviousBuildAssets({ manifestUrl, output
 
   const promises = filesToDownload.map((src) => {
     const savePath = path.join(outputDir, src)
-    return download(`${origin}${src}`, savePath)
+    const downloadUrl = `${origin}${src}`
+    return download(downloadUrl, savePath)
   })
 
   await Promise.all(promises)
