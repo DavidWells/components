@@ -22,6 +22,13 @@ export default function smartRender(componentOrString, propsToPass) {
     return componentOrString(propsToPass)
   }
 
+  if (Array.isArray(componentOrString)) {
+    return componentOrString.map((x) => {
+      return smartRender(x, propsToPass)
+    })
+  }
+
   // throw new Error('Invalid component passed')
-  return null
+
+  return componentOrString;
 }
