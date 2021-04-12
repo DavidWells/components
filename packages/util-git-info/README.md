@@ -83,3 +83,6 @@ gitData({
 ## Prior art
 
 This was originally found in [danger.js](https://danger.systems/js/) and extracted into this utility
+
+- [@netlify/build](https://github.com/netlify/build/tree/master/packages/git-utils)
+- [run-if-diff CLI](https://github.com/jameslnewell/run-if-diff)
