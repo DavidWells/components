@@ -87,9 +87,9 @@ function transformResolve(value, functionName, prop) {
     } catch (err) {
       console.log(`PostCSS Math error in resolve()`)
       console.log(`Please verify rule:`)
-      console.log(`> ${prop}: resolve${argString}`)
+      console.log(`>>> ${prop}: ${value}`)
       if (err.data && err.data.category && err.data.category === 'wrongType' && err.data.fn === 'addScalar') {
-        console.log('Likely missing or mismatched CSS unit in the above expression')
+        console.log('Probably a missing or mismatched CSS unit in the above expression')
       }
       console.log('───────────────────────')
       console.log("Error info", err.data)
@@ -118,7 +118,7 @@ module.exports = (opts = {}) => {
     // Transform CSS AST here
     css.walk(function(node) {
       var nodeProp;
-
+      // console.log('node', node)
       if (node.type === 'decl') {
         nodeProp = 'value';
       } else if (node.type === 'atrule' && node.name === 'media') {
