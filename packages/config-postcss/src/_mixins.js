@@ -1,5 +1,5 @@
 const Color = require('color')
-const validateColor = require("validate-color").default
+const validateColor = require('validate-color').default
 const dedent = require('dedent')
 // https://twitter.com/loige/status/1348944989573832704
 
@@ -27,15 +27,15 @@ module.exports = (tokens) => {
     },
     /* stripe background */
     stripedBackground: {
-      'background': 'repeating-linear-gradient(25deg, #2e303d, #2e303d 120px, #2a2c39 20px, #2a2c39 330px);',
-      /*'background-image': `linear-gradient(32deg, rgb(46, 48, 61) 14.29%,
+      background: 'repeating-linear-gradient(25deg, #2e303d, #2e303d 120px, #2a2c39 20px, #2a2c39 330px);',
+      /* 'background-image': `linear-gradient(32deg, rgb(46, 48, 61) 14.29%,
         rgb(42, 44, 57) 14.29%,
         rgb(42, 44, 57) 50%,
         rgb(46, 48, 61) 50%,
         rgb(46, 48, 61) 64.29%, rgb(42, 44, 57) 64.29%,
         rgb(42, 44, 57) 100%)
       `,
-      'background-size': '158.51px 99.05px'*/
+      'background-size': '158.51px 99.05px' */
     },
     /* Truncate text... */
     truncate: {
@@ -53,19 +53,19 @@ module.exports = (tokens) => {
       return {
         /* Chrome/Opera/Safari */
         '&::-webkit-input-placeholder': {
-          'color': color
+          color: color
         },
         /* Firefox 19+ */
         '&::-moz-placeholder': {
-          'color': color
+          color: color
         },
         /* IE 10+ */
         '&:-ms-input-placeholder': {
-          'color': color
+          color: color
         },
         /* Firefox 18- */
         '&:-moz-placeholder': {
-          'color': color
+          color: color
         },
       }
     },
@@ -85,7 +85,7 @@ module.exports = (tokens) => {
     debug: () => {
       return {
         '&': {
-          'animation': `debugWobble 0.5s ease-in-out alternate infinite`
+          animation: 'debugWobble 0.5s ease-in-out alternate infinite'
         },
         '@keyframes debugWobble': {
           '0%': {
@@ -121,7 +121,7 @@ module.exports = (tokens) => {
       }
     },
     // https://github.com/Datawheel/authority-health/blob/ef35fb353220b058d280eed67a0638a7ac472459/app/css/mixins.css#L142
-    fullwidthSection: () =>{
+    fullwidthSection: () => {
       return {
         'margin-left': 'auto',
         'margin-right': 'auto',
@@ -132,7 +132,7 @@ module.exports = (tokens) => {
     fullwidthPseudo: () => {
       return {
         /* pseudo stuff */
-        content: "",
+        content: '',
         display: 'block',
         /* positioning & sizing */
         position: 'absolute',
@@ -150,7 +150,7 @@ module.exports = (tokens) => {
     /* using @mixin-content example */
     isIe: function () {
       return {
-        'background': 'blue',
+        background: 'blue',
         '@mixin-content': {},
       }
     },
@@ -171,9 +171,9 @@ module.exports = (tokens) => {
           'grid-template-columns':
             // eslint-disable-next-line max-len
             '1fr 1fr 2fr 4fr 2.66fr 5.33fr 5.33fr 4.33fr 2.83fr 3.5fr 3.5fr 2.83fr 4.33fr 5.33fr 5.33fr 2.66fr 4fr 2fr 1fr 1fr'
-        });
+        })
       }
-      return styleSet;
+      return styleSet
     },
     /**
      * Create a scrollbar
@@ -289,15 +289,15 @@ module.exports = (tokens) => {
       return {
         position: 'relative',
         '&:after': {
-           background: background || 'inherit',
-           content: '""',
-           position: "absolute",
-           top: "0",
-           left: "0",
-           right: "0",
-           bottom: "0",
-           zIndex: -1,
-           transition: "transform 250ms"
+          background: background || 'inherit',
+          content: '""',
+          position: 'absolute',
+          top: '0',
+          left: '0',
+          right: '0',
+          bottom: '0',
+          zIndex: -1,
+          transition: 'transform 250ms'
         },
         '&:hover::after': {
           transform: `scale(${scale})`
@@ -355,7 +355,7 @@ module.exports = (tokens) => {
       }
       return {
         'background-color': $bgColor,
-        'color': $color,
+        color: $color,
         '&::before': pseudo,
         '&::after': pseudo
       }
@@ -420,11 +420,11 @@ module.exports = (tokens) => {
       if (!tokenName) {
         tokenName = name.replace(/\.?([A-Z]|[0-9])/g, function (x, y) {
           return '-' + y.toLowerCase()
-        }).replace(/^-/, '');
-        tokenName = tokenName.replace('.spectrum--', '');
+        }).replace(/^-/, '')
+        tokenName = tokenName.replace('.spectrum--', '')
       }
-      var output = getTypographyColor(name, tokenName, false);
-      addNodesToCSS(mixin, output);
+      const output = getTypographyColor(name, tokenName, false)
+      addNodesToCSS(mixin, output)
     }
     // N of X helpers https://github.com/LukyVj/family.scss/blob/master/source/src/_family.scss
 
@@ -448,7 +448,6 @@ function pseudo(_, width = '100%', height = '100%', display = 'inline-block', po
 }
 
 function borderInset(_, top, right, bottom, left, _color) {
-
   const color = ensureColor(_color)
   const gradient = `${color} 0%, ${color} 50%, ${color} 100%`
   return {
@@ -467,7 +466,6 @@ function borderInset(_, top, right, bottom, left, _color) {
   }
 }
 
-
 /* UTils */
 
 /**
@@ -480,12 +478,12 @@ function borderInset(_, top, right, bottom, left, _color) {
  * @returns {string} CSS output
  */
 function getTypographyColor(name, tokenName, showIndicatorBackground = false) {
-  var indicatorBackground = (showIndicatorBackground === true) ? 'background-color: orange;' : '';
-  var output = `${name} {
+  const indicatorBackground = (showIndicatorBackground === true) ? 'background-color: orange;' : ''
+  const output = `${name} {
     ${indicatorBackground}
     color: var(--spectrum-${tokenName.toLowerCase()}-text-color);
-  }`;
-  return output;
+  }`
+  return output
 }
 
 /**
@@ -495,11 +493,10 @@ function getTypographyColor(name, tokenName, showIndicatorBackground = false) {
  * @param {string} css css injected in the mixin
  */
 function addNodesToCSS(mixin, css) {
-  var nodes = postcssReal.parse(css);
-  nodes.nodes[0].append(mixin.nodes);
-  mixin.replaceWith(nodes);
+  const nodes = postcssReal.parse(css)
+  nodes.nodes[0].append(mixin.nodes)
+  mixin.replaceWith(nodes)
 }
-
 
 function atLeastOne(unit) {
   const value = Number(unit)
@@ -558,7 +555,6 @@ function ensureColor(color, defaultColor) {
 h1 {
   @mixin type headline-3;
 }
-
 
 // Visibility
 @define-mixin hide {
@@ -681,7 +677,6 @@ h1 {
 // Content sizes
 // https://github.com/feelfoundation/gcc-desktop/blob/ccdb93abca4f65fe5f8d5d25285cffee2ff17035/src/app/mixins.css#L1
 
-
 /*
 fullwidth container
 https://github.com/Datawheel/authority-health/blob/ef35fb353220b058d280eed67a0638a7ac472459/app/css/mixins.css#L143
@@ -718,7 +713,6 @@ contrain images? https://github.com/FlynnLeeGit/sfddmobile/blob/b0b8535446bc9778
 }
 
 */
-
 
 /*
 GRID
@@ -826,7 +820,6 @@ Hairline borders
     }
 }
 
-
 @define-mixin left_1px $color {
     position: relative;
     &:after {
@@ -904,7 +897,6 @@ https://github.com/callumflack/callum-flack-blog/blob/6f94ae06f7cf9e4ff8ad548d6e
   @media (max-width: $break) { @mixin-content; }
 }
 */
-
 
 /*
 CSS arrows
@@ -1018,7 +1010,6 @@ https://github.com/scriptex/itcss/blob/0dab9583f2a75eb1cce8bb6ec2d45f5f36f28182/
 }
 */
 
-
 /*
 Color varients
 https://github.com/cristianoliveira/react-lib-boilerplate/blob/de85472926480ff6bc8356f8efa38702dba99076/src/theme/_mixins.css#L3
@@ -1040,7 +1031,6 @@ https://github.com/cristianoliveira/react-lib-boilerplate/blob/de85472926480ff6b
 
 https://github.com/DEEP-IMPACT-AG/cherry-grid/blob/7588d6c131a64ddcfde859b6aca356d608a65ce6/src/Content/Col/Col.css#L3-L90
 */
-
 
 /*
 // Breakpoints
@@ -1117,8 +1107,6 @@ https://github.com/DEEP-IMPACT-AG/cherry-grid/blob/7588d6c131a64ddcfde859b6aca35
     }
 }
 
-
-
 /* Hidden Text
 
 // "Display none effect", without using display:none. Perfect for SEO.
@@ -1136,7 +1124,6 @@ https://github.com/DEEP-IMPACT-AG/cherry-grid/blob/7588d6c131a64ddcfde859b6aca35
 }
 */
 
-
 /*********************
 MIN SIZING
 @define-mixin min-size $height, $width {
@@ -1152,7 +1139,6 @@ MAX HEIGHT
   max-height: $height;
 }
 *********************/
-
 
 /*
 // https://github.com/ivolimasilva/ivolimasilva.github.io/blob/a3a87e7af7615637920e01049b1ecf1bfbdb39c8/src/shared/styles/mixins/themes.css#L1
@@ -1197,7 +1183,6 @@ MAX HEIGHT
 }
 */
 
-
 /*
 https://github.com/engageinteractive/core/blob/master/src/scss/utility/_mixins.scss#L389
 	Responsive ratio
@@ -1222,7 +1207,6 @@ https://github.com/engageinteractive/core/blob/master/src/scss/utility/_mixins.s
 }
 
 */
-
 
 /*
 REM calc
@@ -1302,7 +1286,6 @@ https://github.com/mobify/spline/blob/develop/dist/functions/rem/_rem.scss#L14
 
 */
 
-
 /*
 // https://dev.to/alemesa/10-awesome-sass-scss-mixins-5ci2
 @mixin fade($type) {
@@ -1360,7 +1343,6 @@ https://codepen.io/alemesa/pen/XWbXLNK
 }
 */
 
-
 /*
 / Generates a grow-then-shrink (or shrink-then-grow) animation using transform(scale).
 
@@ -1401,13 +1383,11 @@ https://codepen.io/alemesa/pen/XWbXLNK
   @include prefix(animation, $alias $animation-properties, 'webkit');
 }
 
-
 Slide in from
 
 https://github.com/gillesbertaux/andy/blob/master/andy.scss#L659-L709
 
 */
-
 
 /*
 absolute positioning
@@ -1423,7 +1403,6 @@ absolute positioning
     +cssowl-absolute-inside(10px, 10px, middle, left)
 https://github.com/owl-stars/cssowl/blob/master/src/cssowl/absolute/absolute.yml
  */
-
 
 /*
 Color swap
@@ -1441,7 +1420,6 @@ Sidelined text
 https://davidtheclark.github.io/scut/side-lined.html
 */
 
-
 /*
 Dashed line - https://oulu.github.io/articles/mixins/mixins-line.html
 
@@ -1457,7 +1435,6 @@ Dashed line - https://oulu.github.io/articles/mixins/mixins-line.html
 }
 
 */
-
 
 /*
 Animations
