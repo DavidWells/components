@@ -1,6 +1,6 @@
 {
   "name": "@davidwells/config-postcss",
-  "version": "0.0.17",
+  "version": "0.0.18",
   "description": "Reusable postcss config",
   "author": "DavidWells",
   "license": "MIT",
@@ -59,8 +59,6 @@
   },
   "devDependencies": {
     "dedent": "^0.7.0",
-    "postcss-comment": "^2.0.0",
     "uvu": "^0.5.1"
-  },
-  "gitHead": "67ae1d96a5f2e2e27e010a302db105306f7b8070"
+  }
 }
