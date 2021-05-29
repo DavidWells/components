@@ -24,6 +24,46 @@ describe('postcss-math', function() {
     );
   });
 
+  it('advanced resolve', function(done) {
+    test(
+      'p{ padding: resolve(16 + (2 * 3))px; }',
+      'p{ padding: 22px; }', {},
+      done
+    );
+  });
+
+  it('advanced resolve with units', function(done) {
+    test(
+      'p{ padding: resolve((16px + (2px * 3))); }',
+      'p{ padding: 22px; }', {},
+      done
+    );
+  });
+
+  it('ems resolves', function(done) {
+    test(
+      'p{ padding: resolve(2em + 2em); }',
+      'p{ padding: 4em; }', {},
+      done
+    );
+  });
+
+  it('rems resolves', function(done) {
+    test(
+      'p{ padding: resolve(2rem + 2rem); }',
+      'p{ padding: 4rem; }', {},
+      done
+    );
+  });
+
+  it('vh resolves', function(done) {
+    test(
+      'p{ padding: resolve(100vh * 0.5); }',
+      'p{ padding: 50vh; }', {},
+      done
+    );
+  });
+
   it('customised function name', function(done) {
     test(
       'p{ foo: calculate(2 * (3 + 5))px; }',

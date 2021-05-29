@@ -19,11 +19,15 @@ module.exports = function getPostCSSPlugins({ variables, mixins, functions, env 
       // addModulesDirectories: []
     },
     /* https://github.com/postcss/postcss-mixins - Must be before postcss-nested & postcss-simple-vars. Create custom CSS or JS mixins. */
-    'postcss-mixins': {
-      mixins: mixins,
-      // mixinsFiles: ['src/mixins/*.js', 'node_modules/xyz/*/src/mixins/*.js']
-      // mixinsDir: './src/mixins',
-    },
+    ...(!mixins)
+      ? {}
+      : {
+          'postcss-mixins': {
+            mixins: mixins,
+            // mixinsFiles: ['src/mixins/*.js', 'node_modules/xyz/*/src/mixins/*.js']
+            // mixinsDir: './src/mixins',
+          }
+        },
     /* https://github.com/postcss/postcss-simple-vars */
     'postcss-simple-vars': {
       variables: () => variables,
@@ -49,8 +53,8 @@ module.exports = function getPostCSSPlugins({ variables, mixins, functions, env 
     'postcss-media-minmax': {},
     /* https://github.com/postcss/postcss-calc */
     'postcss-calc': {},
-    /* https://github.com/shauns/postcss-math */
-    'postcss-math': {},
+    /* https://github.com/DavidWells/components/tree/master/packages/postcss-math-plugin fork of https://github.com/shauns/postcss-math */
+    '@davidwells/postcss-math': {},
     // /* https://github.com/toomuchdesign/postcss-nested-ancestors */
     'postcss-nested-ancestors': {},
     /* @nest rule https://github.com/jonathantneal/postcss-nesting */
@@ -96,13 +100,15 @@ module.exports = function getPostCSSPlugins({ variables, mixins, functions, env 
     //   sortByPosition: true
     // },
     /* Shrink all the things https://github.com/cssnano/cssnano */
-    ...(!isProd) ? {} : {
-      'cssnano': {
-        preset: "default",
-        discardComments: { removeAll: true },
-        zindex: false,
-      }
-    },
+    ...(!isProd)
+      ? {}
+      : {
+          cssnano: {
+            preset: 'default',
+            discardComments: { removeAll: true },
+            zindex: false,
+          }
+        },
   }
 }
 

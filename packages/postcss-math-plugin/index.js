@@ -1,9 +1,9 @@
-var postcss = require('postcss');
-var helpers = require('postcss-message-helpers');
-var reduceFunctionCall = require('reduce-function-call');
-var maths = require('mathjs');
-var PREFIXES = maths.Unit.PREFIXES;
-var BASE_UNITS = maths.Unit.BASE_UNITS;
+var postcss = require('postcss')
+var helpers = require('postcss-message-helpers')
+var reduceFunctionCall = require('reduce-function-call')
+var maths = require('mathjs')
+var PREFIXES = maths.Unit.PREFIXES
+var BASE_UNITS = maths.Unit.BASE_UNITS
 
 // create a mathjs instance
 const math = maths.create(maths.all)
@@ -22,13 +22,12 @@ var cssUnits = {
 };
 
 Object.keys(cssUnits).forEach(function(unitKey) {
+  var unit = cssUnits[unitKey];
+  /* // Old way of assignment mathjs v3
   BASE_UNITS[unitKey] = {
     dimensions: [0, 1, 0, 0, 0, 0, 0, 0, 0],
     key: unitKey
   };
-
-  var unit = cssUnits[unitKey];
-
   math.Unit.UNITS[unit] = {
     name: unit,
     base: BASE_UNITS[unitKey],
@@ -36,8 +35,17 @@ Object.keys(cssUnits).forEach(function(unitKey) {
     value: 1,
     offset: 0,
     dimensions: BASE_UNITS[unitKey].dimensions
-  };
-});
+  };*/
+
+  // Add CSS units
+  math.createUnit({
+    [unit]: {
+      baseName: BASE_UNITS[unitKey],
+      prefixes: PREFIXES.NONE,
+      offset: 0,
+    },
+  }, { override: true })
+})
 
 function strip(value) {
   return value.strip()
@@ -49,14 +57,9 @@ math.Unit.prototype.strip = function() {
 
 math.import({
   strip: strip,
-//   hello: function(name) {
-//     return 'hello, ' + name + '!'
-//   }
-});
+})
 
-const parser = math.parser()
-
-function transformResolve(value, functionName) {
+function transformResolve(value, functionName, prop) {
   return reduceFunctionCall(value, functionName, function(argString) {
 
     // Remove linebreaks to prevent brackets in output
@@ -78,7 +81,21 @@ function transformResolve(value, functionName) {
       argString = argString.substring(0, start) + number + ')';
     }
 
-    var res = math.evaluate(argString);
+    var res
+    try {
+      res = math.evaluate(argString);
+    } catch (err) {
+      console.log(`PostCSS Math error in resolve()`)
+      console.log(`Please verify rule:`)
+      console.log(`> ${prop}: resolve${argString}`)
+      if (err.data && err.data.category && err.data.category === 'wrongType' && err.data.fn === 'addScalar') {
+        console.log('Likely missing or mismatched CSS unit in the above expression')
+      }
+      console.log('───────────────────────')
+      console.log("Error info", err.data)
+      console.log('───────────────────────')
+      throw err
+    }
     // var res = parser.evaluate(argString);
     // Add previous splitted unit if any
     var formatted = res.toString() + unit;
@@ -86,7 +103,7 @@ function transformResolve(value, functionName) {
     // Math.JS puts a space between numbers and units, drop it.
     formatted = formatted.replace(/(.+) ([a-zA-Z]+)$/, '$1$2');
     return formatted;
-  });
+  })
 }
 
 module.exports = (opts = {}) => {
@@ -118,7 +135,7 @@ module.exports = (opts = {}) => {
       }
 
       node[nodeProp] = helpers.try(function() {
-        return transformResolve(node[nodeProp], functionName);
+        return transformResolve(node[nodeProp], functionName, node.prop);
       }, node.source);
     })
   };
