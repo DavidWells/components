@@ -20,12 +20,12 @@ Input:
 .foo {
   /* Basic usage */
   font-size: resolve(2 * 8px);
-  /* strip values */
-  padding: resolve(strip(16cm) + (2px * 3));
   /* nested */
   margin: resolve(4px + resolve(2 * 3px));
   /* with postcss simple variables. $navHeight = 80px  */
   height: resolve($navHeight - 20px);
+  /* strip values */
+  padding: resolve(strip(16cm) * (2px + 3))px;
 }
 ```
 

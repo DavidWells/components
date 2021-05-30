@@ -2,6 +2,7 @@ var postcss = require('postcss')
 var helpers = require('postcss-message-helpers')
 var reduceFunctionCall = require('reduce-function-call')
 var maths = require('mathjs')
+const { isCSSUnit } = require('is-css-unit')
 var PREFIXES = maths.Unit.PREFIXES
 var BASE_UNITS = maths.Unit.BASE_UNITS
 
@@ -66,8 +67,7 @@ function transformResolve(value, functionName, prop) {
     argString = argString.replace(/(\r\n|\n|\r)/gm, ' ');
 
     var unit = '';
-    if (argString.indexOf('floor(') >= 0 ||
-      argString.indexOf('ceil(') >= 0) {
+    if (argString.indexOf('floor(') >= 0 || argString.indexOf('ceil(') >= 0) {
       // drop unit to apply floor or ceil function
       var start = argString.indexOf('(') + 1;
       var end = argString.indexOf(')');
@@ -85,23 +85,46 @@ function transformResolve(value, functionName, prop) {
     try {
       res = math.evaluate(argString);
     } catch (err) {
-      console.log(`PostCSS Math error in resolve()`)
-      console.log(`Please verify rule:`)
-      console.log(`>>> ${prop}: ${value}`)
+      const message = [
+        '──────────────────────────────────────────────',
+        `Error in postcss-math plugin in ${value}`,
+        `Please verify rule:`,
+        `>>> ${prop}: ${value}\n`,
+      ]
+      const errorMessage = message.join('\n')
+      const throwMessage = `${errorMessage}\n${err.message}`
+      console.log(errorMessage)
+      err.message = throwMessage
       if (err.data && err.data.category && err.data.category === 'wrongType' && err.data.fn === 'addScalar') {
-        console.log('Probably a missing or mismatched CSS unit in the above expression')
+        // const ops = ['+', '-', '/', '*']
+        // const argValues = argString.split(' ')
+        // // console.log('argValues', argValues)
+        // const tryUnit = (argValues.find((x) => isCSSUnit(x)) || '').replace(/\d+/, '')
+        // console.log('Probably a missing or mismatched CSS unit in the above expression')
+        // if (tryUnit) {
+        //   // console.log(`Possibly missing "${tryUnit}" unit`)
+        // }
+        /*
+         const fixedArgs = argValues.map((x) => {
+           if (ops.includes(x)) {
+             return x
+           }
+           if (isCSSUnit(x)) {
+             return x
+           }
+           return `${x}${tryUnit}`
+         })
+         const newArgs = fixedArgs.join(' ').trim()
+        */
       }
-      console.log('───────────────────────')
-      console.log("Error info", err.data)
-      console.log('───────────────────────')
       throw err
     }
-    // var res = parser.evaluate(argString);
     // Add previous splitted unit if any
     var formatted = res.toString() + unit;
-
+    // Math.JS puts a ^2 on multi muliplication... drop it.
+    formatted = formatted.replace(/\^\d+/, '')
     // Math.JS puts a space between numbers and units, drop it.
-    formatted = formatted.replace(/(.+) ([a-zA-Z]+)$/, '$1$2');
+    formatted = formatted.replace(/(.+) ([a-zA-Z]+)$/, '$1$2')
     return formatted;
   })
 }
@@ -114,29 +137,34 @@ module.exports = (opts = {}) => {
     functionName = opts.functionName
   }
 
-  return function(css) {
-    // Transform CSS AST here
-    css.walk(function(node) {
-      var nodeProp;
-      // console.log('node', node)
-      if (node.type === 'decl') {
-        nodeProp = 'value';
-      } else if (node.type === 'atrule' && node.name === 'media') {
-        nodeProp = 'params';
-      } else if (node.type === 'rule') {
-        nodeProp = 'selector';
-      } else {
-        return;
-      }
+  return {
+    postcssPlugin: 'postcss-math',
+    Once: (css) => {
+      // Transform CSS AST here
+      css.walk(function(node) {
+        var nodeProp;
+        // console.log('node', node)
+        if (node.type === 'decl') {
+          nodeProp = 'value';
+        } else if (node.type === 'atrule' && node.name === 'media') {
+          nodeProp = 'params';
+        } else if (node.type === 'rule') {
+          nodeProp = 'selector';
+        } else {
+          return;
+        }
 
-      var match = functionName + '(';
-      if (!node[nodeProp] || node[nodeProp].indexOf(match) === -1) {
-        return;
-      }
+        var match = functionName + '(';
+        if (!node[nodeProp] || node[nodeProp].indexOf(match) === -1) {
+          return;
+        }
 
-      node[nodeProp] = helpers.try(function() {
-        return transformResolve(node[nodeProp], functionName, node.prop);
-      }, node.source);
-    })
-  };
+        node[nodeProp] = helpers.try(function() {
+          return transformResolve(node[nodeProp], functionName, node.prop);
+        }, node.source);
+      })
+    }
+  }
 };
+
+module.exports.postcss = true

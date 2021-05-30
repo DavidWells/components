@@ -25,6 +25,7 @@
   },
   "homepage": "https://github.com/DavidWells/components/tree/master/packages/postcss-math-plugin",
   "dependencies": {
+    "is-css-unit": "^1.0.0",
     "mathjs": "^9.4.1",
     "postcss": "^8.3.0",
     "postcss-message-helpers": "^2.0.0",

@@ -6,6 +6,7 @@ console.log('plugin', plugin)
 
 var test = function(input, output, opts, done) {
   postcss([plugin(opts)]).process(input).then(function(result) {
+    // console.log('result.css', result.css)
     expect(result.css).to.eql(output);
     expect(result.warnings()).to.be.empty;
     done();
@@ -24,6 +25,13 @@ describe('postcss-math', function() {
     );
   });
 
+  it('advanced resolve with units', function(done) {
+    test(
+      'p{ padding: resolve(20px * 2px); } div { padding: resolve(20 * 2px); }',
+      'p{ padding: 40px; } div { padding: 40px; }', {},
+      done
+    );
+  });
   it('advanced resolve', function(done) {
     test(
       'p{ padding: resolve(16 + (2 * 3))px; }',
@@ -89,6 +97,14 @@ describe('postcss-math', function() {
 }`,
         {},
         done
+    );
+  });
+
+  it('multiplication', function(done) {
+    test(
+      'p{ padding: resolve(16px * (2px * 3)); } a{ padding: resolve(16px * (2 * 3)); } br{ padding: resolve(16 * (2 * 3))px; }',
+      'p{ padding: 96px; } a{ padding: 96px; } br{ padding: 96px; }', {},
+      done
     );
   });
 
@@ -181,5 +197,4 @@ describe('postcss-math', function() {
       done
     )
   });
-
 });
