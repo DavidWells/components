@@ -1,6 +1,6 @@
 {
   "name": "@davidwells/eslint-config",
-  "version": "0.0.4",
+  "version": "0.0.9",
   "description": "An ESLint shareable config",
   "keywords": [
     "eslint",
@@ -20,6 +20,7 @@
     "node": ">=10.0.0"
   },
   "dependencies": {
+    "@davidwells/prettier-config": "^0.0.2",
     "globals": "^13.5.0"
   },
   "peerDependencies": {

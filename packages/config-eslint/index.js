@@ -1,3 +1,4 @@
+const prettierDefaults = require('@davidwells/prettier-config')
 let globals = require('globals')
 
 let jest = {}
@@ -75,14 +76,17 @@ module.exports = {
     'prettierx/options': [
       'error',
       {
+        // From @davidwells/prettier-config
+        ...prettierDefaults,
+        /* https://github.com/aMarCruz/eslint-plugin-prettierx#differences-in-presets */
         spaceBeforeFunctionParen: false,
-        // breakLongMethodChains: true,
         breakLongMethodChains: false,
-        trailingComma: 'all',
         arrowParens: 'always',
-        singleQuote: true,
         quoteProps: 'consistent',
-        semi: false
+        // breakLongMethodChains: true,
+        // trailingComma: 'es5',
+        // singleQuote: true,
+        // semi: false,
       }
     ],
 
@@ -105,10 +109,11 @@ module.exports = {
     'no-invalid-this': 'error',
     'no-dupe-else-if': 'error',
     'no-unused-vars': [
-      'error',
+      "warn",
       {
+        "varsIgnorePattern": "^_|^React",
+        "argsIgnorePattern": "^_",
         args: 'after-used',
-        vars: 'all'
       }
     ],
     'require-yield': 'error',
