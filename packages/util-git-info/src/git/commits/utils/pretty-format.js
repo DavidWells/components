@@ -10,7 +10,6 @@ function getPrettyFormat() {
 function parse(gitString) {
   // console.log('gitString', gitString)
   const a = gitString.split(splitCharacter)
-  console.log('a', a)
   // e.g. master\n or master\nv1.1\n or master\nv1.1\nv1.2\n
   const branchAndTags = a[a.length - 1].split('\n').filter(n => n)
   // console.log('branchAndTags', branchAndTags)
