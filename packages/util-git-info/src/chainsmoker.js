@@ -1,34 +1,49 @@
 // vendored from https://github.com/paulmelnikow/chainsmoker
 const micromatch = require('micromatch')
-const mapValues = require('lodash.mapvalues')
+// const mapValues = require('lodash.mapvalues')
 
 const isExclude = p => p.startsWith('!')
 
 module.exports = function chainsmoker(keyedPaths) {
-  function matchPatterns(patterns) {
-    return mapValues(keyedPaths, paths => {
-      const excludePatterns = patterns.filter(p => isExclude(p))
-      const includePatterns = patterns.filter(p => !isExclude(p))
-      const included = includePatterns.reduce((accum, pattern) => {
-        return accum.concat(micromatch.match(paths, pattern))
+  return (...globPatterns) => {
+    const patterns = globPatterns.flatMap((glob) => glob)
+    const excludePatterns = patterns.filter(p => isExclude(p))
+    const includePatterns = patterns.filter(p => !isExclude(p))
+
+    const matches = {}
+    Object.keys(keyedPaths).forEach((key) => {
+      const paths = keyedPaths[key]
+      const included = includePatterns.reduce((acc, pattern) => {
+        return acc.concat(micromatch.match(paths, pattern))
       }, [])
-      return excludePatterns.reduce((accum, pattern) => {
-        return micromatch.match(accum, pattern)
+      matches[key] = excludePatterns.reduce((acc, pattern) => {
+        return micromatch.match(acc, pattern)
       }, included)
     })
+    /* previous with lodash
+    const matches = mapValues(keyedPaths, paths => {
+      const excludePatterns = patterns.filter(p => isExclude(p))
+      const includePatterns = patterns.filter(p => !isExclude(p))
+      const included = includePatterns.reduce((acc, pattern) => {
+        return acc.concat(micromatch.match(paths, pattern))
+      }, [])
+      return excludePatterns.reduce((acc, pattern) => {
+        return micromatch.match(acc, pattern)
+      }, included)
+    })
+    */
+    // console.log('matches', matches)
+    return finalize(matches)
   }
-  function finalize(keyedPaths) {
-    const foundFiles = Object.keys(keyedPaths).reduce((acc, key) => {
-      acc[`${key}Files`] = keyedPaths[key]
-      return acc
-    }, {})
-    return Object.assign(
-      Object.assign({}, mapValues(keyedPaths, paths => paths.length > 0)),
-      foundFiles,
-      {
-        getKeyedPaths: () => keyedPaths
-      }
-    )
-  }
-  return (...patterns) => finalize(matchPatterns(patterns))
+}
+
+function finalize(keyedPaths) {
+  const values = {}
+  Object.keys(keyedPaths).forEach((key) => {
+    values[key] = keyedPaths[key].length > 0
+    values[`${key}Files`] = keyedPaths[key]
+  })
+  return Object.assign(values, {
+    getKeyedPaths: () => keyedPaths
+  })
 }

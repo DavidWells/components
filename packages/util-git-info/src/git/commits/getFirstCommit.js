@@ -1,6 +1,10 @@
 const { getCommit } = require('./getCommit')
 const { spawn } = require('child_process')
 
+/**
+ * Get first commit hash of repo
+ * @returns {String} hash
+ */
 function getFirstCommitHash() {
   return new Promise((resolve, reject) => {
     // git rev-list --max-parents=0 HEAD
@@ -19,14 +23,19 @@ function getFirstCommitHash() {
   })
 }
 
+/**
+ * Get first commit details of repo
+ * @returns {Object} commit details
+ */
 async function getFirstCommit() {
   const hash = await getFirstCommitHash()
   return getCommit(hash)
 }
 
 /*
+// Example
 getFirstCommit().then((d) => {
-  console.log('xd', d)
+  console.log('getFirstCommit', d)
 })
 /**/
 

@@ -15,9 +15,9 @@ function getCommit(hash, options) {
   })
 }
 
-//*
-getCommit('ff078dd8decb1b9a9bfd1ed236525f705f2ccc1b').then((d) => {
-  console.log('d', d)
+/*
+getCommit('361a0cc56b323911af9fb740fe2e37cf134092ed').then((d) => {
+  console.log('getCommit', d)
 })
 /**/
 

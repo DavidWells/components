@@ -202,7 +202,7 @@ module.exports.gitJSONToGitDSL = (gitJSONRep, config) => {
         .join(os.EOL)
     }
   }
-
+  // console.log(gitJSONRep.created_files)
   return {
     fileMatch: chainsmoker({
       modified: gitJSONRep.modified_files,
@@ -214,6 +214,10 @@ module.exports.gitJSONToGitDSL = (gitJSONRep, config) => {
     createdFiles: gitJSONRep.created_files,
     deletedFiles: gitJSONRep.deleted_files,
     commits: gitJSONRep.commits,
+    lastCommit: gitJSONRep.commits && gitJSONRep.commits[0] && gitJSONRep.commits[0].sha,
+    dir: config.repo,
+    // baseSHA: config.baseSHA,
+    // headSHA: config.headSHA,
     /*
     // disable other utils
     diffForFile,

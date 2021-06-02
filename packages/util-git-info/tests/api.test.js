@@ -2,7 +2,7 @@ const { env, chdir, cwd: getCwd } = require('process')
 
 const test = require('ava')
 
-const getGitUtils = require('../src')
+const { gitDetails } = require('../src')
 
 // Runs the git utils against very old commits of @netlify/build so that the
 // tests are stable. The following are static statistics for that git range.
@@ -12,31 +12,34 @@ const UNKNOWN_COMMIT = 'aaaaaaaa'
 const DEFAULT_OPTS = { base: BASE, head: HEAD }
 
 test('Should define all its methods and properties', async (t) => {
-  const git = await getGitUtils(DEFAULT_OPTS)
+  const git = await gitDetails(DEFAULT_OPTS)
+  // console.log('git', git)
   t.deepEqual(Object.keys(git).sort(), [
     'commits',
     'createdFiles',
     'deletedFiles',
+    'dir',
     'fileMatch',
+    'lastCommit',
     'linesOfCode',
     'modifiedFiles',
   ])
 })
 
 test('Should be callable with no options', async (t) => {
-  const { linesOfCode } = await getGitUtils()
+  const { linesOfCode } = await gitDetails()
   const lines = await linesOfCode()
   t.true(Number.isInteger(lines))
 })
 
 test('Option "head" should have a default value', async (t) => {
-  const { linesOfCode } = await getGitUtils({ base: BASE })
+  const { linesOfCode } = await gitDetails({ base: BASE })
   const lines = await linesOfCode()
   t.true(Number.isInteger(lines))
 })
 
 test('Options "base" and "head" can be the same commit', async (t) => {
-  const { linesOfCode, modifiedFiles, createdFiles, deletedFiles } = await getGitUtils({ base: HEAD, head: HEAD })
+  const { linesOfCode, modifiedFiles, createdFiles, deletedFiles } = await gitDetails({ base: HEAD, head: HEAD })
   const lines = await linesOfCode()
   t.is(lines, 0)
   t.deepEqual(modifiedFiles, [])
@@ -47,7 +50,7 @@ test('Options "base" and "head" can be the same commit', async (t) => {
 /*
 test('Should error when the option "base" points to an unknown commit', (t) => {
   t.throwsAsync(async () => {
-    const x = await getGitUtils({ base: UNKNOWN_COMMIT, head: HEAD })
+    const x = await gitDetails({ base: UNKNOWN_COMMIT, head: HEAD })
     console.log('x', x)
   }, { message: /Invalid base commit/ })
 })
@@ -56,7 +59,7 @@ test('Should error when the option "base" points to an unknown commit', (t) => {
 /*
 test('Should error when the option "head" points to an unknown commit', (t) => {
   t.throwsAsync(async () => {
-    await getGitUtils({ base: BASE, head: UNKNOWN_COMMIT })
+    await gitDetails({ base: BASE, head: UNKNOWN_COMMIT })
   }, { message: /Invalid head commit/ })
 })
 */
@@ -68,7 +71,7 @@ test.serial('Should allow overriding the current directory', async (t) => {
   const currentCwd = getCwd()
   try {
     chdir('/')
-    const { linesOfCode } = await getGitUtils({
+    const { linesOfCode } = await gitDetails({
       ...DEFAULT_OPTS,
       cwd: currentCwd
     })
@@ -82,35 +85,36 @@ test.serial('Should allow overriding the current directory', async (t) => {
 /*
 test('Should throw when the current directory is invalid', (t) => {
   t.throwsAsync(async () => {
-    await getGitUtils({ ...DEFAULT_OPTS, cwd: '/does/not/exist' })
+    await gitDetails({ ...DEFAULT_OPTS, cwd: '/does/not/exist' })
   })
 })
 */
 
 test('Should return the number of lines of code', async (t) => {
-  const api = await getGitUtils(DEFAULT_OPTS)
+  const api = await gitDetails(DEFAULT_OPTS)
   const { linesOfCode } = api
   const lines = await linesOfCode()
   t.is(lines, LINES_OF_CODE)
 })
 
 test('Should return the commits', async (t) => {
-  const { commits } = await getGitUtils(DEFAULT_OPTS)
+  const { commits } = await gitDetails(DEFAULT_OPTS)
   t.is(commits.length, 34)
-  const [{ sha, author, committer, message }] = commits
+  const [{ sha, author, committer, subject, sanitizedSubject }] = commits
   t.deepEqual(
-    { sha, author, committer, message },
+    { sha, author, committer, subject, sanitizedSubject },
     {
       sha: '3a2fc89924f0ef9f0244cad29f1d7404be5fe54b',
-      author: { name: 'David Wells', email: '', date: '2021-03-24 20:02:09 -0700' },
-      committer: { name: 'David Wells', email: '', date: '2021-03-24 20:02:09 -0700' },
-      message: 'fix-file-case',
+      author: { name: 'David Wells', email: '' },
+      committer: { name: 'David Wells', email: '' },
+      subject: 'fix: file case',
+      sanitizedSubject: 'fix-file-case',
     },
   )
 })
 
 test('Should return the modified/created/deleted files', async (t) => {
-  const api = await getGitUtils(DEFAULT_OPTS)
+  const api = await gitDetails(DEFAULT_OPTS)
   const { modifiedFiles, createdFiles, deletedFiles } = api
   t.deepEqual(modifiedFiles, [
     'package.json',
@@ -175,7 +179,7 @@ test('Should return the modified/created/deleted files', async (t) => {
 })
 
 test('Should return whether specific files are modified/created/deleted/edited', async (t) => {
-  const { fileMatch } = await getGitUtils(DEFAULT_OPTS)
+  const { fileMatch } = await gitDetails(DEFAULT_OPTS)
   // Match json files but not package.json
   const matchApi = fileMatch('**/**.json', '!**/package.json')
   const {

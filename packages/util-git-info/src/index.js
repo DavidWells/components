@@ -1,17 +1,13 @@
-const { LocalGit } = require('./localGit')
+const { gitDetails } = require('./git/getDetails')
 const { getCommit } = require('./git/commits/getCommit')
 const { getFirstCommit } = require('./git/commits/getFirstCommit')
 const { getLastCommit } = require('./git/commits/getLastCommit')
-
-async function gitDetails(opts = {}) {
-  const localPlatform = new LocalGit(opts)
-  const git = await localPlatform.getPlatformGitRepresentation()
-  return git
-}
+const { getAllCommits } = require('./git/commits/getAllCommits')
 
 module.exports = {
   getCommit,
   getFirstCommit,
   getLastCommit,
+  getAllCommits,
   gitDetails
 }

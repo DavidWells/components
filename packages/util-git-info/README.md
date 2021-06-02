@@ -14,7 +14,7 @@ npm install git-er-done
 
 
 ```js
-const gitData = require('git-er-done')
+const { gitDetails } = require('git-er-done')
 
 // Git commit ref / branch to check against. Default is 'master'
 const GIT_COMMIT_REF = '9f63b23ec99e36a176d73909fc67a39dc3bd56b7'

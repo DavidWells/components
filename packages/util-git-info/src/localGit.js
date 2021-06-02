@@ -13,14 +13,14 @@ class LocalGit {
       return new Promise(res => res(readFileSync(path, 'utf8')))
     }
     this.name = 'local git'
+    this.base = this.options.from || this.options.base || 'master'
+    this.head = this.options.to || this.options.head || 'HEAD'
   }
   async getGitDiff() {
     if (this.gitDiff) {
       return this.gitDiff
     }
-    const base = this.options.base || 'master'
-    const head = this.options.head || 'HEAD'
-    this.gitDiff = await localGetDiff(base, head)
+    this.gitDiff = await localGetDiff(this.base, this.head)
     return this.gitDiff
   }
   async validateThereAreChanges() {
@@ -31,11 +31,12 @@ class LocalGit {
     return null
   }
   async getPlatformGitRepresentation() {
-    const base = this.options.base || 'master'
-    const head = this.options.head || 'HEAD'
+    const base = this.base
+    const head = this.head
     const diff = await this.getGitDiff()
     // Array of commits
     const commits = await localGetCommits(base, head)
+    // console.log('commits', commits)
     const gitJSON = diffToGitJSONDSL(diff, commits)
     const config = {
       repo: process.cwd(),

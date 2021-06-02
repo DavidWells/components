@@ -7,15 +7,24 @@ const sha = '%H'
 const parents = '%p'
 const authorName = '%an'
 const authorEmail = '%ae'
-const authorDate = '%ai'
+const authorDate = '%aI'
 const committerName = '%cn'
 const committerEmail = '%ce'
-const committerDate = '%ci'
+const committerDate = '%cI'
+const subject = '%s'
 const message = '%f' // this is subject, not message, so it'll only be one line
-const author = `"author": {"name": "${authorName}", "email": "${authorEmail}", "date": "${authorDate}" }`
-const committer = `"committer": {"name": "${committerName}", "email": "${committerEmail}", "date": "${committerDate}" }`
+const body = '%b'
+const author = `"author": {"name": "${authorName}", "email": "${authorEmail}" }`
+const committer = `"committer": {"name": "${committerName}", "email": "${committerEmail}" }`
+const details = `"subject": "${subject}", "sanitizedSubject": "${message}", "body": "${body}"`
+const dateInfo = `"authoredOn": "${authorDate}", "committedOn": "${committerDate}", "body": "${body}"`
 
-const formatJSON = `{ "sha": "${sha}", "parents": "${parents}", ${author}, ${committer}, "message": "${message}"},`
+const formatJSON = `{ "sha": "${sha}", "parents": "${parents}", ${author}, ${committer}, ${details}, ${dateInfo}},`
+// console.log('formatJSON', formatJSON)
+/*
+  authoredOn: a[5],
+  committedOn: a[6],
+*/
 
 const localGetCommits = (base, head) => {
   return new Promise(resolve => {
@@ -28,9 +37,39 @@ const localGetCommits = (base, head) => {
     child.stdout.on('data', async data => {
       data = data.toString()
       stdOut += data.toString()
+
+      let jsonValue = data.substring(0, data.length - 1)
+
+      /* If JSON has new lines we must remove them  */
+      // was /"body":\s+?("[\s\S]*?")/gm
+      const pattern = /("[\s\S]*?")/gm
+      const matches = jsonValue.match(pattern)
+      const singleMatch = /("[\s\S]*?")/
+      for (let i = 0; i < matches.length; i++) {
+        const foundMatch = singleMatch.exec(matches[i])
+        if (foundMatch && foundMatch[1]) {
+          /* Replace all new lines */
+          const fixedValue = foundMatch[1]
+            /* Remove all new line characters & use \n placeholder */
+            .replace(/(\r\n|\n|\r)/gm, '\\n')
+            /* Remove signed off by git messages */
+            .replace(/(\\n)?Signed-off-by: (.*) <(.*)>(\\n)?/gmi, '')
+          // console.log('fixedValue', fixedValue)
+          jsonValue = jsonValue.replace(foundMatch[1], fixedValue)
+        }
+      }
+
       // remove trailing comma, and wrap into an array
-      const asJSONString = `[${data.substring(0, data.length - 1)}]`
-      const commits = JSON5.parse(asJSONString)
+      const asJSONString = `[${jsonValue}]`
+      let commits = []
+      try {
+        commits = JSON5.parse(asJSONString)
+      } catch (err) {
+        console.log('JSON parse error')
+        console.log(err.message)
+        console.log(asJSONString)
+        throw new Error(err)
+      }
       realCommits = realCommits.concat(commits.map(c =>
         Object.assign(Object.assign({}, c), { parents: c.parents.split(' ') })
       ))
