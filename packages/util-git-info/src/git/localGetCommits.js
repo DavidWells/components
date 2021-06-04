@@ -1,6 +1,7 @@
 const JSON5 = require('json5')
 const { spawn } = require('child_process')
 const { debug } = require('../debug')
+const { removeSignedOffBy } = require('./commits/utils/pretty-format')
 
 const d = debug('localGetDiff')
 const sha = '%H'
@@ -49,11 +50,11 @@ const localGetCommits = (base, head) => {
         const foundMatch = singleMatch.exec(matches[i])
         if (foundMatch && foundMatch[1]) {
           /* Replace all new lines */
-          const fixedValue = foundMatch[1]
+          let fixedValue = foundMatch[1]
             /* Remove all new line characters & use \n placeholder */
             .replace(/(\r\n|\n|\r)/gm, '\\n')
-            /* Remove signed off by git messages */
-            .replace(/(\\n)?Signed-off-by: (.*) <(.*)>(\\n)?/gmi, '')
+          /* Remove signed off by git messages */
+          fixedValue = removeSignedOffBy(fixedValue)
           // console.log('fixedValue', fixedValue)
           jsonValue = jsonValue.replace(foundMatch[1], fixedValue)
         }

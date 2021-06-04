@@ -7,6 +7,10 @@ function getPrettyFormat() {
   return prettyFormat.join(splitCharacter)
 }
 
+function removeSignedOffBy(message) {
+  return message.replace(/(\\n)?Signed-off-by: (.*) <(.*)>(\\n)?/gmi, '')
+}
+
 function parse(gitString) {
   // console.log('gitString', gitString)
   const a = gitString.split(splitCharacter)
@@ -21,7 +25,8 @@ function parse(gitString) {
     sha: a[1],
     subject: a[2],
     sanitizedSubject: a[3],
-    body: a[4],
+    // remove Signed-off-by: David Wells <>\n
+    body: removeSignedOffBy(a[4] || '').trim(),
     author: {
       name: a[7],
       email: a[8],
@@ -40,5 +45,6 @@ function parse(gitString) {
 
 module.exports = {
   getPrettyFormat,
+  removeSignedOffBy,
   parse
 }
