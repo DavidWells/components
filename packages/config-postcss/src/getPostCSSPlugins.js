@@ -18,16 +18,7 @@ module.exports = function getPostCSSPlugins({ variables, mixins, functions, env 
       // skipDuplicates: true,
       // addModulesDirectories: []
     },
-    /* https://github.com/postcss/postcss-mixins - Must be before postcss-nested & postcss-simple-vars. Create custom CSS or JS mixins. */
-    ...(!mixins)
-      ? {}
-      : {
-          'postcss-mixins': {
-            mixins: mixins,
-            // mixinsFiles: ['src/mixins/*.js', 'node_modules/xyz/*/src/mixins/*.js']
-            // mixinsDir: './src/mixins',
-          }
-        },
+
     /* https://github.com/postcss/postcss-simple-vars */
     'postcss-simple-vars': {
       variables: () => variables,
@@ -37,6 +28,18 @@ module.exports = function getPostCSSPlugins({ variables, mixins, functions, env 
         node.warn(result, require('kleur').red(message))
       }
     },
+
+    // Must be before postcss-nested & (postcss-simple-vars This didnt work with vars in mixins)
+    /* https://github.com/postcss/postcss-mixins - Create custom CSS or JS mixins. */
+    ...(!mixins)
+      ? {}
+      : {
+          'postcss-mixins': {
+            mixins: mixins,
+            // mixinsFiles: ['src/mixins/*.js', 'node_modules/xyz/*/src/mixins/*.js']
+            // mixinsDir: './src/mixins',
+          }
+        },
 
     /* https://github.com/andyjansson/postcss-functions
       Use JS functions in CSS properties. Alt https://github.com/gorriecoe/postcss-functions-lite */
