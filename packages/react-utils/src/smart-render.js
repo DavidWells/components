@@ -28,6 +28,12 @@ export default function smartRender(componentOrString, propsToPass) {
     })
   }
 
+  // Possibly precompiled react component with React.createElement inside
+  if (typeof componentOrString === 'function') {
+    // console.log('is uninstantiated functional component')
+    return componentOrString(propsToPass)
+  }
+
   // throw new Error('Invalid component passed')
 
   return componentOrString;
