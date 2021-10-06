@@ -50,11 +50,17 @@ const localGetCommits = (base, head) => {
         const foundMatch = singleMatch.exec(matches[i])
         if (foundMatch && foundMatch[1]) {
           /* Replace all new lines */
-          let fixedValue = foundMatch[1]
+          // Trim outer quotes to fix inner quotes
+          let fixedValue = foundMatch[1].substring(1, foundMatch[1].length - 1)
             /* Remove all new line characters & use \n placeholder */
             .replace(/(\r\n|\n|\r)/gm, '\\n')
+            // Replace inner double quotes
+            .replace(/"/gm, '\\"')
+
+          // console.log('result', fixedValue)
+          // .replace(/"/gm, '\\"')
           /* Remove signed off by git messages */
-          fixedValue = removeSignedOffBy(fixedValue)
+          fixedValue = removeSignedOffBy(`"${fixedValue}"`)
           // console.log('fixedValue', fixedValue)
           jsonValue = jsonValue.replace(foundMatch[1], fixedValue)
         }
