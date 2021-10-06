@@ -1,6 +1,6 @@
 {
   "name": "@davidwells/react-utils",
-  "version": "0.2.0",
+  "version": "0.2.2",
   "description": "React Utils",
   "author": "DavidWells",
   "license": "MIT",
@@ -23,15 +23,14 @@
     "release:major": "npm version major && npm publish"
   },
   "peerDependencies": {
-    "react": "^16.0.0"
+    "react": "^17.0.2"
   },
   "devDependencies": {
-    "react": "^16.13.1",
-    "react-dom": "^16.13.1",
-    "react-scripts": "^3.4.1"
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "react-scripts": "^4.0.3"
   },
   "files": [
     "dist"
-  ],
-  "gitHead": "67ae1d96a5f2e2e27e010a302db105306f7b8070"
+  ]
 }
