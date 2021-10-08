@@ -112,8 +112,9 @@ const FIX_SUBJECT = /("subject":)([\s\S]*?)*?("sanitizedSubject")/g
 const FIX_BODY = /("body":)([\s\S]*?)*?("authoredOn")/g
 
 function attemptToFix(jsonLikeValue) {
-  const x = findAndFind(jsonLikeValue, FIX_SUBJECT)
-  return findAndFind(x, FIX_BODY)
+  const fixedSub = findAndFind(jsonLikeValue, FIX_SUBJECT)
+  const fixedBody = findAndFind(fixedSub, FIX_BODY)
+  return JSON.parse(`[${fixedBody}]`)
 }
 
 function findAndFind(str, pattern) {
