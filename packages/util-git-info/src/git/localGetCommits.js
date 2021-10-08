@@ -73,7 +73,7 @@ const localGetCommits = (base, head) => {
         commits = JSON5.parse(asJSONString)
       } catch (err) {
         try {
-          commits = attemptToFix(asJSONString)
+          commits = attemptToFix(jsonValue)
         } catch (e) {
           console.log('JSON parse error')
           console.log(err.message)
@@ -161,3 +161,4 @@ function getMatches(str, myRegex) {
 
 module.exports.formatJSON = formatJSON
 module.exports.localGetCommits = localGetCommits
+module.exports.attemptToFix = attemptToFix
