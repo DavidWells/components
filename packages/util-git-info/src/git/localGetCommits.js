@@ -28,6 +28,7 @@ const formatJSON = `{ "sha": "${sha}", "parents": "${parents}", ${author}, ${com
 */
 
 const localGetCommits = (base, head) => {
+  // @TODO add exclude "subject" and "body" option to ignore parsing issues
   return new Promise(resolve => {
     const args = ['log', `${base}...${head}`, `--pretty=format:${formatJSON}`]
     const child = spawn('git', args, { env: process.env })
