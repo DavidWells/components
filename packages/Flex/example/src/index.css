@@ -1,3 +1,9 @@
+
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
 body {
   margin: 0;
   padding: 0;
@@ -9,22 +15,31 @@ body {
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 }
 
 .testing {
   background: gray;
 }
 
-@media only screen and (max-width : 768px) {
+@media only screen and (max-width: 768px) {
   .testing {
     background: blue;
     flex-direction: column !important;
   }
-  .column {
-    display: block !important;
+  .right-column, .left-column {
     width: 100% !important;
     max-width: 100% !important;
+  }
+  .left-column {
+    transition: transform .3s;
+    background: white;
+    position: fixed;
+    height: 100vh;
+    width: 80% !important;
+    transform: translateX(-100%);
+  }
+  .left-column.active {
+    transform: translateX(0%);
   }
 }
