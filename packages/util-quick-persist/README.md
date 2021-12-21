@@ -55,3 +55,7 @@ async function runExample() {
   console.log(val)
   // 'there'
 ```
+
+## Alternative approaches
+
+- https://github.com/azu/localstorage-ponyfill
