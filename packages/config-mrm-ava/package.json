@@ -1,0 +1,18 @@
+{
+  "name": "@davidwells/mrm-task-ava",
+  "version": "0.0.4",
+  "description": "Mrm task to add ava to a project.",
+  "main": "index.js",
+  "files": [
+    "index.js"
+  ],
+  "scripts": {
+    "release:patch": "npm version patch && npm publish",
+    "release:minor": "npm version minor && npm publish",
+    "release:major": "npm version major && npm publish"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "mrm-core": "^4.7.0"
+  }
+}
