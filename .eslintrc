@@ -39,6 +39,7 @@
     "import/export": 0,
     "import/no-named-as-default": 0,
     "no-unneeded-ternary": 0,
-    "lines-between-class-members": 0
+    "lines-between-class-members": 0,
+    "array-bracket-spacing": 0
   }
 }
