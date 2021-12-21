@@ -10,6 +10,12 @@ Pure JavaScript:
 npm install -D @davidwells/eslint-config eslint-config-standard eslint-plugin-promise eslint-plugin-jest eslint-plugin-node eslint-plugin-security eslint-plugin-import eslint-plugin-prefer-let eslint-plugin-prettierx eslint-plugin-unicorn eslint
 ```
 
+Easy mode
+
+```
+npm install -D @davidwells/eslint-config && npx install-peerdeps --dev @davidwells/eslint-config
+```
+
 TypeScript:
 
 ```sh
