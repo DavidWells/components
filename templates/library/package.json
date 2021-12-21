@@ -1,0 +1,29 @@
+{
+  "name": "@davidwells/{{packageName}}",
+  "version": "0.0.1",
+  "description": "Library",
+  "author": "DavidWells",
+  "license": "MIT",
+  "repository": "DavidWells/components",
+  "main": "dist/index.js",
+  "module": "dist/index.modern.js",
+  "source": "src/index.js",
+  "engines": {
+    "node": ">=10"
+  },
+  "scripts": {
+    "build": "../../node_modules/.bin/microbundle-crl --no-compress --format modern,cjs",
+    "start": "../../node_modules/.bin/microbundle-crl watch --no-compress --format modern,cjs",
+    "prepare": "../../node_modules/.bin/run-s build",
+    "lint": "npm run test:lint",
+    "test": "../../node_modules/.bin/run-s test:unit test:lint test:build",
+    "test:build": "../../node_modules/.bin/run-s build",
+    "test:lint": "eslint .",
+    "release:patch": "npm version patch && npm publish",
+    "release:minor": "npm version minor && npm publish",
+    "release:major": "npm version major && npm publish"
+  },
+  "files": [
+    "dist"
+  ]
+}
