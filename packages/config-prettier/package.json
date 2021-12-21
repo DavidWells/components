@@ -1,10 +1,13 @@
 {
   "name": "@davidwells/prettier-config",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "My personal Prettier config",
   "main": "index.json",
   "license": "MIT",
   "scripts": {
-    "docs": "../../node_modules/.bin/md-magic --path '**/*.md' --ignore 'node_modules'"
+    "docs": "../../node_modules/.bin/md-magic --path '**/*.md' --ignore 'node_modules'",
+    "release:patch": "npm version patch && npm publish",
+    "release:minor": "npm version minor && npm publish",
+    "release:major": "npm version major && npm publish"
   }
 }
