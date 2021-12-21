@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@analytics/cookie-utils": "^0.2.3",
+    "@analytics/listener-utils": "0.0.1",
     "@davidwells/components-icon": "0.0.2",
     "@davidwells/components-input": "file:..",
     "@davidwells/config-postcss": "0.0.12",
@@ -13,14 +15,15 @@
     "prop-types": "^15.7.2",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
-    "react-scripts": "4.0.1"
+    "react-scripts": "4.0.1",
+    "smoothscroll-polyfill": "^0.4.4"
   },
   "scripts": {
     "start": "rm -rf ./node_modules/.cache/babel-loader && concurrently npm:dev",
     "dev": "craco start",
     "build": "craco build",
     "test": "craco test",
-    "postbuild": "node ./scripts/extract-media-queries.js",
+    "postbuild": "node ./scripts/extract-responsive.js",
     "serve": "serve build",
     "deploy": "netlify deploy -d build -p"
   },
@@ -46,6 +49,7 @@
     "copy-webpack-plugin": "^7.0.0",
     "cssnano": "^4.1.10",
     "dedent": "^0.7.0",
+    "extract-responsive-styles": "0.0.1",
     "globby": "^11.0.1",
     "html-webpack-tags-plugin": "^2.0.17",
     "icon-pipeline": "0.0.5",
@@ -79,6 +83,7 @@
     "quick-persist": "0.0.1",
     "serve": "^11.3.2",
     "tinycolor2": "^1.4.2",
-    "validate-color": "^2.1.1"
+    "validate-color": "^2.1.1",
+    "webpack-persist-build-hash": "0.0.2"
   }
 }

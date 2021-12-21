@@ -1,0 +1,168 @@
+
+/* Theming with CSS vars */
+.light-theme {
+  --card-bg: #eee;
+  --primary-text: #222;
+}
+.dark-theme {
+  --card-bg: #111;
+  --primary-text: #ddd;
+}
+.wrapper {
+  color: red;
+}
+.rule {
+  color: blue;
+}
+.link {}
+.a {}
+.b {}
+.linkTwo {}
+.card {
+  background-color: -var(--card-bg)
+}
+.label {
+  background-color: var(--primary-text)
+}
+@mixin theme {
+  .color {
+    color: black;
+  }
+}
+
+@mixin theme {
+  color: white;
+}
+
+.cool {
+  // color: darken(red);
+}
+
+.levelOne {
+  .levelTwo {
+      .levelThree {
+        color: blue;
+
+        }
+    }
+}
+
+@define-mixin top_1px {
+    position: relative;
+    &:after {
+        border-top:1px solid blue;
+        width:200%;
+        height:200%;
+        position:absolute;
+        top:0;
+        left:0;
+        z-index:0;
+        content:"";
+        transform:scale(0.5);
+        transform-origin:0 0;
+        box-sizing:border-box;
+    }
+}
+
+
+.MyComponent {
+  @mixin top_1px;
+}
+
+.foo { color: red }
+@media screen and (min-width: 1024px) {
+  .foo { color: green }
+}
+.bar { font-size: 1rem }
+@media screen and (min-width: 1024px) {
+  .bar {
+    font-size: 2rem;
+    color: $primary;
+  }
+}
+
+.test {
+  color: blue;
+  @mixin inside .MyComponent {
+    color: red;
+  }
+}
+
+
+.levelFour {
+  color: blue;
+  @nest .levelOne & {
+    /*  @nest .levelOne &*/
+    color: purple
+  }
+  @nest .levelOne & > div {
+    /*  @nest .levelOne &*/
+    color: orange;
+  }
+  @nest .levelOne:hover & {
+    /*  @nest .levelOne &*/
+    color: green;
+    border: 1px solid;
+  }
+  @nest .levelOne & {
+    &:hover {
+      color: yellow;
+      border: 1px solid;
+    }
+  }
+  @nest html[data-theme="dark"] .levelOne:hover & {
+    /*  @nest .levelOne &*/
+    color: red;
+    border: 1px solid;
+  }
+  @nest html[data-theme="light"] & {
+    .levelOne {
+      color: yellow;
+      border: 1px solid;
+    }
+    /*  @nest .levelOne &*/
+  }
+
+  @mixin theme {
+    color: black;
+  }
+  /*
+  @mixin theme light {
+    color: white;
+  }
+  */
+}
+
+a {
+	text-decoration: none;
+
+	@nest h1 & {
+		color: blue;
+
+		&:not(:hover) {
+			color: MediumVioletRed;
+		}
+	}
+}
+
+
+/*
+.levelOne {
+  .levelThree {
+    .levelFour {
+      &:hover {
+        color: red;
+      }
+      // Inside hover overide
+      ^^^^&:hover {
+        //  ^& = ".levelOne .levelTwo .levelThree"
+        color: yellow;
+      }
+      ^^& {
+        //  ^& = ".levelOne .levelTwo .levelThree"
+        color: orange;
+      }
+    }
+  }
+}
+*/

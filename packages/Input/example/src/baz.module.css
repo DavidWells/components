@@ -1,0 +1,25 @@
+
+.what { color: purple }
+@media screen and (min-width: 1024px) {
+  .what { color: purple }
+}
+.zaz { font-size: 1rem }
+@media screen and (min-width: 1024px) {
+  .zaz {
+    font-size: 1rem;
+    color: $primary;
+  }
+}
+
+@media (max-width: 860px) {
+  body {
+    color: red;
+  }
+}
+
+
+@media (max-width: 560px) {
+  .zaz {
+    font-size: 8px;
+  }
+}

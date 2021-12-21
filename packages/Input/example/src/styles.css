@@ -1,0 +1,236 @@
+*,
+*:after,
+*:before {
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+html {
+  background-color: #d23131;
+}
+
+body {
+  font-family: system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;
+  padding: 0;
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.4;
+  color: #fff;
+}
+
+blockquote {
+  background: rgb(150, 150, 150);
+  padding: 20px;
+  padding-top: 30px;
+  padding-bottom: 30px;
+  border-radius: 10px;
+}
+
+#top {
+  background: #962121;
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 16px;
+  z-index: 9;
+  position: relative;
+}
+
+#content {
+  width: 800px;
+  margin: 0 auto;
+  padding-top: 50px;
+  padding-bottom: 50px;
+  z-index: 1000000;
+  position: relative;
+}
+
+h1 {
+  font-size: 56px;
+  text-align: center;
+  margin: 0 0 20px;
+  line-height: 1;
+}
+
+h2 {
+  font-size: 36px;
+  text-align: center;
+  line-height: 1.3;
+  margin: 0 0 30px;
+}
+
+h3 {
+  margin: 0;
+  text-align: center;
+}
+
+#top a {
+  text-decoration: none;
+}
+
+a {
+  color: #fff;
+}
+
+a:hover {
+  text-decoration: none;
+}
+
+.download {
+  margin: 60px 0;
+}
+.tagline-container {
+  margin-bottom: 60px;
+}
+.tagline {
+  font-size: 34px;
+}
+.buttons {
+  text-align: center;
+}
+
+button {
+  display: inline-block;
+  border-radius: 5px;
+  border: 2px solid #fff;
+  text-decoration: none;
+  padding: 10px 20px;
+  margin: 0 auto;
+  background: #fff;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #962121;
+  color: #fff;
+}
+
+.button-download {
+  margin: 0 20px 0 0;
+  margin-bottom: 20px;
+}
+
+#video {
+  margin:auto;
+  width:100%;
+}
+#video-wrapper {
+  position:relative;
+  padding-bottom: 36.25%;
+  padding-top: 30px;
+  height:450px;
+}
+#video iframe, #video object, #video embed {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  padding: 2%;
+}
+.inner {
+  text-align: center;
+}
+
+@media (max-width: 720px) {
+  html {
+    background-color: #fb627d;
+  }
+  body {
+    font-size: 16px;
+  }
+  #top {
+    background: #ec1414;
+  }
+  #content {
+    width: 100%;
+  }
+  blockquote {
+    margin-right: 0px;
+    margin-left: 0px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+  }
+  .fork-ribbon {
+    display: none;
+  }
+  #top {
+    text-align: center;
+  }
+  .wrap {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  #video-wrapper {
+    height: 255px;
+  }
+  .button {
+    display: inline-block;
+    margin: 0 0 0px;
+  }
+  .bottom-button {
+    display: block;
+    margin-bottom: 11px;
+  }
+  .download {
+    margin: 30px 0;
+  }
+  h1 {
+    font-size: 32px;
+    text-align: center;
+  }
+  h2 {
+    font-size: 20px;
+  }
+  .hero h1 {
+    margin-bottom: 8px;
+  }
+  .hero h2 {
+    font-size: 18px;
+  }
+
+  .tagline-container {
+    margin-bottom: 30px;
+  }
+  .buttons button {
+    font-size: 16px;
+  }
+  .buttons button:first-of-type {
+    margin-right: 20px;
+  }
+  .buttons {
+    margin-top: 20px;
+    margin-bottom: 40px;
+  }
+
+}
+
+.github-corner svg {
+  height: 120px;
+  width: 120px;
+  fill: #151513;
+  color: #fff;
+  position: absolute;
+  top: 0;
+  border: 0;
+  right: 0;
+  z-index: 9999;
+}
+.github-corner:hover .octo-arm {
+  animation: octocat-wave .56s ease-in-out;
+}
+@keyframes octocat-wave {
+  0%, to   { transform: rotate(0); }
+  20%, 60% { transform: rotate(-25deg); }
+  40%, 80% { transform: rotate(10deg); }
+}
+@media (max-width: 720px) {
+  .github-corner svg {
+    height: 60px;
+    width: 60px;
+  }
+}
+@media (max-width: 500px) {
+  .github-corner:hover .octo-arm { animation: none; }
+  .github-corner .octo-arm { animation: octocat-wave .56s ease-in-out; }
+}

@@ -1,17 +1,7 @@
 const path = require('path')
 const HtmlWebpackTagsPlugin = require('html-webpack-tags-plugin')
 const { hotLoadPostCSS, webpackLoaderOptionUtil } = require('@davidwells/config-postcss')
-const { save } = require('quick-persist')
-
-class PersistBuildHashWebpackPlugin {
-  apply(compiler) {
-    // Specify the event hook to attach to
-    compiler.hooks.emit.tapAsync('PersistBuildHashWebpackPlugin', (compilation, callback) => {
-      // Save build hash
-      save({ hash: compilation.hash }).then(() => callback())
-    })
-  }
-}
+const PersistBuildHashWebpackPlugin = require('webpack-persist-build-hash')
 
 // https://github.com/djaax/html-webpack-inline-style-plugin/blob/master/index.js
 // https://github.com/architgarg/html-webpack-injector/blob/master/index.js
@@ -78,18 +68,16 @@ module.exports = async function({ env }) {
        })
        */
 
-       //  process.exit(1)
-        return {
+       // process.exit(1)
+       return {
           ...webpackConfig,
           plugins: webpackConfig.plugins.concat([
+            // Save build hash for responsive code to grab
             new PersistBuildHashWebpackPlugin(),
             new HtmlWebpackTagsPlugin({
               tags: [{
                 path: `static/css/responsive.css`,
-                attributes: {
-                  id: 'responsive-css',
-                  name: 'bob'
-                },
+                attributes: { id: 'responsive-css' },
                 hash: (outputPath, hash) => {
                   return outputPath.replace(/\.css$/, `-${hash}.css`)
                 }
