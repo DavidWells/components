@@ -1,14 +1,26 @@
 const fs = require('fs').promises
 const path = require('path')
+const crypto = require('crypto')
 const { URL } = require('url')
 const download = require('./utils/download')
 
-module.exports = async function persistPreviousBuildAssets({ manifestUrl, outputDir }) {
-  const previousManifestPath = path.join(outputDir, 'asset-manifest-stale.json')
+function hash(str) {
+  return crypto.createHash('md5').update(str).digest('hex')
+}
+
+async function persistPreviousBuildAssets({
+  manifestUrl,
+  outputDir
+}) {
+  const previousManifestPath = path.join(outputDir, `asset-manifest-stale-${hash(manifestUrl)}.json`)
   const { origin } = new URL(manifestUrl)
 
   // download new manifest. Force download with true
-  await download(manifestUrl, previousManifestPath, true)
+  await download({
+    downloadUrl: manifestUrl,
+    outputPath: previousManifestPath,
+    force: true
+  })
 
   let content
   try {
@@ -36,10 +48,20 @@ module.exports = async function persistPreviousBuildAssets({ manifestUrl, output
   }, [])
 
   const promises = filesToDownload.map((src) => {
-    const savePath = path.join(outputDir, src)
+    const outputPath = path.join(outputDir, src)
     const downloadUrl = `${origin}${src}`
-    return download(downloadUrl, savePath)
+    return download({ downloadUrl, outputPath })
   })
 
-  await Promise.all(promises)
+  const info = await Promise.all(promises)
+  return {
+    manifestUrl,
+    manifestFile: previousManifestPath,
+    files: info
+  }
+}
+
+module.exports = {
+  download,
+  persistPreviousBuildAssets
 }

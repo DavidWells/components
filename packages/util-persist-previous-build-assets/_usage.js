@@ -1,9 +1,11 @@
 const path = require('path')
-const persistPreviousBuildAssets = require('./index')
+const { persistPreviousBuildAssets, download } = require('./index')
+
+console.log('download', download)
 
 persistPreviousBuildAssets({
-  manifestUrl: 'https://site.com/asset-manifest.json',
+  manifestUrl: 'https://share.vendia.net/asset-manifest.json',
   outputDir: path.resolve(__dirname, 'build')
-}).then(() => {
-  console.log('Done!')
+}).then((d) => {
+  console.log('Done!', d)
 })

@@ -6,8 +6,12 @@ const mkdirp = require('mkdirp')
 // eslint-disable-next-line promise/param-names
 const fileExists = (s) => new Promise(r => fs.access(s, fs.F_OK, e => r(!e)))
 
-module.exports = async function download(downloadUrl, outputPath, forceDownload) {
-  if (!forceDownload) {
+module.exports = async function download({
+  downloadUrl,
+  outputPath,
+  force
+}) {
+  if (!force) {
     const existsAlready = await fileExists(outputPath)
     // Ignore download if we already have file
     if (existsAlready) {
@@ -30,7 +34,10 @@ module.exports = async function download(downloadUrl, outputPath, forceDownload)
       })
       .on('finish', () => {
         console.log(`File ${downloadUrl} persisted to ${outputPath.replace(process.cwd(), '')}`)
-        resolve(downloadUrl)
+        resolve({
+          url: downloadUrl,
+          filePath: outputPath
+        })
       })
   })
 }
