@@ -1,6 +1,6 @@
 {
   "name": "persist-previous-build-assets",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Persist previous build artifacts to the latest deployment",
   "main": "index.js",
   "repository": {
