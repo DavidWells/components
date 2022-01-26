@@ -9,12 +9,15 @@ const fileExists = (s) => new Promise(r => fs.access(s, fs.F_OK, e => r(!e)))
 module.exports = async function download({
   downloadUrl,
   outputPath,
-  force
+  force,
+  debug
 }) {
+  const dirName = path.dirname(outputPath)
   if (!force) {
     const existsAlready = await fileExists(outputPath)
     // Ignore download if we already have file
     if (existsAlready) {
+      if (debug) console.log(`◉  File already exists: ${path.basename(dirName)}/${path.basename(outputPath)}`)
       return downloadUrl
     }
   }
@@ -33,7 +36,8 @@ module.exports = async function download({
         reject(err)
       })
       .on('finish', () => {
-        console.log(`File ${downloadUrl} persisted to ${outputPath.replace(process.cwd(), '')}`)
+        console.log(`✓ File downloaded ${downloadUrl}`)
+        console.log(`  → ${outputPath.replace(process.cwd(), '')}`)
         resolve({
           url: downloadUrl,
           filePath: outputPath

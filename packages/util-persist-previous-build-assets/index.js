@@ -10,7 +10,8 @@ function hash(str) {
 
 async function persistPreviousBuildAssets({
   manifestUrl,
-  outputDir
+  outputDir,
+  debug = false
 }) {
   const previousManifestPath = path.join(outputDir, `asset-manifest-stale-${hash(manifestUrl)}.json`)
   const { origin } = new URL(manifestUrl)
@@ -19,14 +20,15 @@ async function persistPreviousBuildAssets({
   await download({
     downloadUrl: manifestUrl,
     outputPath: previousManifestPath,
-    force: true
+    debug
+    // force: true
   })
 
   let content
   try {
     content = await fs.readFile(previousManifestPath)
   } catch (err) {
-    console.log('No manifest found')
+    console.log(`File not found ${previousManifestPath}`)
     return
   }
   // Parse manifest
