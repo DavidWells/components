@@ -3,6 +3,8 @@ import PropTypes from 'prop-types'
 import classNames from 'clsx'
 import { smartRender, isElement } from '@davidwells/react-utils'
 
+const noOp = () => {}
+
 const propTypes = {
   /* Custom CSS classes */
   classes: PropTypes.oneOfType([
@@ -13,6 +15,8 @@ const propTypes = {
   type: PropTypes.string,
   /** Set current value */
   value: PropTypes.string,
+  /** Set initialValue for uncontrolled components */
+  initialValue: PropTypes.string,
   /** Placeholder text */
   placeholder: PropTypes.string,
   /** disable input field if true */
@@ -29,6 +33,8 @@ const propTypes = {
   onFocus: PropTypes.func,
   /** Run function onKeyPress */
   onKeyPress: PropTypes.func,
+  /** Run function on validation failure */
+  onInvalidValue: PropTypes.func,
   /** Field validation. Can be regex, function, or keyName from validation utils */
   validation: PropTypes.oneOfType([
     PropTypes.func,
@@ -94,9 +100,13 @@ class Input extends Component {
     }
   }
   componentDidMount() {
+    let inputRef = this.getRef()
+    if (inputRef && this.props.initialValue) {
+      inputRef.value = this.props.initialValue
+    }
     setTimeout(async () => {
       // sometimes value is set via the DOM. This updates initial state
-      const inputRef = this.getRef()
+      inputRef = this.getRef()
       if (inputRef && inputRef.value) {
         const inputData = await this.validateInputValue(inputRef.value)
         this.setState({
@@ -136,11 +146,13 @@ class Input extends Component {
     window.clearTimeout(tid)
   }
   async validateInputValue(value) {
-    const { validation, errorMessage, isRequired } = this.props
-
+    const { validation, errorMessage, isRequired, name } = this.props
+    const inputRef = this.getRef()
     // If actions.setError called, persist its error on blur
     if (this.state.externalError && !isRequired && value !== '') {
       return {
+        name,
+        inputRef,
         value: value,
         isValid: false,
         errorMessage: this.state.errorMessage
@@ -150,6 +162,8 @@ class Input extends Component {
     /* If field is NOT required and is empty again */
     if (!isRequired && value === '') {
       return {
+        name,
+        inputRef,
         value: value,
         isEmpty: true,
         isValid: true
@@ -158,6 +172,8 @@ class Input extends Component {
 
     if (isRequired && value === '') {
       return {
+        name,
+        inputRef,
         value: value,
         isRequired: true,
         isValid: false,
@@ -182,6 +198,8 @@ class Input extends Component {
     if (typeof validation === 'object' && validation.pattern) {
       // if validation object is used
       return {
+        name,
+        inputRef,
         value: value,
         isValid: validation.pattern.test(value),
         errorMessage: validation.message || errorMessage
@@ -191,6 +209,8 @@ class Input extends Component {
     // check regex passed in
     if (validation instanceof RegExp) {
       return {
+        name,
+        inputRef,
         value: value,
         isValid: validation.test(value),
         errorMessage: errorMessage
@@ -201,6 +221,8 @@ class Input extends Component {
     if (typeof validation === 'function') {
       const validationReturn = await validation(value)
       return {
+        name,
+        inputRef,
         value: value,
         isValid: validationReturn.isValid,
         errorMessage: validationReturn.message
@@ -209,6 +231,8 @@ class Input extends Component {
 
     // default field is valid if no validation
     return {
+      name,
+      inputRef,
       value: value,
       isValid: true,
       errorMessage: ''
@@ -313,6 +337,10 @@ class Input extends Component {
       inputRef.classList.remove(...this.validClasses)
       // this.setInvalidClasses()
     }
+
+    if (!inputData.isValid && this.props.onInvalidValue) {
+      this.props.onInvalidValue(inputData, inputRef)
+    }
   }
   setFakeBlur = () => {
     this.setState({ blurRanOnce: true })
@@ -373,10 +401,16 @@ class Input extends Component {
 
     if (this.props.onChange) {
       // because debounce, fake event is passed back
-      this.props.onChange({ target: this.getRef() }, value, {
+      const data = {
+        value: value,
         isValid: inputData.isValid,
         actions: this.actions,
-      })
+      }
+      const fakeEvent = {
+        target: this.getRef(),
+        preventDefault: noOp
+      }
+      this.props.onChange(fakeEvent, data)
     }
   }
   handleBlur = async (event) => {
@@ -418,7 +452,7 @@ class Input extends Component {
   captureFocusWhenInvalid() {
     if (!this.state.isValid && this.props.isRequired) {
       // not sure about this guy. Results in different form tabbing behavior
-      this.focus()
+      // this.focus()
     }
   }
   select = () => {
@@ -496,16 +530,20 @@ class Input extends Component {
       isDisabled,
       isRequired,
       isTextArea,
-      validation,
-      errorMessage,
-      debounce,
       type,
       value,
       inputRef,
       before,
       after,
-      classPrefix,
       disableGlobalClasses,
+      // pluck out unknown keys before input render
+      actions,
+      validation,
+      errorMessage,
+      debounce,
+      classPrefix,
+      initialValue,
+      onInvalidValue,
       ...others
     } = this.props
 
@@ -517,7 +555,7 @@ class Input extends Component {
       [componentBaseName]: !disableGlobalClasses
     })
 
-    const defaultRef = (input) => this.textInput = input
+    const defaultRef = (input) => this.textInput = input // eslint-disable-line no-return-assign
     const reffer = inputRef || defaultRef
 
     const inputProps = {
