@@ -1,6 +1,6 @@
 {
   "name": "@davidwells/components-input",
-  "version": "0.1.1",
+  "version": "0.1.3",
   "description": "React Input Component",
   "author": "DavidWells",
   "license": "MIT",
@@ -29,12 +29,12 @@
     "clsx": "^1.1.1"
   },
   "peerDependencies": {
-    "react": "^16.0.0"
+    "react": "^17.0.2"
   },
   "devDependencies": {
-    "react": "^16.13.1",
-    "react-dom": "^16.13.1",
-    "react-scripts": "^3.4.1"
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "react-scripts": "^5.0.0"
   },
   "files": [
     "dist"
