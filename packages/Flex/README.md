@@ -49,6 +49,7 @@ MIT © [DavidWells](https://github.com/DavidWells)
 
 ## Alt libs
 
+- https://github.com/ekros/nice-react-layout
 - https://github.com/christiankaindl/LYTS
 - https://github.com/LinusU/react-stacked
 - https://github.com/tomkp/react-split-pane
