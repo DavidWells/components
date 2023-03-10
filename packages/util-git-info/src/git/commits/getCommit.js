@@ -1,7 +1,11 @@
 const { executeCommand } = require('../utils/exec')
 const { parse, getPrettyFormat } = require('./utils/pretty-format')
+const HASH_REGEX = /\b[0-9a-f]{5,40}\b/
 
 function getCommit(hash, options) {
+  if (!hash || HASH_REGEX.test(hash)) {
+    throw new Error('Must use git hash')
+  }
   /* git show
     --format="%h<##>%H<##>%s<##>%f<##>%b<##>%at<##>%ct<##>%an<##>%ae<##>%cn<##>%ce<##>%N<##>"
     -s 7d7162118aeb2bd9b7f0e12f4a8ff63a4c928d21
