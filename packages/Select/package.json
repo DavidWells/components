@@ -1,0 +1,53 @@
+{
+  "name": "@davidwells/components-select",
+  "version": "1.2.1",
+  "description": "React Select Component",
+  "author": "DavidWells",
+  "license": "MIT",
+  "repository": "DavidWells/components",
+  "main": "dist/index.js",
+  "module": "dist/index.modern.js",
+  "source": "src/index.js",
+  "engines": {
+    "node": ">=10"
+  },
+  "scripts": {
+    "build": "../../node_modules/.bin/microbundle-crl --no-compress --format modern,cjs",
+    "watch": "../../node_modules/.bin/microbundle-crl watch --no-compress --format modern,cjs",
+    "lint": "npm run test:lint",
+    "test": "../../node_modules/.bin/run-s test:unit test:lint test:build",
+    "test:build": "../../node_modules/.bin/run-s build",
+    "test:lint": "eslint .",
+    "test:unit": "cross-env CI=1 react-scripts test --env=jsdom",
+    "test:watch": "react-scripts test --env=jsdom",
+    "release:patch": "npm version patch && npm publish",
+    "release:minor": "npm version minor && npm publish",
+    "release:major": "npm version major && npm publish"
+  },
+  "dependencies": {
+    "@react-aria/button": "^3.3.0",
+    "@react-aria/focus": "^3.2.3",
+    "@react-aria/interactions": "^3.3.2",
+    "@react-aria/listbox": "^3.2.3",
+    "@react-aria/overlays": "^3.6.0",
+    "@react-aria/select": "^3.2.3",
+    "@react-aria/utils": "^3.5.0",
+    "@react-stately/collections": "^3.3.0",
+    "@react-stately/select": "^3.1.1",
+    "classnames": "^2.2.6",
+    "clsx": "^1.1.1",
+    "prop-types": "^15.7.2",
+    "react-select-search": "^3.0.1"
+  },
+  "peerDependencies": {
+    "react": "^16.0.0"
+  },
+  "devDependencies": {
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
+    "react-scripts": "^3.4.1"
+  },
+  "files": [
+    "dist"
+  ]
+}
