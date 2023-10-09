@@ -1,0 +1,25 @@
+{
+  "name": "@davidwells/md-utils",
+  "version": "0.0.1",
+  "description": "Simple MD utils",
+  "main": "src/index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DavidWells/components/packages/util-md"
+  },
+  "scripts": {
+    "test": "uvu src '.test.([mc]js|[jt]sx?)$'",
+    "release:patch": "npm version patch && npm publish",
+    "release:minor": "npm version minor && npm publish",
+    "release:major": "npm version major && npm publish"
+  },
+  "author": "David Wells",
+  "license": "MIT",
+  "dependencies": {
+    "gray-matter": "^4.0.3",
+    "micro-mdx-parser": "^1.1.0"
+  },
+  "devDependencies": {
+    "uvu": "^0.5.1"
+  }
+}
