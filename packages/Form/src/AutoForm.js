@@ -1,5 +1,5 @@
 import React from 'react'
-import getFormData from 'get-form-data'
+import { getFormData } from '@analytics/form-utils'
 
 export default class AutoForm extends React.Component {
   static defaultProps = {

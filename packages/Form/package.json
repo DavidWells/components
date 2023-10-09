@@ -1,6 +1,6 @@
 {
   "name": "@davidwells/components-form",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "React Form Component",
   "author": "DavidWells",
   "license": "MIT",
@@ -25,14 +25,14 @@
     "release:major": "npm version major && npm publish"
   },
   "dependencies": {
-    "get-form-data": "^2.0.0"
+    "@analytics/form-utils": "^0.3.13"
   },
   "peerDependencies": {
-    "react": "^16.0.0"
+    "react": "^18.0.0"
   },
   "devDependencies": {
-    "react": "^16.13.1",
-    "react-dom": "^16.13.1",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
     "react-scripts": "^3.4.1"
   },
   "files": [
