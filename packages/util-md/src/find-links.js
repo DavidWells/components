@@ -1,6 +1,6 @@
 const { onlyUnique, isImage, isRelative } = require('./filters')
 const { findMarkdownImages } = require('./find-images-md')
-const { REMOVE_CODE_BLOCK_REGEX } = require('./find-code-blocks')
+const { removeCode } = require('./find-code-blocks')
 // Alt https://github.com/MikeKovarik/link-extract
 
 // https://regex101.com/r/In5HtG/3
@@ -48,7 +48,8 @@ function findLinks(text, opts = {}) {
   const { unique = true, frontmatter } = opts
 
   const absoluteLinks = findAbsoluteLinks(text)
-  const relativeLinks = findRelativeLinks(text.replace(REMOVE_CODE_BLOCK_REGEX, ''))
+  const noCode = removeCode(text)
+  const relativeLinks = findRelativeLinks(noCode)
   // Naked https:// links in text
   const rawLinks = findRawLinks(text)
   const frontmatterLinks = (frontmatter) ? findLinksInFrontMatter(frontmatter) : []
@@ -57,11 +58,13 @@ function findLinks(text, opts = {}) {
   // markdown syntax <http://link.com>
   const angleLinks = findAngleLinks(text)
 
-  /*
+  //*
   console.log('absoluteLinks', absoluteLinks)
   console.log('relativeLinks', relativeLinks)
   console.log('frontmatterLinks', frontmatterLinks)
   console.log('markdownImages', markdownImages)
+  console.log('angleLinks', angleLinks)
+  console.log('rawLinks', rawLinks)
   /** */
 
   const foundLinks = frontmatterLinks

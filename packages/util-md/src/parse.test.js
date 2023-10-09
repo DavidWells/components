@@ -10,7 +10,7 @@ const { parseFrontmatter } = require('./frontmatter')
 const DEEP_LOG = false
 
 function deepLog(myObject, myObjectTwo) {
-  if (!DEEP_LOG) return
+  // if (!DEEP_LOG) return
   let obj = myObject
   if (typeof myObject === 'string') {
     obj = myObjectTwo
@@ -25,9 +25,16 @@ function read(filePath) {
 
 const FILE_PATH = path.join(__dirname, '../fixtures/file-with-links.md')
 const BIG_POST = path.join(__dirname, '../fixtures/big-post.md')
+const SNIPPET_POST = path.join(__dirname, '../fixtures/snippet.md')
 
 // const FILE_PATH = path.join(__dirname, 'fixtures/2022-01-22-date-in-filename.md')
 const fileContents = fs.readFileSync(FILE_PATH, 'utf-8')
+
+test('Read snippet post', async () => {
+  const res = parseMarkdown(read(SNIPPET_POST), { filePath: SNIPPET_POST })
+  // deepLog(res)
+  assert.equal(res.links.length, 1)
+})
 
 test('Read big post', async () => {
   const res = parseMarkdown(read(BIG_POST), { filePath: BIG_POST })

@@ -4,7 +4,8 @@ const { getLineCount, getLineNumberFromMatch } = require('./utils')
 const CODE_BLOCK_REGEX = /^([A-Za-z \t]*)```([A-Za-z]*)?\n([\s\S]*?)```([A-Za-z \t]*)*$/gm
 // https://regex101.com/r/oPKKoC/1
 const REMOVE_CODE_BLOCK_REGEX = /^(?:[A-Za-z \t]*)?(```(?:[A-Za-z]*)?\n(?:[\s\S]*?)```)([A-Za-z \t]*)*$/gm
-
+// remove inline `code` blocks
+const REMOVE_INLINE_CODE_BLOCK = /`[^`\n]*`/g
 /**
  * Parse code blocks out of markdown
  * @param {string} block
@@ -81,8 +82,15 @@ function findCodeBlocks(block, opts = {}) {
   }
 }
 
+function removeCode(text = '') {
+  return text
+    .replace(REMOVE_CODE_BLOCK_REGEX, '')
+    .replace(REMOVE_INLINE_CODE_BLOCK, '')
+}
+
 module.exports = {
   findCodeBlocks,
+  removeCode,
   CODE_BLOCK_REGEX,
   REMOVE_CODE_BLOCK_REGEX
 }
