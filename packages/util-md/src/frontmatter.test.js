@@ -14,13 +14,19 @@ function read(filePath) {
 
 test('Find frontmatter', async () => {
   const frontmatter = parseFrontmatter(read(FRONTMATTER))
+  /*
   console.log('frontmatter', frontmatter)
+  /** */
+
   assert.is(typeof frontmatter.data, 'object')
 })
 
-test.only('Find hidden frontmatter', async () => {
+test('Find hidden frontmatter', async () => {
   const frontmatter = parseFrontmatter(read(HIDDEN_FRONTMATTER))
+  /*
   console.log('frontmatter', frontmatter)
+  /** */
+
   assert.is(typeof frontmatter.data, 'object')
 })
 

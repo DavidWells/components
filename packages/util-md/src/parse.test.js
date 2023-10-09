@@ -19,9 +19,21 @@ function deepLog(myObject, myObjectTwo) {
   console.log(util.inspect(obj, false, null, true /* enable colors */))
 }
 
+function read(filePath) {
+  return fs.readFileSync(filePath, 'utf-8')
+}
+
 const FILE_PATH = path.join(__dirname, '../fixtures/file-with-links.md')
+const BIG_POST = path.join(__dirname, '../fixtures/big-post.md')
+
 // const FILE_PATH = path.join(__dirname, 'fixtures/2022-01-22-date-in-filename.md')
 const fileContents = fs.readFileSync(FILE_PATH, 'utf-8')
+
+test('Read big post', async () => {
+  const res = parseMarkdown(read(BIG_POST), { filePath: BIG_POST })
+  // deepLog(res.links)
+  assert.equal(res.links.length, 131)
+})
 
 test('parseMarkdown API', async () => {
   const res = parseMarkdown(fileContents, { filePath: FILE_PATH })

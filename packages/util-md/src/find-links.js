@@ -1,5 +1,6 @@
 const { onlyUnique, isImage, isRelative } = require('./filters')
 const { findMarkdownImages } = require('./find-images-md')
+const { REMOVE_CODE_BLOCK_REGEX } = require('./find-code-blocks')
 // Alt https://github.com/MikeKovarik/link-extract
 
 // https://regex101.com/r/In5HtG/3
@@ -11,7 +12,9 @@ const RELATIVE_LINKS_REGEX = /(src|href|\()=?(['"/])(?!(?:(?:https?|ftp):\/\/|da
 // https://regex101.com/r/u2DwY2/2/
 const MARKDOWN_IMAGE_REGEX = /!\[[^\]]*\]\((.*?)\s*("(?:.*[^"])")?\s*\)/g
 // https://regex101.com/r/UeQ049/2 <https://www.markdownguide.org>
-const ANGLE_LINKS = /(<)(\S*[@:]\S*)(>)/
+const ANGLE_LINKS = /(<)(\S*[@:]\S*)(>)/g
+
+const RAW_LINK = /^(https?:\/\/[^\s]+)(?:[\s])|[\s](https?:\/\/[^\s]+)(?:[\s])/g
 
 const LINK_PATTERN = /^https?:\/\//
 
@@ -45,17 +48,28 @@ function findLinks(text, opts = {}) {
   const { unique = true, frontmatter } = opts
 
   const absoluteLinks = findAbsoluteLinks(text)
-  // console.log('absoluteLinks', absoluteLinks)
-  const relativeLinks = findRelativeLinks(text)
-  // console.log('relativeLinks', relativeLinks)
+  const relativeLinks = findRelativeLinks(text.replace(REMOVE_CODE_BLOCK_REGEX, ''))
+  // Naked https:// links in text
+  const rawLinks = findRawLinks(text)
   const frontmatterLinks = (frontmatter) ? findLinksInFrontMatter(frontmatter) : []
-  // console.log('frontmatterLinks', frontmatterLinks)
+  // MD image links
   const markdownImages = findMarkdownImages(text)
-  // console.log('markdownImages', markdownImages)
+  // markdown syntax <http://link.com>
+  const angleLinks = findAngleLinks(text)
+
+  /*
+  console.log('absoluteLinks', absoluteLinks)
+  console.log('relativeLinks', relativeLinks)
+  console.log('frontmatterLinks', frontmatterLinks)
+  console.log('markdownImages', markdownImages)
+  /** */
+
   const foundLinks = frontmatterLinks
     .concat(absoluteLinks)
     .concat(relativeLinks)
     .concat(markdownImages)
+    .concat(angleLinks)
+    .concat(rawLinks)
 
   const allLinks = (!unique) ? foundLinks : foundLinks.filter(onlyUnique)
 
@@ -74,6 +88,7 @@ function findLinks(text, opts = {}) {
   const links = _links.filter(onlyUnique).filter(function(el) {
     return images.indexOf(el) < 0
   })
+  // .sort()
 
   return {
     links,
@@ -111,6 +126,45 @@ function findMarkdownImageLinks(text) {
     imageLinks.push(image)
   }
   return imageLinks.filter(onlyUnique)
+}
+
+/**
+ * Finds all links in markdown format <https://foo.com>
+ * @param {string} text
+ * @returns
+ */
+function findRawLinks(text) {
+  let matches
+  let links = []
+  while ((matches = RAW_LINK.exec(text)) !== null) {
+    if (matches.index === RAW_LINK.lastIndex) {
+      RAW_LINK.lastIndex++ // avoid infinite loops with zero-width matches
+    }
+    // console.log(matches)
+    const [ _match, open, link ] = matches
+    links.push(link)
+  }
+  return links.filter(onlyUnique)
+}
+
+/**
+ * Finds all links in markdown format <https://foo.com>
+ * @param {string} text
+ * @returns
+ */
+function findAngleLinks(text) {
+  let matches
+  const links = []
+  while ((matches = ANGLE_LINKS.exec(text)) !== null) {
+    if (matches.index === ANGLE_LINKS.lastIndex) {
+      ANGLE_LINKS.lastIndex++ // avoid infinite loops with zero-width matches
+    }
+    const [ match, open, link, close ] = matches
+    if (link) {
+      links.push(link)
+    }
+  }
+  return links.filter(onlyUnique)
 }
 
 /**

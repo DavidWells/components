@@ -11,6 +11,7 @@ const MARKDOWN_IMAGE_REGEX = /!\[[^\]]*\]\((.*?)\s*("(?:.*[^"])")?\s*\)/g
 function findMarkdownImages(text) {
   let matches
   let imageLinks = []
+
   while ((matches = MARKDOWN_IMAGE_REGEX.exec(text)) !== null) {
     if (matches.index === MARKDOWN_IMAGE_REGEX.lastIndex) {
       MARKDOWN_IMAGE_REGEX.lastIndex++ // avoid infinite loops with zero-width matches

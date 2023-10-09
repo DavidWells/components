@@ -21,7 +21,7 @@ function replaceConflictingContent(str) {
 }
 
 function findFrontmatter(content = '') {
-  console.log(content)
+  // console.log(content)
   const text = removeConflictingContent(content.trim())
   const hasFrontMatter = text.match(FRONTMATTER_REGEX)
   const hasHiddenFrontMatter = text.match(HIDDEN_FRONTMATTER_REGEX)
