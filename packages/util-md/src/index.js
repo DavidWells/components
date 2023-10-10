@@ -4,7 +4,7 @@ const { parseFrontmatter } = require('./frontmatter')
 const FIRST_H1_UNDERSCORE = /^(.*)\n*?===+/
 const FIRST_H1_HASH = /^# (.*)/m
 
-function removeLeadingH1(content) {
+function removeLeadingH1(content = '') {
   let finalContent = content
   // Remove Leading h1 if exists
   if (content.startsWith('# ')) {
