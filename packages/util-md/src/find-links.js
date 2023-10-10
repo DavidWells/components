@@ -58,7 +58,7 @@ function findLinks(text, opts = {}) {
   // markdown syntax <http://link.com>
   const angleLinks = findAngleLinks(text)
 
-  //*
+  /*
   console.log('absoluteLinks', absoluteLinks)
   console.log('relativeLinks', relativeLinks)
   console.log('frontmatterLinks', frontmatterLinks)
