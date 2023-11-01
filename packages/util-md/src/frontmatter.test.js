@@ -2,7 +2,6 @@ const path = require('path')
 const fs = require('fs')
 const { test } = require('uvu')
 const assert = require('uvu/assert')
-const { findLinks } = require('./find-links')
 const { parseFrontmatter } = require('./frontmatter')
 
 const FRONTMATTER = path.join(__dirname, '../fixtures/file-with-frontmatter.md')

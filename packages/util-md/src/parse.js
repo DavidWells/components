@@ -3,7 +3,7 @@ const { parseFrontmatter } = require('./frontmatter')
 const { findUnmatchedHtmlTags } = require('./find-unmatched-html-tags')
 const { findLinks } = require('./find-links')
 const { findDate } = require('./find-date')
-const { findCodeBlocks, REMOVE_CODE_BLOCK_REGEX } = require('./find-code-blocks')
+const { findCodeBlocks } = require('./find-code-blocks')
 // const { getLineCount } = require('./utils')
 
 function parseMarkdown(text, opts = {}) {
@@ -66,7 +66,7 @@ function parseMarkdown(text, opts = {}) {
   // console.log(`htmlTags ${filePath}`, htmlTags)
   let codeBlocks
   if (includeCodeBlocks) {
-    codeBlocks = findCodeBlocks(text, { filePath, includePositions })
+    codeBlocks = findCodeBlocks(text, { filePath, includePositions: true })
   }
 
   // console.log(`codeBlocks ${filePath}`, codeBlocks)

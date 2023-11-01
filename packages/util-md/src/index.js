@@ -1,5 +1,6 @@
 const { parseMarkdown } = require('./parse')
 const { parseFrontmatter } = require('./frontmatter')
+const dedentString = require('./utils/dedent')
 
 const FIRST_H1_UNDERSCORE = /^(.*)\n*?===+/
 const FIRST_H1_HASH = /^# (.*)/m
@@ -20,4 +21,5 @@ module.exports = {
   parseMarkdown,
   parseFrontmatter,
   removeLeadingH1,
+  dedentString
 }

@@ -1,5 +1,6 @@
 const { parse } = require('oparser')
 const { getLineCount, getLineNumberFromMatch } = require('./utils')
+const dedentString = require('./utils/dedent')
 
 // https://regex101.com/r/nIlW1U/6
 const CODE_BLOCK_REGEX = /^([A-Za-z \t]*)```([A-Za-z]*)?([A-Za-z_ \t="'{}]*)?\n([\s\S]*?)```([A-Za-z \t]*)*$/gm
@@ -9,9 +10,13 @@ const REMOVE_CODE_BLOCK_REGEX = /^(?:[A-Za-z \t]*)?(```(?:[A-Za-z]*)?\n(?:[\s\S]
 // remove inline `code` blocks
 const REMOVE_INLINE_CODE_BLOCK = /`[^`\n]*`/g
 
+const THREE_TICK_PATTERN = /^([A-Za-z \t]*)```([A-Za-z]*)?([A-Za-z_ \t="'{}]*)?\n\s*(`{4,})?\s*([\s\S]*?)(`{4,})?([\s]*?)```([A-Za-z \t]*)*$/gm
+const THREE_TILDE_PATTERN = /^([A-Za-z \t]*)~~~([A-Za-z]*)?([A-Za-z_ \t="'{}]*)?\n\s*(`{4,})?\s*([\s\S]*?)(`{4,})?([\s]*?)~~~([A-Za-z \t]*)*$/gm
+const FOUR_TICK_PATTERN = /^([A-Za-z \t]*)````([A-Za-z]*)?([A-Za-z_ \t="'{}]*)?\n\s*(```)?\s*([\s\S]*?)(```)?([\s]*?)````([A-Za-z \t]*)*$/gm
+
 /**
  * Parse code blocks out of markdown
- * @param {string} block
+ * @param {string} text
  * @param {Object} opts
  * @returns {Object}
  * @example
@@ -19,57 +24,117 @@ const REMOVE_INLINE_CODE_BLOCK = /`[^`\n]*`/g
  * console.log('blocks', blocks)
  * console.log('errors', errors)
  */
-function findCodeBlocks(block, opts = {}) {
-  const { filePath = '', includePositions } = opts
-  const threeTicksResult = getBlocks(block, {
-    filePath,
-    includePositions,
-    pattern: CODE_BLOCK_REGEX
-  })
-
-  /* If no possible conflicting brackets return early */
-  if (block.indexOf('````') === -1) {
-    return threeTicksResult
+function findCodeBlocks(text, opts = {}) {
+  const { filePath = '', includePositions = true } = opts
+  /* Check for 4 tick blocks */
+  let fourTickResults = {
+    blocks: [],
+    errors: []
   }
-
-  /* Check for nested codeblocks with 4 backticks */
-  const fourTicksResult = getBlocks(block, {
-    filePath,
-    includePositions,
-    pattern: CODE_BLOCK_FOUR_REGEX
-  })
-  const fourTicks = fourTicksResult.blocks
-  const threeTicks = threeTicksResult.blocks
-  /* */
-  if (fourTicks && fourTicks.length) {
-    /* Loop over matches and replace */
-    for (let i = 0; i < fourTicks.length; i++) {
-      const codeBlock = fourTicks[i]
-      // console.log('codeBlock', codeBlock)
-      /* Loop over 3 ``` matches and replace with correct contents */
-      for (let n = 0; n < threeTicks.length; n++) {
-        /* If match, replace original with correct code block */
-        if (threeTicks[n].block.trim() === codeBlock.code) {
-          threeTicksResult.blocks[n] = codeBlock
-        }
-      }
+  /* If text has quad ```` code fences, process internal conflicts first */
+  if (text.indexOf('````') > -1) {
+    /* Find ```` code blocks */
+    fourTickResults = _getCodeBlocks(text, {
+      pattern: FOUR_TICK_PATTERN,
+      replaceTripleTicks: true
+    })
+    const cleanBlocks = []
+    for (let index = 0; index < fourTickResults.blocks.length; index++) {
+      const b = fourTickResults.blocks[index]
+      text = text.replace(b.block, b.cleanBlock)
+      delete b.cleanBlock
+      b.code = fixSpecialChars(b.code)
+      cleanBlocks.push(b)
     }
+    // console.log('cleanBlocks', cleanBlocks)
   }
-  return threeTicksResult
+
+  let threeTildeResults = {
+    blocks: [],
+    errors: []
+  }
+  if (text.indexOf('~~~') > -1) {
+    /* Find ~~~ code blocks */
+    threeTildeResults = _getCodeBlocks(text, {
+      pattern: THREE_TILDE_PATTERN,
+    })
+  }
+
+  /* Find ``` code blocks */
+  const threeTickResult = _getCodeBlocks(text, {
+    filePath,
+    includePositions,
+    pattern: THREE_TICK_PATTERN
+  })
+
+  const blocks = threeTickResult.blocks
+    .concat(threeTildeResults.blocks)
+    .concat(fourTickResults.blocks)
+    .sort((a, b) => {
+      if (a.index > b.index) return 1
+      if (a.index < b.index) return -1
+      return 0
+    })
+
+  const errors = threeTickResult.errors
+    .concat(threeTildeResults.errors)
+    .concat(fourTickResults.errors)
+  /* // debug
+  console.log('threeTickResult', threeTickResult)
+  console.log('threeTildeResults', threeTildeResults)
+  console.log('fourTickResults', fourTickResults)
+  console.log('allBlocks', blocks)
+  console.log('errors', errors)
+  /** */
+  return {
+    blocks,
+    errors
+  }
 }
 
-function getBlocks(block, opts = {}) {
-  const { filePath = '', includePositions, pattern } = opts
+function replaceSpecialChars(str) {
+  return str.replace(/```/g, '&&&')
+}
+
+function fixSpecialChars(str) {
+  return str.replace(/&&&/g, '```')
+}
+
+function _getCodeBlocks(block, opts = {}) {
+  const {
+    filePath = '',
+    includePositions = true,
+    dedentCode = true,
+    replaceTripleTicks = false,
+    pattern
+  } = opts
   let matches
   let errors = []
   let blocks = []
 
   const msg = (filePath) ? ` in ${filePath}` : ''
+
   while ((matches = pattern.exec(block)) !== null) {
     if (matches.index === pattern.lastIndex) {
       pattern.lastIndex++ // avoid infinite loops with zero-width matches
     }
-    const [ match, prefix, syntax, props, content, postFix ] = matches
+    const [
+      match,
+      prefix = '',
+      syntax,
+      props,
+      innerTicksOpen = '',
+      _content,
+      innerTicksClose = '',
+      postFix
+    ] = matches
+
+    const innerTicksO = (replaceTripleTicks) ? replaceSpecialChars(innerTicksOpen) : innerTicksOpen
+    const innerTicksC = (replaceTripleTicks) ? replaceSpecialChars(innerTicksClose) : innerTicksClose
+
+    const originalCode = prefix + innerTicksOpen + _content + innerTicksClose
+    let finalCode = prefix + innerTicksO + _content + innerTicksC
+
     const lineNumber = getLineNumberFromMatch(block, matches)
     let hasError = false
     /* // debug
@@ -77,7 +142,7 @@ function getBlocks(block, opts = {}) {
     console.log(`postFix: "${postFix}"`)
     console.log('syntax:', syntax)
     console.log('Content:')
-    console.log(content.trim())
+    console.log(finalCode.trim())
     console.log('───────────────────────')
     /** */
     const codeBlock = {}
@@ -87,6 +152,7 @@ function getBlocks(block, opts = {}) {
     }
 
     if (props) {
+      codeBlock.propsRaw = props
       codeBlock.props = parse(props)
     }
 
@@ -95,6 +161,10 @@ function getBlocks(block, opts = {}) {
     }
 
     codeBlock.block = match
+
+    if (replaceTripleTicks) {
+      codeBlock.cleanBlock = match.replace(originalCode, finalCode)
+    }
 
     /* Validate code blocks */
     if (prefix && prefix.match(/\S/)) {
@@ -118,9 +188,13 @@ function getBlocks(block, opts = {}) {
     }
 
     if (!hasError) {
-      codeBlock.code = content.trim()
+      if (dedentCode) {
+        finalCode = dedentString(finalCode.trim())
+      }
+      codeBlock.code = finalCode.replace(/\s+$/g, '')
       blocks.push(codeBlock)
     }
+    /** */
   }
 
   return {
@@ -136,8 +210,9 @@ function removeCode(text = '') {
 }
 
 module.exports = {
+  dedentString,
   findCodeBlocks,
   removeCode,
-  CODE_BLOCK_REGEX,
-  REMOVE_CODE_BLOCK_REGEX
+  // CODE_BLOCK_REGEX,
+  // REMOVE_CODE_BLOCK_REGEX
 }
