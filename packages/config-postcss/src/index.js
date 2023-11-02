@@ -6,7 +6,7 @@ const webpackLoaderOptionUtil = require('./webpackLoaderOptionUtil')
 const mixins = require('./_mixins')
 const variables = require('./_variables')
 const functions = require('./_functions')
-const printColors = require('./printColors')
+const { printVariables, printColors } = require('./print')
 
 module.exports = {
   getPostCSSConfig,
@@ -16,5 +16,6 @@ module.exports = {
   mixins,
   variables,
   functions,
-  printColors,
+  printVariables,
+  printColors
 }

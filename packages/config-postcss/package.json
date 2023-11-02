@@ -1,6 +1,6 @@
 {
   "name": "@davidwells/config-postcss",
-  "version": "0.1.0",
+  "version": "0.1.6",
   "description": "Reusable postcss config",
   "author": "DavidWells",
   "license": "MIT",
