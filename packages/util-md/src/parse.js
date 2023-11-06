@@ -13,6 +13,7 @@ function parseMarkdown(text, opts = {}) {
     astParser,
     includeAst = true,
     includeLinks = true,
+    includeRefs = true,
     includeImages = true,
     includeCodeBlocks = true,
     includePositions = false,
@@ -36,12 +37,14 @@ function parseMarkdown(text, opts = {}) {
   }
 
   let links
+  let refLinks
   let images
   if (includeLinks || includeImages) {
     const linkData = findLinks(text, {
       frontmatter: data
     })
     links = linkData.links
+    refLinks = linkData.refs
     images = linkData.images
   }
 
@@ -125,6 +128,10 @@ function parseMarkdown(text, opts = {}) {
 
   if (includeLinks) {
     parseResult.links = links
+  }
+
+  if (includeRefs) {
+    parseResult.refs = refLinks
   }
 
   if (includeImages) {
