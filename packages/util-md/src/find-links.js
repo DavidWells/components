@@ -9,10 +9,10 @@ const { removeCode } = require('./find-code-blocks')
 const LIVE_LINKS_REGEX = /['"(]((?:https?:\/\/)[\w\d\-_,./?=#%:+&]{3,})|<(\S*:\/\/\S*)>/gmi
 // https://regex101.com/r/Nywerx/3
 const RELATIVE_LINKS_REGEX = /(src|href|\()=?(['"/])(?!(?:(?:https?|ftp):\/\/|data:))(\.?\/)?([\w\d-_./,?=#%:+&]+)(?:['")])?/gim
-// https://regex101.com/r/u2DwY2/2/
-const MARKDOWN_IMAGE_REGEX = /!\[[^\]]*\]\((.*?)\s*("(?:.*[^"])")?\s*\)/g
 // https://regex101.com/r/UeQ049/2 <https://www.markdownguide.org>
 const ANGLE_LINKS = /(<)(\S*[@:]\S*)(>)/g
+// https://regex101.com/r/Koq51S/1 [github]: https://github.com/davidwells "Github Profile"
+const REFERENCE_IMAGE_OR_LINK = /^[ \t]*\[([^\]]*)\]:\s+<?([^\s>]+)>?\s*(["']?([^"'\n]*)["']?)?/gm
 
 const RAW_LINK = /^(https?:\/\/[^\s]+)(?:[\s])|[\s](https?:\/\/[^\s]+)(?:[\s])/g
 
@@ -58,6 +58,9 @@ function findLinks(text, opts = {}) {
   // markdown syntax <http://link.com>
   const angleLinks = findAngleLinks(text)
 
+  const refs = findRefLinks(text)
+  const refLinkList = refs.map((x) => x.url)
+
   /*
   console.log('absoluteLinks', absoluteLinks)
   console.log('relativeLinks', relativeLinks)
@@ -65,6 +68,7 @@ function findLinks(text, opts = {}) {
   console.log('markdownImages', markdownImages)
   console.log('angleLinks', angleLinks)
   console.log('rawLinks', rawLinks)
+  console.log('refLinkList', refLinkList)
   /** */
 
   const foundLinks = frontmatterLinks
@@ -73,6 +77,7 @@ function findLinks(text, opts = {}) {
     .concat(markdownImages)
     .concat(angleLinks)
     .concat(rawLinks)
+    .concat(refLinkList)
 
   const allLinks = (!unique) ? foundLinks : foundLinks.filter(onlyUnique)
 
@@ -94,6 +99,7 @@ function findLinks(text, opts = {}) {
   // .sort()
 
   return {
+    refs,
     links,
     images
   }
@@ -118,17 +124,26 @@ function findLinks(text, opts = {}) {
   */
 }
 
-function findMarkdownImageLinks(text) {
+/**
+ * Finds all links in markdown format <https://foo.com>
+ * @param {string} text
+ * @returns
+ */
+function findRefLinks(text) {
   let matches
-  const imageLinks = []
-  while ((matches = MARKDOWN_IMAGE_REGEX.exec(text)) !== null) {
-    if (matches.index === MARKDOWN_IMAGE_REGEX.lastIndex) {
-      MARKDOWN_IMAGE_REGEX.lastIndex++ // avoid infinite loops with zero-width matches
+  let links = []
+  while ((matches = REFERENCE_IMAGE_OR_LINK.exec(text)) !== null) {
+    if (matches.index === REFERENCE_IMAGE_OR_LINK.lastIndex) {
+      REFERENCE_IMAGE_OR_LINK.lastIndex++
     }
-    const [ match, image, altText ] = matches
-    imageLinks.push(image)
+    const [ _match, id, url, _altText, altText ] = matches
+    links.push({
+      id,
+      url,
+      altText
+    })
   }
-  return imageLinks.filter(onlyUnique)
+  return links.filter(onlyUnique)
 }
 
 /**
@@ -257,11 +272,13 @@ function traverse(x, arr = []) {
   }
   return arr
 }
+
 function traverseArray(arr, acc) {
   for (let i = 0; i < arr.length; i++) {
     traverse(arr[i], acc)
   }
 }
+
 function traverseObject(obj, acc) {
   for (const key in obj) {
     if (obj.hasOwnProperty(key)) {
@@ -273,5 +290,6 @@ function traverseObject(obj, acc) {
 module.exports = {
   findLinks,
   findAbsoluteLinks,
-  findRelativeLinks
+  findRelativeLinks,
+  findRefLinks
 }

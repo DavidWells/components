@@ -52,11 +52,12 @@ test('parseMarkdown API', async () => {
   assert.is(Array.isArray(res.errors), true)
 })
 
-test('Verify contents', async () => {
+test('parser verify contents', async () => {
   const res = parseMarkdown(fileContents, {
     filePath: FILE_PATH
   })
   deepLog('Results:', res)
+  // process.exit(1)
   assert.equal(res.links, [
     'https://funky-frontmatter.com',
     'https://www.front.com/blog/open-beta-changes',
@@ -67,7 +68,8 @@ test('Verify contents', async () => {
     'https://www.yoursite.com/pricing?utm_source=active%20users&utm_medium=email&utm_campaign=feature%20launch&utm_content=bottom%20cta%20button',
     'https://ABC.com/sign-up',
     'http://jobs.ABC.net',
-    '/foobar'
+    '/foobar',
+    'https://github.com/davidwells'
   ])
   assert.equal(res.images, [
     '/assets/images/lol-frontmatter.jpg',
