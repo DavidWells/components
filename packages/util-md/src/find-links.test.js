@@ -18,16 +18,16 @@ test('find links', async () => {
 
   /* Has reference links */
   assert.equal(links.refs, [
-    { id: 'whatever', url: 'https://github.com/cool', altText: 'nice' },
+    { id: 'whatever', url: 'https://github.com/cool', title: 'nice' },
     {
       id: 'indented',
       url: 'https://github.com/indented',
-      altText: 'indented ref link'
+      title: 'indented ref link'
     },
     {
       id: 'github',
       url: 'https://github.com/davidwells',
-      altText: 'Github Profile'
+      title: 'Github Profile'
     }
   ])
 
@@ -73,16 +73,16 @@ test('find ref links', async () => {
   /** */
 
   assert.equal(refLinks, [
-    { id: 'whatever', url: 'https://github.com/cool', altText: 'nice' },
+    { id: 'whatever', url: 'https://github.com/cool', title: 'nice' },
     {
       id: 'indented',
       url: 'https://github.com/indented',
-      altText: 'indented ref link'
+      title: 'indented ref link'
     },
     {
       id: 'github',
       url: 'https://github.com/davidwells',
-      altText: 'Github Profile'
+      title: 'Github Profile'
     }
   ])
 })

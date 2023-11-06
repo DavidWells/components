@@ -143,6 +143,9 @@ At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praese
 xyz
 <!-- end-doc-gen -->
 
+Here's a simple footnote,[^1] and here's a longer one.[^bignote]
+
+[^1]: This is the first footnote.
 
 We’re excited to be on this journey to help customers solve some of their greatest challenges by making code and data easier to share, protect, and secure. **Welcome to ABC and welcome to a new era of sharing made easy!**
 

@@ -4,6 +4,7 @@ const { findUnmatchedHtmlTags } = require('./find-unmatched-html-tags')
 const { findLinks } = require('./find-links')
 const { findDate } = require('./find-date')
 const { findCodeBlocks } = require('./find-code-blocks')
+const { findFootnotes } = require('./find-footnotes')
 // const { getLineCount } = require('./utils')
 
 function parseMarkdown(text, opts = {}) {
@@ -15,6 +16,7 @@ function parseMarkdown(text, opts = {}) {
     includeLinks = true,
     includeRefs = true,
     includeImages = true,
+    includeFootnotes = true,
     includeCodeBlocks = true,
     includePositions = false,
     includeRawFrontmatter = false,
@@ -132,6 +134,10 @@ function parseMarkdown(text, opts = {}) {
 
   if (includeRefs) {
     parseResult.refs = refLinks
+  }
+
+  if (includeFootnotes) {
+    parseResult.footnotes = findFootnotes(text)
   }
 
   if (includeImages) {
