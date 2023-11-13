@@ -1,8 +1,8 @@
 {
   "name": "extract-responsive-styles",
-  "version": "0.0.1",
+  "version": "0.0.6",
   "description": "Extract responsive styles from CSS",
-  "main": "index.js",
+  "main": "src/index.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/DavidWells/components/packages/util-css-extract-responsive-styles"
@@ -16,6 +16,8 @@
   "license": "MIT",
   "dependencies": {
     "globby": "^11.0.1",
+    "lodash.kebabcase": "^4.1.1",
+    "lodash.merge": "^4.6.2",
     "postcss": "^8.2.1",
     "postcss-combine-media-query": "^1.0.1",
     "postcss-extract-media-query": "^2.0.0",

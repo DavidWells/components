@@ -2,4 +2,4 @@
 
 Pull all media queries into a single responsive file.
 
-To achieve https://mobile-toggle.netlify.app/
+To achieve https://mobile-toggle.netlify.app

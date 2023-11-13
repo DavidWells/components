@@ -1,9 +1,8 @@
 const path = require('path')
-const { get } = require('quick-persist')
 const extractMediaQueries = require('../')
 
 async function runPostBuild() {
-  const buildHash = (await get('hash')) || 'xyz'
+  const buildHash = 'xyz'
   const BUILD_DIR = path.join(__dirname, '../build')
 
   await extractMediaQueries({

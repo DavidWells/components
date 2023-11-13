@@ -2,7 +2,8 @@ const fs = require('fs').promises
 const path = require('path')
 const globby = require('globby')
 const postcss = require('postcss')
-const { get } = require('quick-persist')
+const extractMediaQueriesPlugin = require('./postcss-extract-media-query-fork')
+// const { get } = require('quick-persist')
 // TODO enable clean up?
 // const { promisify } = require('util')
 // const rimraf = require('rimraf')
@@ -18,7 +19,7 @@ module.exports = async function extractResponsiveStyles({
 }) {
   const logger = (args) => console.log('[Responsive CSS]:', args)
   const debugLogger = (debug) ? logger : noOp
-  const tmpOutputDirectory = path.join(buildDirectory, 'responsive')
+  const tmpOutputDirectory = path.join(__dirname, 'responsive')
   const combinedFilePath = path.join(tmpOutputDirectory, '_combined.css')
   const tmpOutputPath = path.join(tmpOutputDirectory, '_responsive.css')
 
@@ -114,14 +115,14 @@ async function extractMediaQueries(filePath, outputDirectory) {
     // Combine. Alt https://github.com/hail2u/node-css-mqpacker
     require('postcss-combine-media-query'),
     // Extract to seperate files
-    require('postcss-extract-media-query')({
+    extractMediaQueriesPlugin({
       output: {
         path: outputDirectory,
         name: '[query]-[name].[ext]'
       },
-      queries: {
-        'screen and (min-width: 1024px)': 'desktop'
-      }
+      // queries: {
+      //   'screen and (min-width: 1024px)': 'desktop'
+      // }
     })
   ]).process(css, { from: filePath, to: filePath })
 
@@ -143,6 +144,6 @@ async function combineStyles(filePath, outputPath) {
 
 async function asyncForEach(array, callback) {
   for (let index = 0; index < array.length; index++) {
-    await callback(array[index], index, array);
+    await callback(array[index], index, array)
   }
 }
