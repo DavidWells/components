@@ -1,6 +1,6 @@
 {
   "name": "@davidwells/md-utils",
-  "version": "0.0.23",
+  "version": "0.0.27",
   "description": "Simple MD utils",
   "main": "src/index.js",
   "repository": {
@@ -17,8 +17,8 @@
   "license": "MIT",
   "dependencies": {
     "gray-matter": "^4.0.3",
-    "micro-mdx-parser": "^1.1.0",
-    "oparser": "^2.2.1"
+    "micro-mdx-parser": "^1.1.1",
+    "oparser": "^3.0.1"
   },
   "devDependencies": {
     "uvu": "^0.5.1"

@@ -189,7 +189,9 @@ function _getCodeBlocks(block, opts = {}) {
 
     if (!hasError) {
       if (dedentCode) {
-        finalCode = dedentString(finalCode.trim())
+        /* Trim leading empty newlines */
+        finalCode = finalCode.replace(/^(?:[\t ]*(?:\r?\n|\r))+/, '')
+        finalCode = dedentString(finalCode)
       }
       codeBlock.code = finalCode.replace(/\s+$/g, '')
       blocks.push(codeBlock)
@@ -210,7 +212,6 @@ function removeCode(text = '') {
 }
 
 module.exports = {
-  dedentString,
   findCodeBlocks,
   removeCode,
   // CODE_BLOCK_REGEX,

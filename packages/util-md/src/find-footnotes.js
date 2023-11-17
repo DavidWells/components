@@ -1,7 +1,7 @@
 
 
-// https://regex101.com/r/LMO5lc/8
-const FOOTNOTE_REGEX = /^[ \t]*\[(\^[^\]]*)\]:\s+(["']?[^\n]*["']?)?(?:[^\n])*\n((?:^[ \n\t]{2,}.*\n+)*)/gm
+// https://regex101.com/r/LMO5lc/9
+const FOOTNOTE_REGEX = /^[ \t]*\[\^([^\]]*)\]:\s+(["']?[^\n]*["']?)?(?:[^\n])*\n((?:^[ \n\t]{2,}.*\n+)*)/gm
 
 function findFootnotes(block) {
   let matches
@@ -10,8 +10,7 @@ function findFootnotes(block) {
     if (matches.index === FOOTNOTE_REGEX.lastIndex) {
       FOOTNOTE_REGEX.lastIndex++ // avoid infinite loops with zero-width matches
     }
-    const [ _match, _id, opening, trailing ] = matches
-    const id = (_id[0] === '^') ? _id.substring(1) : _id
+    const [ _match, id, opening, trailing ] = matches
     const trailingContent = (trailing) ? `\n${dedentString(trailing)}` : ''
     footnotes.push({
       id,
@@ -36,4 +35,5 @@ function dedentString(str) {
 
 module.exports = {
   findFootnotes,
+  FOOTNOTE_REGEX
 }
