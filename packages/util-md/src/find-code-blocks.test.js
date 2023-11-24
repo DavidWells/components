@@ -8,6 +8,7 @@ const { parseFrontmatter } = require('./frontmatter')
 const FILE_WITH_CODE = path.join(__dirname, '../fixtures/file-with-code.md')
 const FILE_WITH_CODE_TILDE = path.join(__dirname, '../fixtures/file-with-code-tilde.md')
 const FILE_WITH_HTML_CODE = path.join(__dirname, '../fixtures/file-with-html-code.md')
+const FILE_WITH_BLOCKQUOTE_CODE = path.join(__dirname, '../fixtures/file-with-quote-code.md')
 
 function read(filePath) {
   return fs.readFileSync(filePath, 'utf-8')
@@ -83,6 +84,83 @@ test('findCodeBlocks with ~~~', async () => {
     syntax: 'javascript',
     block: "~~~javascript prop=here\nconsole.log('test')\n~~~",
     code: "console.log('test')"
+  })
+})
+
+
+test('findCodeBlocks in blockquotes', async () => {
+  const code = findCodeBlocks(read(FILE_WITH_BLOCKQUOTE_CODE))
+  /*
+  console.log('code', code)
+  /** */
+  assert.equal(code, {
+    blocks: [
+      {
+        line: 16,
+        index: 321,
+        syntax: 'html',
+        block: '```html\n' +
+        '<p align="center">\n' +
+        '  <img width="460" height="300" src="https://picsum.photos/460/300" />\n' +
+        '</p>\n' +
+        '```',
+        code: '<p align="center">\n' +
+        '  <img width="460" height="300" src="https://picsum.photos/460/300" />\n' +
+        '</p>'
+      },
+      {
+        line: 33,
+        index: 726,
+        syntax: 'js',
+        block: '> ```js\n' +
+        "> const { Analytics } = require('analytics')\n" +
+        '>\n' +
+        '> const analytics = Analytics({\n' +
+        ">   app: 'my-app-name',\n" +
+        '>   version: 100,\n' +
+        '>   plugins: [\n' +
+        '>     googleAnalyticsPlugin({\n' +
+        ">       trackingId: 'UA-121991291',\n" +
+        '>     }),\n' +
+        '>     customerIOPlugin({\n' +
+        ">       siteId: '123-xyz'\n" +
+        '>     })\n' +
+        '>   ]\n' +
+        '> })\n' +
+        '>\n' +
+        '> // Fire a page view\n' +
+        '> analytics.page()\n' +
+        '> ```',
+        code: "const { Analytics } = require('analytics')\n" +
+        '\n' +
+        'const analytics = Analytics({\n' +
+        "  app: 'my-app-name',\n" +
+        '  version: 100,\n' +
+        '  plugins: [\n' +
+        '    googleAnalyticsPlugin({\n' +
+        "      trackingId: 'UA-121991291',\n" +
+        '    }),\n' +
+        '    customerIOPlugin({\n' +
+        "      siteId: '123-xyz'\n" +
+        '    })\n' +
+        '  ]\n' +
+        '})\n' +
+        '\n' +
+        '// Fire a page view\n' +
+        'analytics.page()'
+      },
+      {
+        line: 60,
+        index: 1326,
+        syntax: 'js',
+        block: '> > ```js\n' +
+        "> > const { Analytics } = require('analytics')\n" +
+        "> > console.log('lol')\n" +
+        '> > ```',
+        code: "const { Analytics } = require('analytics')\nconsole.log('lol')"
+      }
+    ],
+    errors: []
   })
 })
 

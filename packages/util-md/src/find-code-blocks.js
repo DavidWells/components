@@ -10,9 +10,10 @@ const REMOVE_CODE_BLOCK_REGEX = /^(?:[A-Za-z \t]*)?(```(?:[A-Za-z]*)?\n(?:[\s\S]
 // remove inline `code` blocks
 const REMOVE_INLINE_CODE_BLOCK = /`[^`\n]*`/g
 
-const THREE_TICK_PATTERN = /^([A-Za-z \t]*)```([A-Za-z]*)?([A-Za-z_ \t="'{}]*)?\n\s*(`{4,})?\s*([\s\S]*?)(`{4,})?([\s]*?)```([A-Za-z \t]*)*$/gm
-const THREE_TILDE_PATTERN = /^([A-Za-z \t]*)~~~([A-Za-z]*)?([A-Za-z_ \t="'{}]*)?\n\s*(`{4,})?\s*([\s\S]*?)(`{4,})?([\s]*?)~~~([A-Za-z \t]*)*$/gm
-const FOUR_TICK_PATTERN = /^([A-Za-z \t]*)````([A-Za-z]*)?([A-Za-z_ \t="'{}]*)?\n\s*(```)?\s*([\s\S]*?)(```)?([\s]*?)````([A-Za-z \t]*)*$/gm
+// https://regex101.com/r/ydaz8U/1
+const THREE_TICK_PATTERN = /^(>(?: >)*)?([A-Za-z \t]*)```([A-Za-z]*)?([A-Za-z_ \t="'{}]*)?\n\s*(`{4,})?\s*([\s\S]*?)(`{4,})?([\s]*?)```([A-Za-z \t]*)*$/gm
+const THREE_TILDE_PATTERN = /^(>(?: >)*)?([A-Za-z \t]*)~~~([A-Za-z]*)?([A-Za-z_ \t="'{}]*)?\n\s*(`{4,})?\s*([\s\S]*?)(`{4,})?([\s]*?)~~~([A-Za-z \t]*)*$/gm
+const FOUR_TICK_PATTERN = /^(>(?: >)*)?([A-Za-z \t]*)````([A-Za-z]*)?([A-Za-z_ \t="'{}]*)?\n\s*(```)?\s*([\s\S]*?)(```)?([\s]*?)````([A-Za-z \t]*)*$/gm
 
 /**
  * Parse code blocks out of markdown
@@ -31,9 +32,10 @@ function findCodeBlocks(text, opts = {}) {
     blocks: [],
     errors: []
   }
+
   /* If text has quad ```` code fences, process internal conflicts first */
+  /* Find ```` code blocks */
   if (text.indexOf('````') > -1) {
-    /* Find ```` code blocks */
     fourTickResults = _getCodeBlocks(text, {
       pattern: FOUR_TICK_PATTERN,
       replaceTripleTicks: true
@@ -53,8 +55,9 @@ function findCodeBlocks(text, opts = {}) {
     blocks: [],
     errors: []
   }
+
+  /* Find ~~~ code blocks */
   if (text.indexOf('~~~') > -1) {
-    /* Find ~~~ code blocks */
     threeTildeResults = _getCodeBlocks(text, {
       pattern: THREE_TILDE_PATTERN,
     })
@@ -120,6 +123,7 @@ function _getCodeBlocks(block, opts = {}) {
     }
     const [
       match,
+      insideBlockQuote,
       prefix = '',
       syntax,
       props,
@@ -129,11 +133,24 @@ function _getCodeBlocks(block, opts = {}) {
       postFix
     ] = matches
 
+    // console.log('insideBlockQuote', insideBlockQuote)
+    // console.log('prefix', `"${prefix}"`)
+
     const innerTicksO = (replaceTripleTicks) ? replaceSpecialChars(innerTicksOpen) : innerTicksOpen
     const innerTicksC = (replaceTripleTicks) ? replaceSpecialChars(innerTicksClose) : innerTicksClose
 
-    const originalCode = prefix + innerTicksOpen + _content + innerTicksClose
-    let finalCode = prefix + innerTicksO + _content + innerTicksC
+    let codeContent = _content
+    if (insideBlockQuote) {
+      // replace leading block quote > > arrows
+      codeContent = _content.replace(new RegExp(`^${insideBlockQuote}`, 'gm'), '')
+      if (prefix) {
+        // trim leading spaces from codeContent if prefix exists
+        codeContent = codeContent.replace(new RegExp(`^${prefix}`, ''), '')
+      }
+    }
+
+    const originalCode = prefix + innerTicksOpen + codeContent + innerTicksClose
+    let finalCode = prefix + innerTicksO + codeContent + innerTicksC
 
     const lineNumber = getLineNumberFromMatch(block, matches)
     let hasError = false
