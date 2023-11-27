@@ -177,6 +177,10 @@ function _getCodeBlocks(block, opts = {}) {
       codeBlock.syntax = syntax
     }
 
+    if (insideBlockQuote) {
+      codeBlock.prefix = insideBlockQuote + prefix
+    }
+
     codeBlock.block = match
 
     if (replaceTripleTicks) {

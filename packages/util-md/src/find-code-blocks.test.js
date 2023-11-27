@@ -112,6 +112,7 @@ test('findCodeBlocks in blockquotes', async () => {
         line: 33,
         index: 726,
         syntax: 'js',
+        prefix: '> ',
         block: '> ```js\n' +
         "> const { Analytics } = require('analytics')\n" +
         '>\n' +
@@ -147,7 +148,7 @@ test('findCodeBlocks in blockquotes', async () => {
         '})\n' +
         '\n' +
         '// Fire a page view\n' +
-        'analytics.page()'
+        'analytics.page()',
       },
       {
         line: 60,
@@ -157,7 +158,8 @@ test('findCodeBlocks in blockquotes', async () => {
         "> > const { Analytics } = require('analytics')\n" +
         "> > console.log('lol')\n" +
         '> > ```',
-        code: "const { Analytics } = require('analytics')\nconsole.log('lol')"
+        code: "const { Analytics } = require('analytics')\nconsole.log('lol')",
+        prefix: '> > '
       }
     ],
     errors: []

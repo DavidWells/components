@@ -1,7 +1,7 @@
 const { onlyUnique } = require('./filters')
 
-// https://regex101.com/r/u2DwY2/2/
-const MARKDOWN_IMAGE_REGEX = /!\[[^\]]*\]\((.*?)\s*("(?:.*[^"])")?\s*\)/g
+// https://regex101.com/r/u2DwY2/23
+const MARKDOWN_IMAGE_REGEX = /!\[[^\]]*\]\((.*?)\s*(["'](?:.*[^"'])["'])?\s*\)/g
 
 /**
  * Get markdown style images from text
