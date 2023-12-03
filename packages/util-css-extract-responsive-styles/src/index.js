@@ -2,45 +2,77 @@ const fs = require('fs').promises
 const path = require('path')
 const globby = require('globby')
 const postcss = require('postcss')
+const { getFilePaths } = require('glob-monster')
 const extractMediaQueriesPlugin = require('./postcss-extract-media-query-fork')
-// const { get } = require('quick-persist')
-// TODO enable clean up?
-// const { promisify } = require('util')
-// const rimraf = require('rimraf')
-// const deleteDir = promisify(rimraf)
 
-const logPrefix = '[Responsive CSS]: '
+const logPrefix = '[Responsive CSS]:'
 const noOp = () => {}
 
+function loggerMsg(msg, data) {
+  console.log(logPrefix, msg)
+  if (data) {
+    console.log(data)
+  }
+}
+
+async function createDir(directoryPath, recursive = true) {
+  // ignore errors - throws if the path already exists
+  return fs.mkdir(directoryPath, { recursive: recursive }).catch((e) => {})
+}
+
 module.exports = async function extractResponsiveStyles({
-  buildDirectory,
+  buildDir,
   outputPath,
-  debug = false
+  pattern = [],
+  ignore = [],
+  debug = false,
+  silent = false
 }) {
-  const logger = (args) => console.log('[Responsive CSS]:', args)
-  const debugLogger = (debug) ? logger : noOp
-  const tmpOutputDirectory = path.join(__dirname, 'responsive')
+  const logger = (silent) ? noOp : loggerMsg
+  const tmpOutputDirectory = path.join(__dirname, '../responsive-css')
   const combinedFilePath = path.join(tmpOutputDirectory, '_combined.css')
   const tmpOutputPath = path.join(tmpOutputDirectory, '_responsive.css')
+  const ignoreFiles = (typeof ignore === 'string') ? [ignore] : ignore
+  const matchFiles = (typeof pattern === 'string') ? [pattern] : pattern
 
+  const hasMatchPatterns = matchFiles && Array.isArray(matchFiles) && matchFiles.length
+  const hasBuildDir = typeof buildDir !== 'undefined'
+
+  if (hasMatchPatterns && hasBuildDir) {
+    throw new Error('"buildDir" AND "pattern" options supplied. You must use only "buildDir" OR glob "pattern" option')
+  }
+
+  await createDir(tmpOutputDirectory)
+
+  let matchPatterns
+  if (hasMatchPatterns) {
+    matchPatterns = matchFiles
+  } else if (typeof buildDir === 'string') {
+    matchPatterns = [
+      `${buildDir}/**/**.css`,
+    ]
+  }
+
+  const ROOT_DIR = process.cwd()
   /* Grab all outputted CSS files */
-  const cssFiles = await globby([
-    `${buildDirectory}/**/**.css`,
-    // Exclude previous output if any
-    `!${tmpOutputDirectory}/**/**.css`,
-    // Exclude previous build artifact if any
-    `!${outputPath}`
-  ])
+  const cssFiles = await getFilePaths(ROOT_DIR, {
+    patterns: matchPatterns,
+    ignore: ignoreFiles.concat([
+      // Exclude previous output if any
+      `!${tmpOutputDirectory}/**/**.css`,
+      // Exclude previous build artifact if any
+      `!${outputPath}`
+    ]),
+  })
 
   if (!cssFiles.length) {
-    logger(`No CSS files found in ${buildDirectory}`)
+    logger(`No CSS files found in ${buildDir}`)
     return
   }
 
   if (debug) {
     const fileWord = (cssFiles.length === 1) ? 'file' : 'files'
-    logger(`Found ${cssFiles.length} css ${fileWord} in build dir`)
-    console.log(cssFiles)
+    logger(`Found ${cssFiles.length} css ${fileWord} in build dir`, cssFiles)
   }
   // console.log('cssFiles', cssFiles)
 
@@ -58,8 +90,7 @@ module.exports = async function extractResponsiveStyles({
     `!${outputPath}`
   ])
   if (debug) {
-    logger('Combining responsive media queries from')
-    console.log(responsiveCssFiles)
+    logger('Combining responsive media queries from', responsiveCssFiles)
   }
 
   /* setup combined css file */
@@ -79,7 +110,8 @@ module.exports = async function extractResponsiveStyles({
   logger('Queries sorted!')
 
   await fs.writeFile(outputPath, result.css)
-  logger('Responsive CSS ready!', outputPath)
+  logger('Responsive CSS ready!')
+  logger(`Output: ${outputPath}`)
 
   if (!debug) {
     // clean up temporary responsive dir
