@@ -25,6 +25,8 @@ test('find headers x', async () => {
   const headers = findHeadings(contents, {
     includeHtmlHeaders: true
   })
+  console.log('headers', headers)
+  console.log(makeToc(contents))
   assert.equal(headers.length, 19)
 })
 
