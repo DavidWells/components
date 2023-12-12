@@ -36,7 +36,7 @@ test('findCodeBlocks ```', async () => {
 
 test('findCodeBlocks html', async () => {
   const code = findCodeBlocks(read(FILE_WITH_HTML_CODE))
-  /*
+  //*
   console.log('html code', code)
   /** */
   // Nested code fence works
@@ -57,7 +57,7 @@ test('findCodeBlocks html', async () => {
 
 test('findCodeBlocks with ~~~', async () => {
   const code = findCodeBlocks(read(FILE_WITH_CODE_TILDE))
-  /*
+  //*
   console.log('code', code)
   /** */
 
@@ -163,6 +163,101 @@ test('findCodeBlocks in blockquotes', async () => {
       }
     ],
     errors: []
+  })
+})
+
+test('Match // comments', async () => {
+  const code = findCodeBlocks(`
+\`\`\`js
+// Comment here
+console.log('test')
+\`\`\`
+`)
+  /*
+  console.log('code', code)
+  /** */
+  // Nested code fence works
+  assert.equal(code.blocks[0], {
+    line: 2,
+    index: 1,
+    syntax: 'js',
+    block: "```js\n// Comment here\nconsole.log('test')\n```",
+    comment: '// Comment here',
+    code: "// Comment here\nconsole.log('test')"
+  })
+
+  const codeTwo = findCodeBlocks(`
+\`\`\`js
+// Comment here
+console.log('test')
+\`\`\`
+`, {
+  trimLeadingComment: true,
+})
+
+  assert.equal(codeTwo.blocks[0], {
+    line: 2,
+    index: 1,
+    syntax: 'js',
+    block: "```js\n// Comment here\nconsole.log('test')\n```",
+    comment: '// Comment here',
+    code: "console.log('test')"
+  })
+})
+
+test('Match /* comments */', async () => {
+  const md = `
+\`\`\`js
+/* Comment here */
+console.log('test')
+\`\`\`
+`
+  const code = findCodeBlocks(md)
+  /*
+  console.log('code', code)
+  /** */
+  // Nested code fence works
+  assert.equal(code.blocks[0], {
+    line: 2,
+    index: 1,
+    syntax: 'js',
+    block: "```js\n/* Comment here */\nconsole.log('test')\n```",
+    comment: '/* Comment here */',
+    code: "/* Comment here */\nconsole.log('test')"
+  })
+
+  const codeTwo = findCodeBlocks(md, {
+    trimLeadingComment: true,
+  })
+
+  assert.equal(codeTwo.blocks[0], {
+    line: 2,
+    index: 1,
+    syntax: 'js',
+    block: "```js\n/* Comment here */\nconsole.log('test')\n```",
+    comment: '/* Comment here */',
+    code: "console.log('test')"
+  })
+})
+
+test('Match nested code blocks ``` inside ````', async () => {
+  const code = findCodeBlocks(`
+\`\`\`\`md
+\`\`\`javascript
+console.log('test')
+\`\`\`
+\`\`\`\`
+`)
+  //*
+  console.log('code', code)
+  /** */
+  // Nested code fence works
+  assert.equal(code.blocks[0], {
+    line: 2,
+    index: 1,
+    syntax: 'md',
+    block: "````md\n```javascript\nconsole.log('test')\n```\n````",
+    code: "```javascript\nconsole.log('test')\n```"
   })
 })
 

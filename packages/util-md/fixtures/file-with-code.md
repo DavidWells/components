@@ -52,7 +52,7 @@ Python example:
 
   ````md
   ```python
-  s = "Python syntax highlighting"
+  s = "zPython syntax highlighting"
   print s
   ```
   ````
@@ -78,3 +78,10 @@ Let me know if you have other file system utilities you like to use in the comme
 ~~~md
 Three tilde box
 ~~~
+
+
+<pre>
+  <code>
+  cool
+  </code>
+</pre>

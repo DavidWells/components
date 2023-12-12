@@ -5,6 +5,8 @@ const { findLinks } = require('./find-links')
 const { findDate } = require('./find-date')
 const { findCodeBlocks } = require('./find-code-blocks')
 const { findFootnotes } = require('./find-footnotes')
+const { makeToc } = require('./find-headings')
+
 // const { getLineCount } = require('./utils')
 
 function parseMarkdown(text, opts = {}) {
@@ -13,6 +15,7 @@ function parseMarkdown(text, opts = {}) {
     validator,
     astParser,
     includeAst = true,
+    includeToc = true,
     includeLinks = true,
     includeRefs = true,
     includeImages = true,
@@ -69,7 +72,7 @@ function parseMarkdown(text, opts = {}) {
 
   // console.log('html', html)
   // console.log(`htmlTags ${filePath}`, htmlTags)
-  let codeBlocks
+  let codeBlocks = {}
   if (includeCodeBlocks) {
     codeBlocks = findCodeBlocks(text, { filePath, includePositions: true })
   }
@@ -123,6 +126,12 @@ function parseMarkdown(text, opts = {}) {
 
   /* Include frontmatter as data object */
   parseResult.data = frontmatter
+
+  if (includeToc) {
+    parseResult.toc = makeToc(content, {
+      codeBlocks: codeBlocks.blocks
+    })
+  }
 
   if (includeRawFrontmatter) {
     parseResult.frontMatterRaw = frontMatterRaw

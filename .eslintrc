@@ -25,7 +25,9 @@
     "no-unused-vars": [
       "warn",
       {
-        "varsIgnorePattern": "^[A-Z]"
+        "varsIgnorePattern": "^_[A-Z]",
+        "argsIgnorePattern": "^_",
+        "destructuredArrayIgnorePattern": "^_"
       }
     ],
     "prefer/const": 0,
