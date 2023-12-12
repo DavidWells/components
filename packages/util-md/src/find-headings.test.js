@@ -20,6 +20,14 @@ function deepLog(objOrLabel, logVal) {
   console.log(util.inspect(obj, false, null, true))
 }
 
+test('find headers x', async () => {
+  const contents = read(path.join(__dirname, '../fixtures/syntax.md'))
+  const headers = findHeadings(contents, {
+    includeHtmlHeaders: true
+  })
+  assert.equal(headers.length, 19)
+})
+
 test('find headers', async () => {
   const contents = read(FILE_WITH_HEADERS)
   const headers = findHeadings(contents)

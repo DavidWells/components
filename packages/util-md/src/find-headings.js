@@ -25,6 +25,7 @@ function findHeadings(text, userOpts = {}) {
 
   /* Remove conflicting code block content */
   const code = (options.codeBlocks) ? options.codeBlocks : findCodeBlocks(text)
+  // console.log('code', code)
   if (code && code.blocks && code.blocks.length) {
     for (let i = 0; i < code.blocks.length; i++) {
       const item = code.blocks[i]
