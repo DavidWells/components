@@ -3,9 +3,11 @@ const { smartSlugger } = require('./utils/slugger')
 const { findCodeBlocks } = require('./find-code-blocks')
 
 // https://regex101.com/r/kTr3aa/2 Matches both Setext vs atx Header Styles
-const HEADINGS = /^(#{1,6})\s+(.*)|( *\S[\S ]*)\n([=]{4,})|( *\S[\S ]*)\n([-]{4,})$/gm
-// https://regex101.com/r/kTr3aa/8
-const HEADING_WITH_HTML = /^(?:(#{1,6})\s+(.*))$|(?:( *\S[\S ]*)\n([=]{4,}))|(?:( *\S[\S ]*)\n([-]{4,})|(?:<(h([1-6]))\b([^>]*)>*(?:>([\s\S]*?)<\/\7>)))/gmi
+const HEADINGS = /^(#{1,6})\s+(.*)|\n\n( *\S[\S ]*)\n([=]{4,})|\n\n( *\S[\S ]*)\n([-]{4,})$/gm
+// https://regex101.com/r/kTr3aa/10
+const HEADING_WITH_HTML = /^(?:(#{1,6})\s+(.*))$|(?:\n\n( *\S[\S ]*)\n([=]{3,}))|(?:\n\n( *\S[\S ]*)\n([-]{3,})|(?:<(h([1-6]))\b([^>]*)>*(?:>([\s\S]*?)<\/\7>)))/gmi
+
+const BEGINS_WITH_SETEXT = /^(?:(?:\n?( *\S[\S ]*)\n([=]{3,}))|(?:\n?( *\S[\S ]*)\n([-]{3,})))/
 
 const defaultOptions = {
   maxDepth: 6,
@@ -20,6 +22,7 @@ const defaultTocOptions = {
  */
 function findHeadings(text, userOpts = {}) {
   let matches
+  let leadingSetextMatches
   let headings = []
   const options = Object.assign({}, defaultOptions, userOpts)
 
@@ -33,6 +36,39 @@ function findHeadings(text, userOpts = {}) {
       text = text.replace(item.block, cleanCode)
     }
   }
+
+  // Handle Begins with setext header case....
+  const leadingSetext = text.match(BEGINS_WITH_SETEXT)
+  if (leadingSetext) {
+    const [ _match, setextH1Text, setextH1, setextH2Text, _setextH2 ] = leadingSetext
+    const level = (setextH1Text) ? 1 : 2
+    const headerText = setextH1Text || setextH2Text
+    if (options.maxDepth >= level) {
+      headings.push({
+        text: headerText.trim(),
+        match: _match,
+        level: level,
+        index: 1,
+      })
+    }
+  }
+
+  // while ((leadingSetextMatches = BEGINS_WITH_SETEXT.exec(text)) !== null) {
+  //   if (leadingSetextMatches.index === BEGINS_WITH_SETEXT.lastIndex) {
+  //     BEGINS_WITH_SETEXT.lastIndex++ // avoid infinite loops with zero-width matches
+  //   }
+  //   const [ _match, setextH1Text, setextH1, setextH2Text, _setextH2 ] = leadingSetextMatches
+  //   const level = (setextH1Text) ? 1 : 2
+  //   const headerText = setextH1Text || setextH2Text
+  //   if (options.maxDepth >= level) {
+  //     headings.push({
+  //       text: headerText.trim(),
+  //       match: _match,
+  //       level: level,
+  //       index: leadingSetextMatches.index
+  //     })
+  //   }
+  // }
 
   const PATTERN = (options.includeHtmlHeaders) ? HEADING_WITH_HTML : HEADINGS
   /* Loop over headings */

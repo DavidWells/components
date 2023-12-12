@@ -110,30 +110,77 @@ test('find headers', async () => {
     },
     {
       text: 'This is a first level heading',
-      match: 'This is a first level heading\n=============================',
+      match: '\n\nThis is a first level heading\n=============================',
       level: 1,
-      index: 4877
+      index: 4875
     },
     {
       text: 'This is a second level heading',
-      match: 'This is a second level heading\n------------------------------',
+      match: '\n\nThis is a second level heading\n------------------------------',
       level: 2,
-      index: 5295
+      index: 5293
     },
     {
       text: 'This is a first level heading 2',
-      match: 'This is a first level heading 2\n=================================',
+      match: '\n\nThis is a first level heading 2\n=================================',
       level: 1,
-      index: 5715
+      index: 5713
     },
     {
       text: 'This is a second level heading 2',
-      match: 'This is a second level heading 2\n----------------------------------',
+      match: '\n\nThis is a second level heading 2\n----------------------------------',
       level: 2,
-      index: 6139
+      index: 6137
     }
   ])
 })
+
+test('handles setext false positives', async () => {
+    const contentsTwo = `
+first level heading 1
+=====================
+
+Blah
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer vitae mauris arcu, eu pretium nisi.
+False positive 2
+------------------------------------------
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer vitae mauris arcu, eu pretium nisi.
+False positive 1
+=================================
+
+### Heading 3
+
+#### Heading 4
+
+##### Heading 5
+
+###### Heading 6
+`
+  const headersTwo = findHeadings(contentsTwo)
+  /*
+  console.log('headersTwo', headersTwo)
+  /** */
+  assert.equal(headersTwo, [
+    {
+      text: 'first level heading 1',
+      match: '\nfirst level heading 1\n=====================',
+      level: 1,
+      index: 1
+    },
+    { text: 'Heading 3', match: '### Heading 3', level: 3, index: 367 },
+    { text: 'Heading 4', match: '#### Heading 4', level: 4, index: 382 },
+    { text: 'Heading 5', match: '##### Heading 5', level: 5, index: 398 },
+    {
+      text: 'Heading 6',
+      match: '###### Heading 6',
+      level: 6,
+      index: 415
+    }
+  ])
+})
+
 
 test('handles conflicts', async () => {
   const contents = `
@@ -340,33 +387,36 @@ test('makeToc', async () => {
     },
     {
       level: 0,
-      index: 4877,
+      index: 4875,
       text: 'This is a first level heading',
       slug: 'this-is-a-first-level-heading',
-      match: 'This is a first level heading\n=============================',
+      match: '\n\nThis is a first level heading\n=============================',
       children: [
         {
           level: 1,
-          index: 5295,
+          index: 5293,
           text: 'This is a second level heading',
           slug: 'this-is-a-second-level-heading',
-          match: 'This is a second level heading\n------------------------------'
+          match: '\n\nThis is a second level heading\n------------------------------'
         }
       ]
     },
     {
       level: 0,
-      index: 5715,
+      index: 5713,
       text: 'This is a first level heading 2',
       slug: 'this-is-a-first-level-heading-2',
-      match: 'This is a first level heading 2\n=================================',
+      match: '\n\nThis is a first level heading 2\n=================================',
       children: [
         {
           level: 1,
-          index: 6139,
+          index: 6137,
           text: 'This is a second level heading 2',
           slug: 'this-is-a-second-level-heading-2',
-          match: 'This is a second level heading 2\n----------------------------------'
+          match: '\n' +
+            '\n' +
+            'This is a second level heading 2\n' +
+            '----------------------------------'
         }
       ]
     },
