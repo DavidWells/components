@@ -22,7 +22,6 @@ const defaultTocOptions = {
  */
 function findHeadings(text, userOpts = {}) {
   let matches
-  let leadingSetextMatches
   let headings = []
   const options = Object.assign({}, defaultOptions, userOpts)
 
@@ -40,35 +39,19 @@ function findHeadings(text, userOpts = {}) {
   // Handle Begins with setext header case....
   const leadingSetext = text.match(BEGINS_WITH_SETEXT)
   if (leadingSetext) {
-    const [ _match, setextH1Text, setextH1, setextH2Text, _setextH2 ] = leadingSetext
+    const [ _match, setextH1Text, setextH1, setextH2Text, setextH2 ] = leadingSetext
     const level = (setextH1Text) ? 1 : 2
-    const headerText = setextH1Text || setextH2Text
-    if (options.maxDepth >= level) {
-      headings.push({
-        text: headerText.trim(),
-        match: _match,
-        level: level,
-        index: 1,
-      })
+    const headerText = setextH1Text || setextH2Text || ''
+    const firstHeading = {
+      text: headerText.trim(),
+      match: _match,
+      level: level,
+      index: 1,
+    }
+    if (options.maxDepth >= level && shouldNotFilter(firstHeading, options.filter)) {
+      headings.push(firstHeading)
     }
   }
-
-  // while ((leadingSetextMatches = BEGINS_WITH_SETEXT.exec(text)) !== null) {
-  //   if (leadingSetextMatches.index === BEGINS_WITH_SETEXT.lastIndex) {
-  //     BEGINS_WITH_SETEXT.lastIndex++ // avoid infinite loops with zero-width matches
-  //   }
-  //   const [ _match, setextH1Text, setextH1, setextH2Text, _setextH2 ] = leadingSetextMatches
-  //   const level = (setextH1Text) ? 1 : 2
-  //   const headerText = setextH1Text || setextH2Text
-  //   if (options.maxDepth >= level) {
-  //     headings.push({
-  //       text: headerText.trim(),
-  //       match: _match,
-  //       level: level,
-  //       index: leadingSetextMatches.index
-  //     })
-  //   }
-  // }
 
   const PATTERN = (options.includeHtmlHeaders) ? HEADING_WITH_HTML : HEADINGS
   /* Loop over headings */
@@ -104,14 +87,14 @@ function findHeadings(text, userOpts = {}) {
     } else {
       finalLevel = level.length
     }
-
-    if (options.maxDepth >= finalLevel) {
-      headings.push({
-        text: finalText.trim(),
-        match: _match,
-        level: finalLevel,
-        index: matches.index
-      })
+    const heading = {
+      text: finalText.trim(),
+      match: _match,
+      level: finalLevel,
+      index: matches.index
+    }
+    if (options.maxDepth >= finalLevel && shouldNotFilter(heading, options.filter)) {
+      headings.push(heading)
     }
   }
   return headings
@@ -164,7 +147,28 @@ function makeToc(content = '', opts = {}) {
     })
   }
 
-  return navigation
+  if (!options.filterSection) {
+    return navigation
+  }
+
+  return filterSection(navigation, options.filterSection)
+}
+
+/* Recursively filter out ToC section */
+function filterSection(array, filterFn) {
+  return array.reduce((acc, curr) => {
+    if (curr.children && curr.children.length) {
+      curr.children = filterSection(curr.children, filterFn)
+    }
+    if (filterFn(curr)) {
+      acc = acc.concat(curr)
+    }
+    return acc
+  }, [])
+}
+
+function shouldNotFilter(heading, predicate) {
+  return (typeof predicate === 'function') ? predicate(heading) : true
 }
 
 module.exports = {
