@@ -164,7 +164,7 @@ function findCodeBlocks(block, opts = {}) {
 
 function removeCode(text = '') {
   return text
-    .replace(REMOVE_CODE_BLOCK_RE, '')
+    .replace(CODE_BLOCK_HTML_RE, '')
     .replace(REMOVE_INLINE_CODE_BLOCK, '')
 }
 

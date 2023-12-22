@@ -11,8 +11,8 @@ const LIVE_LINKS_REGEX = /['"(]((?:https?:\/\/)[\w\d\-_,./?=#%:+&]{3,})|<(\S*:\/
 const RELATIVE_LINKS_REGEX = /(src|href|\()=?(['"/])(?!(?:(?:https?|ftp):\/\/|data:))(\.?\/)?([\w\d-_./,?=#%:+&]+)(?:['")])?/gim
 // https://regex101.com/r/UeQ049/2 <https://www.markdownguide.org>
 const ANGLE_LINKS = /(<)(\S*[@:]\S*)(>)/g
-// https://regex101.com/r/UeQ049/3 [github]: https://github.com/davidwells "Github Profile"
-const REFERENCE_IMAGE_OR_LINK = /^[ \t]*\[([^^][^\]]*)\]:\s+<?([^\s>]+)>?[^\n"']*(["']?([^"'\n]*)["']?)?/gm
+// https://regex101.com/r/UeQ049/6 [github]: https://github.com/davidwells "Github Profile"
+const REFERENCE_IMAGE_OR_LINK = /^[ \t]*\[([^^][^\]]*)\]:[\t ]*<?([^\s>]+)>?[\t ]*(["']?([^"\n]*)["']?)?/gm
 
 const RAW_LINK = /^(https?:\/\/[^\s]+)(?:[\s])|[\s](https?:\/\/[^\s]+)(?:[\s])/g
 
@@ -49,6 +49,7 @@ function findLinks(text, opts = {}) {
 
   const absoluteLinks = findAbsoluteLinks(text)
   const noCode = removeCode(text)
+  // console.log('noCode', noCode)
   const relativeLinks = findRelativeLinks(noCode)
   // Naked https:// links in text
   const rawLinks = findRawLinks(text)
@@ -137,13 +138,16 @@ function findRefLinks(text) {
       REFERENCE_IMAGE_OR_LINK.lastIndex++
     }
     const [ _match, id, url, _altText, title ] = matches
+
+    if (url === '#') continue;
+
     links.push({
       id,
       url,
       title
     })
   }
-  return links.filter(onlyUnique)
+  return links // .filter(onlyUnique)
 }
 
 /**
