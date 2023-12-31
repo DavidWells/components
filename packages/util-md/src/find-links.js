@@ -3,6 +3,8 @@ const { findMarkdownImages } = require('./find-images-md')
 const { removeCode } = require('./find-code-blocks')
 // Alt https://github.com/MikeKovarik/link-extract
 
+// TODO find dead links https://github.com/gajus/deadlink
+
 // https://regex101.com/r/In5HtG/3
 // const LIVE_LINKS_REGEX = /(?:['"(])((?:https?:\/\/)[\w\d\-_,./?=#%:+&]{3,})/gmi
 // https://regex101.com/r/In5HtG/4

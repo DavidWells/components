@@ -261,4 +261,24 @@ console.log('test')
   })
 })
 
+
+test('findCodeBlocks with opts', async () => {
+  const code = findCodeBlocks(`
+\`\`\`js lines=1-5 noHighlight
+import { useState } from 'react'
+
+function Counter() {
+  const [count, setCount] = useState(0)
+  return <button onClick={() => setCount(count + 1)}>{count}</button>
+}
+\`\`\`
+`)
+  /*
+  console.log('code', code.blocks)
+  /** */
+  assert.equal(code.blocks[0].syntax, 'js')
+  assert.equal(code.blocks[0].props.lines, '1-5')
+  assert.equal(code.blocks[0].props.noHighlight, true)
+})
+
 test.run()
