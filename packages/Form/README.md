@@ -7,7 +7,7 @@
 ## Install
 
 ```bash
-npm install --save forms
+npm install --save @davidwells/components-form
 ```
 
 ## Usage
