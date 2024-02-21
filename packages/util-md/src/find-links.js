@@ -143,11 +143,11 @@ function findRefLinks(text) {
 
     if (url === '#') continue;
 
-    links.push({
-      id,
-      url,
-      title
-    })
+    const linkInfo = { id, url }
+    if (title) {
+      linkInfo.title = title
+    }
+    links.push(linkInfo)
   }
   return links // .filter(onlyUnique)
 }
