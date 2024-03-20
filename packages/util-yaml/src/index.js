@@ -277,7 +277,16 @@ function applyMatches(matchingComments, item) {
   ** */
 }
 
+function getTopLevelKeys(yamlString = '') {
+  const doc = yaml.parseDocument(yamlString)
+  if (doc.contents && doc.contents.items.length > 0) {
+    return doc.contents.items.map((item) => item.key.value)
+  }
+  return []
+}
+
 module.exports = {
   parse,
   stringify,
+  getTopLevelKeys,
 }

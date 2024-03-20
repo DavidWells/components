@@ -6,6 +6,7 @@ src/old.js
 /node_modules
 /.pnp
 .pnp.js
+x.js
 
 # generated content
 public/_data

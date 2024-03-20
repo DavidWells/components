@@ -30,6 +30,16 @@ const SNIPPET_POST = path.join(__dirname, '../fixtures/snippet.md')
 // const FILE_PATH = path.join(__dirname, 'fixtures/2022-01-22-date-in-filename.md')
 const fileContents = fs.readFileSync(FILE_PATH, 'utf-8')
 
+test.skip('Should handle no frontmatter', async () => {
+  const res = parseMarkdown(`
+# heading 1
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+`, { filePath: SNIPPET_POST })
+  deepLog(res)
+  assert.equal(res.links.length, 1)
+})
+
 test('Read snippet post', async () => {
   const res = parseMarkdown(read(SNIPPET_POST), { filePath: SNIPPET_POST })
   // deepLog(res)
