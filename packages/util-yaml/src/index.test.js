@@ -394,4 +394,31 @@ company:
   assert.equal(yml, result('', blockToMove).trim())
 })
 
+
+const basicTwo = `
+tutorial: #nesting level 1
+  - yaml: #nesting level 2 (2 spaces used for indentation)
+      name: YAML Ain't Markup Language #string [literal] #nesting level 3 (4 spaces used for indentation)
+      type: awesome #string [literal]
+      born: 2001 #number [literal]`;
+
+test('Basic Result contains comments two', async () => {
+  const object = parse(basicTwo.trim());
+  /*
+  console.log('object', object)
+  /** */
+
+  const yml = stringify(object, {
+    originalString: basicTwo,
+  })
+  /*
+  console.log('basic', basicTwo.trim())
+  console.log('yml', yml)
+  /** */
+  assert.is(typeof yml, 'string')
+  assert.equal(yml, basicTwo.trim())
+})
+
+
+
 test.run()
