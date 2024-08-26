@@ -46,7 +46,9 @@ function findHeadings(text, userOpts = {}) {
       text: headerText.trim(),
       match: _match,
       level: level,
-      index: 1,
+    }
+    if (!options.excludeIndex) {
+      firstHeading.index = 1
     }
     if (options.maxDepth >= level && shouldNotFilter(firstHeading, options.filter)) {
       headings.push(firstHeading)
@@ -73,6 +75,14 @@ function findHeadings(text, userOpts = {}) {
       htmlText, // 10
     ] = matches
 
+    /*
+    console.log('level', level)
+    console.log('text', text)
+    console.log('setextH1Text', setextH1Text)
+    console.log('setextH2Text', setextH2Text)
+    console.log('htmlTag', htmlTag)
+    /** */
+
     let finalText = text || ''
     let finalLevel
     if (!level) {
@@ -87,11 +97,15 @@ function findHeadings(text, userOpts = {}) {
     } else {
       finalLevel = level.length
     }
+    // console.log(`finalText ${finalLevel}`, finalText)
     const heading = {
       text: finalText.trim(),
       match: _match,
       level: finalLevel,
-      index: matches.index
+      // index: matches.index
+    }
+    if (!options.excludeIndex) {
+      heading.index = matches.index
     }
     if (options.maxDepth >= finalLevel && shouldNotFilter(heading, options.filter)) {
       headings.push(heading)
@@ -100,9 +114,48 @@ function findHeadings(text, userOpts = {}) {
   return headings
 }
 
-function makeToc(content = '', opts = {}) {
+function makeToc(contents, opts = {}) {
   const options = Object.assign({}, defaultTocOptions, opts)
+  let content = (contents || '').trim()
+
+
+  const matchTextEscaped = '.*?'
+  // /^#{1}\s+(.*)/
+  const OPENING_MD_HEADING = new RegExp(`^#{1,6}\\s*\\[?${matchTextEscaped}\\]?(?:.*)?`)
+  // /^<(h[1-6])[^>]*>.*?<\/\1>/
+  const OPENING_HTML_HEADING = /^<(h[1-6])[^>]*>.*?<\/\1>/
+  // new RegExp(`^<h1\\b[^>]*>[\\s]*?(${matchTextEscaped})[\\s]*?<\\/h1>`, 'gim')
+  // /^(.*)\n={3,}/
+  const OPENING_SETEXT_HEADING = new RegExp(`^(${matchTextEscaped})\n={3,}`)
+
+  const openingHeadingMD = content.match(OPENING_MD_HEADING)
+  const openingHeadingHTML = content.match(OPENING_HTML_HEADING)
+  const openingHeadingSetext = content.match(OPENING_SETEXT_HEADING)
+
+  let openingHeading = ''
+  if (opts.trimLeadingHeading) {
+    // Remove first heading
+    if (openingHeadingMD) {
+      content = content.replace(OPENING_MD_HEADING, '').trim()
+      openingHeading = openingHeadingMD[0]
+    } else if (openingHeadingHTML) {
+      content = content.replace(OPENING_HTML_HEADING, '').trim()
+      openingHeading = openingHeadingHTML[0]
+    } else if (openingHeadingSetext) {
+      content = content.replace(OPENING_SETEXT_HEADING, '').trim()
+      openingHeading = openingHeadingSetext[0]
+    }
+  }
+
+  /*
+  console.log('openingHeading', openingHeading)
+  // console.log(content)
+  process.exit(1)
+  /** */
+
   const headings = findHeadings(content, options)
+  // console.log('headings', headings)
+  // process.exit(1)
 
   if (!headings.length) {
     return []
@@ -115,7 +168,8 @@ function makeToc(content = '', opts = {}) {
 
   const slugFn = smartSlugger()
   const navigation = []
-  const base = +firstHeading.level
+  const base = 0 // +firstHeading.level
+  // console.log('base', base)
 
   function findLocation(navigation, depth) {
     if (depth <= 0) {
@@ -136,22 +190,52 @@ function makeToc(content = '', opts = {}) {
     if (!heading.text) {
       continue
     }
+    // Min level is 0
     const newLevel = +heading.level - base
+    // const realNewLevel = (newLevel < 0) ? 0 : newLevel
     const location = findLocation(navigation, newLevel)
-    location.push({
+    const leaf = {
       level: newLevel,
-      index: heading.index,
+      // index: heading.index,
       text: heading.text,
       slug: slugFn(heading.text),
       match: heading.match,
-    })
+    }
+    if (!options.excludeIndex) {
+      leaf.index = heading.index
+    }
+    location.push(leaf)
   }
 
-  if (!options.filterSection) {
-    return navigation
+  const result = flattenToc((options.filterSection) ? filterSection(navigation, options.filterSection) : navigation)
+
+  if (options.normalizeTocLevels) {
+    return normalizeTocLevels(result)
   }
 
-  return filterSection(navigation, options.filterSection)
+  return result
+}
+
+function flattenToc(arr) {
+  const result = []
+
+  for (let i = 0; i < arr.length; i++) {
+    const item = arr[i]
+
+    if (!item.match && item.children) {
+      const processedChildren = flattenToc(item.children)
+      for (let j = 0; j < processedChildren.length; j++) {
+        result.push(processedChildren[j])
+      }
+    } else {
+      if (item.children && item.children.length > 0) {
+        item.children = flattenToc(item.children)
+      }
+      result.push(item)
+    }
+  }
+
+  return result
 }
 
 /* Recursively filter out ToC section */
@@ -160,9 +244,10 @@ function filterSection(array, filterFn) {
     if (curr.children && curr.children.length) {
       curr.children = filterSection(curr.children, filterFn)
     }
-    if (filterFn(curr)) {
-      acc = acc.concat(curr)
+    if (curr.hasOwnProperty('text') && !filterFn(curr)) {
+      return acc
     }
+    acc = acc.concat(curr)
     return acc
   }, [])
 }
@@ -171,7 +256,52 @@ function shouldNotFilter(heading, predicate) {
   return (typeof predicate === 'function') ? predicate(heading) : true
 }
 
+/**
+ * Recursively adjusts the level of each item and its children.
+ *
+ * @param {Array} items - The array of items to adjust.
+ * @param {number} shift - The amount to shift each level by.
+ */
+function adjustLevels(items, shift) {
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i]
+    item.level = shift
+
+    // If the item has children, adjust their levels recursively
+    if (item.children) {
+      adjustLevels(item.children, shift + 1)
+    }
+  }
+}
+
+/**
+ * Adjusts top-level items with a level of 2 to 1, and recursively shifts other levels accordingly.
+ *
+ * @param {Array} items - The array of items to adjust.
+ */
+function normalizeTocLevels(items) {
+  // Get lowest level of all items
+  let minLevel = items.reduce((min, item) => Math.min(min, item.level), Infinity)
+
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i]
+
+    // Shift top-level items with a level of 2 to level 1
+    if (item.level > minLevel) {
+      const shift = minLevel
+      item.level = shift
+
+      // Adjust levels of children recursively
+      if (item.children) {
+        adjustLevels(item.children, shift + 1)
+      }
+    }
+  }
+  return items
+}
+
 module.exports = {
   findHeadings,
   makeToc,
+  normalizeTocLevels,
 }

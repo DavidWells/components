@@ -372,44 +372,59 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer vitae mauris ar
 
 })
 
+function normalizeObject(obj) {
+  const { index, children, ...rest } = obj
+  if (children && children.length > 0) {
+    rest.children = children.map(normalizeObject)
+  }
+  return rest
+}
+
 test('makeToc', async () => {
   const contents = read(FILE_WITH_HEADERS)
-  const headerToc = makeToc(contents)
+  const toc = makeToc(contents, { excludeIndex: true })
+  const headerToc = toc.map(normalizeObject)
   /*
   deepLog('headerToc', headerToc)
+  // console.log(typeof toc)
+  // console.log(Array.isArray(toc))
+  // console.log(toc)
+  // process.exit(1)
   /** */
+  assert.equal(Array.isArray(toc), true)
+
   assert.equal(headerToc, [
     {
-      level: 0,
-      index: 81,
+      level: 1,
+      // index: 81,
       text: 'Heading 1 with paragraph',
       slug: 'heading-1-with-paragraph',
       match: '# Heading 1 with paragraph',
       children: [
         {
-          level: 1,
-          index: 194,
+          level: 2,
+          // index: 194,
           text: 'Heading 2 with paragraph 1 😃',
           slug: 'heading-2-with-paragraph-1',
           match: '## Heading 2 with paragraph 1 😃'
         },
         {
-          level: 1,
-          index: 585,
+          level: 2,
+          // index: 585,
           text: 'Heading 2 with paragraph 2',
           slug: 'heading-2-with-paragraph-2',
           match: '## Heading 2 with paragraph 2',
           children: [
             {
-              level: 2,
-              index: 973,
+              level: 3,
+              // index: 973,
               text: 'Nested Heading 3 with paragraph',
               slug: 'nested-heading-3-with-paragraph',
               match: '### Nested Heading 3 with paragraph'
             },
             {
-              level: 2,
-              index: 1367,
+              level: 3,
+              // index: 1367,
               text: 'Nested Heading 3 with paragraph 2',
               slug: 'nested-heading-3-with-paragraph-2',
               match: '### Nested Heading 3 with paragraph 2'
@@ -417,29 +432,29 @@ test('makeToc', async () => {
           ]
         },
         {
-          level: 1,
-          index: 1763,
+          level: 2,
+          // index: 1763,
           text: 'Heading 2 with paragraph 3',
           slug: 'heading-2-with-paragraph-3',
           match: '## Heading 2 with paragraph 3'
         },
         {
-          level: 1,
-          index: 2164,
+          level: 2,
+          // index: 2164,
           text: 'Heading 2 with paragraph 4',
           slug: 'heading-2-with-paragraph-4',
           match: '## Heading 2 with paragraph 4'
         },
         {
-          level: 1,
-          index: 2552,
+          level: 2,
+          // index: 2552,
           text: 'Heading 2 with paragraph 5',
           slug: 'heading-2-with-paragraph-5',
           match: '## Heading 2 with paragraph 5'
         },
         {
-          level: 1,
-          index: 2940,
+          level: 2,
+          // index: 2940,
           text: 'Heading 2 with paragraph 6',
           slug: 'heading-2-with-paragraph-6',
           match: '## Heading 2 with paragraph 6'
@@ -447,22 +462,22 @@ test('makeToc', async () => {
       ]
     },
     {
-      level: 0,
-      index: 3958,
+      level: 1,
+      // index: 3958,
       text: 'Group 2 Heading 1 with paragraph',
       slug: 'group-2-heading-1-with-paragraph',
       match: '# Group 2 Heading 1 with paragraph',
       children: [
         {
-          level: 1,
-          index: 4079,
+          level: 2,
+          // index: 4079,
           text: 'Group 2 Heading 2 with paragraph 1',
           slug: 'group-2-heading-2-with-paragraph-1',
           match: '## Group 2 Heading 2 with paragraph 1'
         },
         {
-          level: 1,
-          index: 4475,
+          level: 2,
+          // index: 4475,
           text: 'Group 2 Heading 2 with paragraph 2',
           slug: 'group-2-heading-2-with-paragraph-2',
           match: '## Group 2 Heading 2 with paragraph 2'
@@ -470,15 +485,15 @@ test('makeToc', async () => {
       ]
     },
     {
-      level: 0,
-      index: 4875,
+      level: 1,
+      // index: 4875,
       text: 'This is a first level heading',
       slug: 'this-is-a-first-level-heading',
       match: '\n\nThis is a first level heading\n=============================',
       children: [
         {
-          level: 1,
-          index: 5293,
+          level: 2,
+          // index: 5293,
           text: 'This is a second level heading',
           slug: 'this-is-a-second-level-heading',
           match: '\n\nThis is a second level heading\n------------------------------'
@@ -486,15 +501,15 @@ test('makeToc', async () => {
       ]
     },
     {
-      level: 0,
-      index: 5713,
+      level: 1,
+      // index: 5713,
       text: 'This is a first level heading 2',
       slug: 'this-is-a-first-level-heading-2',
       match: '\n\nThis is a first level heading 2\n=================================',
       children: [
         {
-          level: 1,
-          index: 6137,
+          level: 2,
+          // index: 6137,
           text: 'This is a second level heading 2',
           slug: 'this-is-a-second-level-heading-2',
           match: '\n' +
@@ -505,22 +520,22 @@ test('makeToc', async () => {
       ]
     },
     {
-      level: 0,
-      index: 6571,
+      level: 1,
+      // index: 6571,
       text: 'HTML Heading 1',
       slug: 'html-heading-1',
       match: '<h1>HTML Heading 1</h1>',
       children: [
         {
-          level: 1,
-          index: 6654,
+          level: 2,
+          // index: 6654,
           text: 'HTML Heading 2',
           slug: 'html-heading-2',
           match: '<h2>HTML Heading 2</h2>'
         },
         {
-          level: 1,
-          index: 7036,
+          level: 2,
+          // index: 7036,
           text: 'HTML Heading 2',
           slug: 'html-heading-2-1',
           match: '<h2>HTML Heading 2</h2>'
@@ -533,150 +548,137 @@ test('makeToc', async () => {
 test('makeToc with filterSection trim h1 and children', async () => {
   const contents = read(FILE_WITH_HEADERS)
   const headerToc = makeToc(contents, {
-    filterSection: ({ text }) => {
+    excludeIndex: true,
+    filterSection: (api) => {
+      // console.log('api', api)
+      const { text } = api
       return !text.match(/This is a first level heading 2/)
     }
   })
   /*
   deepLog('headerToc', headerToc)
   /** */
-assert.equal(headerToc, [
-  {
-    level: 0,
-    index: 81,
-    text: 'Heading 1 with paragraph',
-    slug: 'heading-1-with-paragraph',
-    match: '# Heading 1 with paragraph',
-    children: [
-      {
-        level: 1,
-        index: 194,
-        text: 'Heading 2 with paragraph 1 😃',
-        slug: 'heading-2-with-paragraph-1',
-        match: '## Heading 2 with paragraph 1 😃'
-      },
-      {
-        level: 1,
-        index: 585,
-        text: 'Heading 2 with paragraph 2',
-        slug: 'heading-2-with-paragraph-2',
-        match: '## Heading 2 with paragraph 2',
-        children: [
-          {
-            level: 2,
-            index: 973,
-            text: 'Nested Heading 3 with paragraph',
-            slug: 'nested-heading-3-with-paragraph',
-            match: '### Nested Heading 3 with paragraph'
-          },
-          {
-            level: 2,
-            index: 1367,
-            text: 'Nested Heading 3 with paragraph 2',
-            slug: 'nested-heading-3-with-paragraph-2',
-            match: '### Nested Heading 3 with paragraph 2'
-          }
-        ]
-      },
-      {
-        level: 1,
-        index: 1763,
-        text: 'Heading 2 with paragraph 3',
-        slug: 'heading-2-with-paragraph-3',
-        match: '## Heading 2 with paragraph 3'
-      },
-      {
-        level: 1,
-        index: 2164,
-        text: 'Heading 2 with paragraph 4',
-        slug: 'heading-2-with-paragraph-4',
-        match: '## Heading 2 with paragraph 4'
-      },
-      {
-        level: 1,
-        index: 2552,
-        text: 'Heading 2 with paragraph 5',
-        slug: 'heading-2-with-paragraph-5',
-        match: '## Heading 2 with paragraph 5'
-      },
-      {
-        level: 1,
-        index: 2940,
-        text: 'Heading 2 with paragraph 6',
-        slug: 'heading-2-with-paragraph-6',
-        match: '## Heading 2 with paragraph 6'
-      }
-    ]
-  },
-  {
-    level: 0,
-    index: 3958,
-    text: 'Group 2 Heading 1 with paragraph',
-    slug: 'group-2-heading-1-with-paragraph',
-    match: '# Group 2 Heading 1 with paragraph',
-    children: [
-      {
-        level: 1,
-        index: 4079,
-        text: 'Group 2 Heading 2 with paragraph 1',
-        slug: 'group-2-heading-2-with-paragraph-1',
-        match: '## Group 2 Heading 2 with paragraph 1'
-      },
-      {
-        level: 1,
-        index: 4475,
-        text: 'Group 2 Heading 2 with paragraph 2',
-        slug: 'group-2-heading-2-with-paragraph-2',
-        match: '## Group 2 Heading 2 with paragraph 2'
-      }
-    ]
-  },
-  {
-    level: 0,
-    index: 4875,
-    text: 'This is a first level heading',
-    slug: 'this-is-a-first-level-heading',
-    match: '\n\nThis is a first level heading\n=============================',
-    children: [
-      {
-        level: 1,
-        index: 5293,
-        text: 'This is a second level heading',
-        slug: 'this-is-a-second-level-heading',
-        match: '\n\nThis is a second level heading\n------------------------------'
-      }
-    ]
-  },
-  {
-    level: 0,
-    index: 6571,
-    text: 'HTML Heading 1',
-    slug: 'html-heading-1',
-    match: '<h1>HTML Heading 1</h1>',
-    children: [
-      {
-        level: 1,
-        index: 6654,
-        text: 'HTML Heading 2',
-        slug: 'html-heading-2',
-        match: '<h2>HTML Heading 2</h2>'
-      },
-      {
-        level: 1,
-        index: 7036,
-        text: 'HTML Heading 2',
-        slug: 'html-heading-2-1',
-        match: '<h2>HTML Heading 2</h2>'
-      }
-    ]
-  }
-])
+  assert.equal(headerToc, [
+    {
+      level: 1,
+      text: 'Heading 1 with paragraph',
+      slug: 'heading-1-with-paragraph',
+      match: '# Heading 1 with paragraph',
+      children: [
+        {
+          level: 2,
+          text: 'Heading 2 with paragraph 1 😃',
+          slug: 'heading-2-with-paragraph-1',
+          match: '## Heading 2 with paragraph 1 😃'
+        },
+        {
+          level: 2,
+          text: 'Heading 2 with paragraph 2',
+          slug: 'heading-2-with-paragraph-2',
+          match: '## Heading 2 with paragraph 2',
+          children: [
+            {
+              level: 3,
+              text: 'Nested Heading 3 with paragraph',
+              slug: 'nested-heading-3-with-paragraph',
+              match: '### Nested Heading 3 with paragraph'
+            },
+            {
+              level: 3,
+              text: 'Nested Heading 3 with paragraph 2',
+              slug: 'nested-heading-3-with-paragraph-2',
+              match: '### Nested Heading 3 with paragraph 2'
+            }
+          ]
+        },
+        {
+          level: 2,
+          text: 'Heading 2 with paragraph 3',
+          slug: 'heading-2-with-paragraph-3',
+          match: '## Heading 2 with paragraph 3'
+        },
+        {
+          level: 2,
+          text: 'Heading 2 with paragraph 4',
+          slug: 'heading-2-with-paragraph-4',
+          match: '## Heading 2 with paragraph 4'
+        },
+        {
+          level: 2,
+          text: 'Heading 2 with paragraph 5',
+          slug: 'heading-2-with-paragraph-5',
+          match: '## Heading 2 with paragraph 5'
+        },
+        {
+          level: 2,
+          text: 'Heading 2 with paragraph 6',
+          slug: 'heading-2-with-paragraph-6',
+          match: '## Heading 2 with paragraph 6'
+        }
+      ]
+    },
+    {
+      level: 1,
+      text: 'Group 2 Heading 1 with paragraph',
+      slug: 'group-2-heading-1-with-paragraph',
+      match: '# Group 2 Heading 1 with paragraph',
+      children: [
+        {
+          level: 2,
+          text: 'Group 2 Heading 2 with paragraph 1',
+          slug: 'group-2-heading-2-with-paragraph-1',
+          match: '## Group 2 Heading 2 with paragraph 1'
+        },
+        {
+          level: 2,
+          text: 'Group 2 Heading 2 with paragraph 2',
+          slug: 'group-2-heading-2-with-paragraph-2',
+          match: '## Group 2 Heading 2 with paragraph 2'
+        }
+      ]
+    },
+    {
+      level: 1,
+      text: 'This is a first level heading',
+      slug: 'this-is-a-first-level-heading',
+      match: '\n\nThis is a first level heading\n=============================',
+      children: [
+        {
+          level: 2,
+          text: 'This is a second level heading',
+          slug: 'this-is-a-second-level-heading',
+          match: '\n\nThis is a second level heading\n------------------------------'
+        }
+      ]
+    },
+    {
+      level: 1,
+      text: 'HTML Heading 1',
+      slug: 'html-heading-1',
+      match: '<h1>HTML Heading 1</h1>',
+      children: [
+        {
+          level: 2,
+          text: 'HTML Heading 2',
+          slug: 'html-heading-2',
+          match: '<h2>HTML Heading 2</h2>'
+        },
+        {
+          level: 2,
+          text: 'HTML Heading 2',
+          slug: 'html-heading-2-1',
+          match: '<h2>HTML Heading 2</h2>'
+        }
+      ]
+    }
+  ])
 })
 
 
 test('makeToc with filterSection trim h2 and children', async () => {
   const contents = read(FILE_WITH_HEADERS)
   const headerToc = makeToc(contents, {
+    // excludeIndex: true,
     filterSection: ({ text }) => {
       return !text.match(/^Heading 2 with paragraph 2/)
     }
@@ -686,42 +688,42 @@ test('makeToc with filterSection trim h2 and children', async () => {
   /** */
   assert.equal(headerToc, [
     {
-      level: 0,
+      level: 1,
       index: 81,
       text: 'Heading 1 with paragraph',
       slug: 'heading-1-with-paragraph',
       match: '# Heading 1 with paragraph',
       children: [
         {
-          level: 1,
+          level: 2,
           index: 194,
           text: 'Heading 2 with paragraph 1 😃',
           slug: 'heading-2-with-paragraph-1',
           match: '## Heading 2 with paragraph 1 😃'
         },
         {
-          level: 1,
+          level: 2,
           index: 1763,
           text: 'Heading 2 with paragraph 3',
           slug: 'heading-2-with-paragraph-3',
           match: '## Heading 2 with paragraph 3'
         },
         {
-          level: 1,
+          level: 2,
           index: 2164,
           text: 'Heading 2 with paragraph 4',
           slug: 'heading-2-with-paragraph-4',
           match: '## Heading 2 with paragraph 4'
         },
         {
-          level: 1,
+          level: 2,
           index: 2552,
           text: 'Heading 2 with paragraph 5',
           slug: 'heading-2-with-paragraph-5',
           match: '## Heading 2 with paragraph 5'
         },
         {
-          level: 1,
+          level: 2,
           index: 2940,
           text: 'Heading 2 with paragraph 6',
           slug: 'heading-2-with-paragraph-6',
@@ -730,21 +732,21 @@ test('makeToc with filterSection trim h2 and children', async () => {
       ]
     },
     {
-      level: 0,
+      level: 1,
       index: 3958,
       text: 'Group 2 Heading 1 with paragraph',
       slug: 'group-2-heading-1-with-paragraph',
       match: '# Group 2 Heading 1 with paragraph',
       children: [
         {
-          level: 1,
+          level: 2,
           index: 4079,
           text: 'Group 2 Heading 2 with paragraph 1',
           slug: 'group-2-heading-2-with-paragraph-1',
           match: '## Group 2 Heading 2 with paragraph 1'
         },
         {
-          level: 1,
+          level: 2,
           index: 4475,
           text: 'Group 2 Heading 2 with paragraph 2',
           slug: 'group-2-heading-2-with-paragraph-2',
@@ -753,14 +755,14 @@ test('makeToc with filterSection trim h2 and children', async () => {
       ]
     },
     {
-      level: 0,
+      level: 1,
       index: 4875,
       text: 'This is a first level heading',
       slug: 'this-is-a-first-level-heading',
       match: '\n\nThis is a first level heading\n=============================',
       children: [
         {
-          level: 1,
+          level: 2,
           index: 5293,
           text: 'This is a second level heading',
           slug: 'this-is-a-second-level-heading',
@@ -769,14 +771,14 @@ test('makeToc with filterSection trim h2 and children', async () => {
       ]
     },
     {
-      level: 0,
+      level: 1,
       index: 5713,
       text: 'This is a first level heading 2',
       slug: 'this-is-a-first-level-heading-2',
       match: '\n\nThis is a first level heading 2\n=================================',
       children: [
         {
-          level: 1,
+          level: 2,
           index: 6137,
           text: 'This is a second level heading 2',
           slug: 'this-is-a-second-level-heading-2',
@@ -788,21 +790,21 @@ test('makeToc with filterSection trim h2 and children', async () => {
       ]
     },
     {
-      level: 0,
+      level: 1,
       index: 6571,
       text: 'HTML Heading 1',
       slug: 'html-heading-1',
       match: '<h1>HTML Heading 1</h1>',
       children: [
         {
-          level: 1,
+          level: 2,
           index: 6654,
           text: 'HTML Heading 2',
           slug: 'html-heading-2',
           match: '<h2>HTML Heading 2</h2>'
         },
         {
-          level: 1,
+          level: 2,
           index: 7036,
           text: 'HTML Heading 2',
           slug: 'html-heading-2-1',

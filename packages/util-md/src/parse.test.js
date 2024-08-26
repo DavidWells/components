@@ -54,12 +54,23 @@ test('Read big post', async () => {
 
 test('parseMarkdown API', async () => {
   const res = parseMarkdown(fileContents, { filePath: FILE_PATH })
+
   assert.is(typeof res, 'object')
   assert.is(typeof res.ast, 'object')
   assert.is(typeof res.data, 'object')
   assert.is(typeof res.content, 'string')
   assert.is(typeof res.codeBlocks, 'object')
+  assert.is(Array.isArray(res.codeBlocks), true)
+  assert.is(typeof res.links, 'object')
+  assert.is(typeof res.footnotes, 'object')
+  assert.is(Array.isArray(res.footnotes), true)
+  assert.is(Array.isArray(res.toc), true)
   assert.is(Array.isArray(res.errors), true)
+
+  setTimeout(() => {
+    console.log('parseMarkdown API values')
+    console.log(Object.keys(res))
+  }, 50)
 })
 
 test('parser verify contents', async () => {

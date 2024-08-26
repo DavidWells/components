@@ -129,7 +129,8 @@ function parseMarkdown(text, opts = {}) {
 
   if (includeToc) {
     parseResult.toc = makeToc(content, {
-      codeBlocks: codeBlocks
+      codeBlocks: codeBlocks,
+      includeHtmlHeaders: true
     })
   }
 

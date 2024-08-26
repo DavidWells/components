@@ -4,6 +4,8 @@ description: 'Styles for blog content'
 date: '2020-01-09'
 ---
 
+# Leading
+
 This post includes the markdown needed for various styles & layouts for markdown/html driven posts.
 
 For more information on markdown see these posts:
