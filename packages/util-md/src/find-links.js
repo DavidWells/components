@@ -10,7 +10,7 @@ const { removeCode } = require('./find-code-blocks')
 // https://regex101.com/r/In5HtG/4
 const LIVE_LINKS_REGEX = /['"(]((?:https?:\/\/)[\w\d\-_,./?=#%:+&]{3,})|<(\S*:\/\/\S*)>/gmi
 // https://regex101.com/r/Nywerx/3
-const RELATIVE_LINKS_REGEX = /(src|href|\()=?(['"/])(?!(?:(?:https?|ftp):\/\/|data:))(\.?\/)?([\w\d-_./,?=#%:+&]+)(?:['")])?/gim
+const RELATIVE_LINKS_REGEX = /(src|href|\()=?(['"/])(?!(?:(?:https?|ftp):\/\/|data:))(\.?\/)?([^\/][\w\d-_./,?=#%:+&]+)(?:['")])?/gim
 // https://regex101.com/r/UeQ049/2 <https://www.markdownguide.org>
 const ANGLE_LINKS = /(<)(\S*[@:]\S*)(>)/g
 // https://regex101.com/r/UeQ049/6 [github]: https://github.com/davidwells "Github Profile"

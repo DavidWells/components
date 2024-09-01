@@ -77,7 +77,7 @@ test('parser verify contents', async () => {
   const res = parseMarkdown(fileContents, {
     filePath: FILE_PATH
   })
-  deepLog('Results:', res)
+  // deepLog('Results:', res)
   // process.exit(1)
   assert.equal(res.links, [
     'https://funky-frontmatter.com',
@@ -130,7 +130,7 @@ test('opts - includeImages false', async () => {
     // includeAst: false,
     includeImages: false,
   })
-  deepLog('Results:', res)
+  // deepLog('Results:', res)
   assert.ok(typeof res.links === 'object')
   assert.ok(typeof res.images === 'undefined')
 })
@@ -140,7 +140,7 @@ test('opts - includeLinks false', async () => {
     filePath: FILE_PATH,
     includeLinks: false,
   })
-  deepLog('Results:', res)
+  // deepLog('Results:', res)
   assert.ok(typeof res.links === 'undefined')
   assert.ok(typeof res.images === 'object')
 })

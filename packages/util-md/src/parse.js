@@ -34,7 +34,7 @@ function parseMarkdown(text, opts = {}) {
     errors.push(err.message)
     alreadySetError = true
   }
-  const { data, content = '', frontMatterRaw = '' } = result
+  const { data, content, frontMatterRaw = '' } = result
   if (!data || !Object.keys(data).length) {
     if (!alreadySetError) {
       errors.push(`Missing or broken frontmatter in ${filePath}. Double check file for --- frontmatter tags`)

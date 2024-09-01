@@ -57,7 +57,7 @@ function findFrontmatter(content = '') {
 function parseFrontmatter(text) {
   const { frontMatter, frontMatterRaw, isHidden } = findFrontmatter(text)
   // console.log('frontMatter', frontMatter)
-  let frontmatter = { data: {}, content: '' }
+  let frontmatter = { data: {}, content: text }
   /* Missing all frontmatter */
   if (!frontMatter) {
     // throw new Error(`Missing or broken frontmatter in ${filePath}. Double check file for --- frontmatter tags in files`)

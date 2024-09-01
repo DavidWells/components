@@ -13,10 +13,13 @@ function deepLog(myObject, myObjectTwo) {
 }
 
 // const FILE_PATH = path.join(__dirname, 'simple-file.md')
-const FILE_PATH = path.join(__dirname, 'big-file.md')
+let FILE_PATH = path.join(__dirname, 'big-file.md')
+FILE_PATH = path.join(__dirname, '../fixtures/empty-post.md')
+FILE_PATH = path.join(__dirname, '../fixtures/file-with-no-frontmatter.md')
+
 const fileContents = fs.readFileSync(FILE_PATH, 'utf-8')
 
-const toc = parseMarkdown(fileContents).toc
+const toc = parseMarkdown(fileContents)// .toc
 
 deepLog(toc)
 console.log(toc.length)
