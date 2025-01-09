@@ -1,4 +1,7 @@
-const matter = require('gray-matter') // alt https://github.com/natemoo-re/ultramatter/tree/main
+const matter = require('gray-matter')
+// alt https://github.com/natemoo-re/ultramatter/tree/main
+// alt https://www.npmjs.com/package/@github-docs/frontmatter
+
 /* Match <!-- frontmatter --> https://regex101.com/r/Q9bBxC/1 */
 const HIDDEN_FRONTMATTER_REGEX = /^<!--+(?:\r\n|\r|\n)([\w\W]*?)--+>/g
 // const HIDDEN_FRONTMATTER_REGEX = /^<!--.*((.|\r?\n)*?.*-->)/g
@@ -6,6 +9,10 @@ const HIDDEN_FRONTMATTER_REGEX = /^<!--+(?:\r\n|\r|\n)([\w\W]*?)--+>/g
 /* Match --- frontmatter --- https://regex101.com/r/d7eAw4/1 */
 const FRONTMATTER_REGEX = /(^--+(?:\r\n|\r|\n)([\w\W]*?)--+)/
 // const FRONTMATTER_REGEX = /^---.*((.|\r?\n)*?.*---)/gm
+
+// Alternative regex
+// const MATTER_RE = /^---(?:\r?\n|\r)(?:([\s\S]*?)(?:\r?\n|\r))?---(?:\r?\n|\r|$)/
+
 
 function removeConflictingContent(str) {
   return str

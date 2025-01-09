@@ -815,4 +815,27 @@ test('makeToc with filterSection trim h2 and children', async () => {
   ])
 })
 
+const headingWithFootnotes = `
+
+## Headings with footnote[^footnote in heading] example
+
+`
+
+test('Heading with footnote', () => {
+  const headerToc = makeToc(headingWithFootnotes)
+  //*
+  deepLog('headerToc', headerToc)
+  /** */
+  assert.equal(headerToc, [
+    {
+      level: 2,
+      text: 'Headings with footnote[^footnote in heading] example',
+      slug: 'headings-with-footnotefootnote-in-heading-example',
+      match: '## Headings with footnote[^footnote in heading] example',
+      index: 0
+    }
+  ])
+})
+
+
 test.run()
