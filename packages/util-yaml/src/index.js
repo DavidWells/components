@@ -5,7 +5,7 @@ const yaml = require('yaml');
 const { YAMLMap, YAMLSeq } = require ('yaml/types')
 
 
-// const comments = extractComments(yamlDocumentx.trim());
+// const comments = extractYamlComments(yamlDocumentx.trim());
 /*
 deepLog('comments', comments);
 process.exit(1)
@@ -15,8 +15,11 @@ function parse(ymlString = '', opts = {}) {
   return yaml.parse(ymlString.trim(), opts)
 }
 
-function stringify(object, { originalString = '' }) {
-  const commentData = extractComments(originalString.trim())
+function stringify(object, {
+  originalString = '',
+  commentData,
+}) {
+  const _commentData = (commentData) ? commentData : extractYamlComments(originalString.trim())
   // yaml 2+ // const doc1 = new yaml.Document()
   const contents = yaml.createNode(object) // yaml 2+ // doc1.createNode(object);
   /*
@@ -27,14 +30,14 @@ function stringify(object, { originalString = '' }) {
   deepLog('comments', comments.comments)
   process.exit(1)
   /** */
-  if(commentData && commentData.comments && commentData.comments.length) {
-    addComments(contents.items, commentData.comments)
+  if(_commentData && _commentData.comments && _commentData.comments.length) {
+    addComments(contents.items, _commentData.comments)
   }
   const doc = new yaml.Document()
   doc.contents = contents
   const newDocString = doc.toString()
   // console.log('newDocString', newDocString)
-  const finalStr = newDocString.trim() + (commentData.trailing || '')
+  const finalStr = newDocString.trim() + (_commentData.trailing || '')
   // console.log('finalStr', finalStr)
   return finalStr
 }
@@ -44,7 +47,7 @@ function stringify(object, { originalString = '' }) {
  * @param {string} yamlDocument - YAML document to parse.
  * @returns {Array} - Array of comments found.
  */
-function extractComments(yamlDocument) {
+function extractYamlComments(yamlDocument) {
   const doc = yaml.parseDocument(yamlDocument);
   /*
   deepLog('doc', doc);
@@ -288,5 +291,6 @@ function getTopLevelKeys(yamlString = '') {
 module.exports = {
   parse,
   stringify,
+  extractYamlComments,
   getTopLevelKeys,
 }
