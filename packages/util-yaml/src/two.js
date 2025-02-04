@@ -38,16 +38,16 @@ function stringify(object, {
   deepLog('thing', contents.items)
   process.exit(1)
   /** */
-  /*
+  //*
   deepLog('comments', _commentData)
-  process.exit(1)
+  // process.exit(1)
   /** */
   if(_commentData && _commentData.comments && _commentData.comments.length) {
     addComments(contents.items, _commentData.comments)
   }
 
   deepLog('contents', contents)
-  process.exit(1)
+  //process.exit(1)
   /** */
   const doc = new yaml.Document()
   doc.contents = contents
@@ -104,20 +104,27 @@ function extractYamlComments(yamlDocument) {
 
         // console.log(`value "${keyPath}" ${index}`, value.items)
         if (value && value.commentBefore) {
-          const keyFIX = (item.value instanceof YAMLMap && item.value.items) ? `.${item.value.items[0].key.value}` : ''
+          const isPair = item instanceof Pair
+          console.log('item', item)
+          console.log('value', value)
+          console.log('───────────────────────────────')
+          //const keyFIX = (item.value instanceof YAMLMap && item.value.items) ? `.${item.value.items[0].key.value}` : ''
+          const keyFIX = ''
           comments.push({
             key: keyPath + keyFIX,
             commentBefore: value.commentBefore,
+            via: 'value.commentBefore',
             // isArray
           })
         }
         if (value && value.comment) {
-          console.log('value', item)
+          // console.log('value', item)
           comments.push({
             key: keyPath,
             inValue: true,
             comment: value.comment,
             inKey: item instanceof Pair || value.type === 'PAIR',
+            via: 'value.comment',
             // isArray,
           })
         }
@@ -145,6 +152,7 @@ function extractYamlComments(yamlDocument) {
           const val = {
             key: keyPath,
             commentBefore: item.commentBefore,
+            via: 'item.commentBefore',
           }
           if (isArray) {
             // val.isArray = true
@@ -160,6 +168,7 @@ function extractYamlComments(yamlDocument) {
             comment: item.comment,
             inValue: true,
             inKey: item instanceof Pair || item.type === 'PAIR',
+            via: 'item.comment',
           }
           if (isArray) {
             // val.isArray = true
@@ -279,13 +288,13 @@ function applyMatches(matchingComments, item) {
     // console.log('comment', comment)
     if (comment && comment.commentBefore) {
       // const value = comment.commentBefore.split('\\n').join('\n ');
-      item.commentBefore = `${comment.commentBefore}`;
+      item.value.commentBefore = `${comment.commentBefore}`;
     }
     if (comment && comment.comment) {
       // const value = comment.comment.split('\\n').join('\n ');
       if (comment.inKey) {
         // item.comment = `${comment.comment}`;
-        item.key.comment = `${comment.comment}`;
+        item.value.comment = `${comment.comment}`;
       } else if (typeof item.value === 'string') {
         item.comment = `${comment.comment}`;
       } else {
