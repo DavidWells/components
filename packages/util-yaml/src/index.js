@@ -11,6 +11,17 @@ deepLog('comments', comments);
 process.exit(1)
 /** */
 
+const util = require('util')
+
+function deepLog(objOrLabel, logVal) {
+  let obj = objOrLabel
+  if (typeof objOrLabel === 'string') {
+    obj = logVal
+    console.log(objOrLabel)
+  }
+  console.log(util.inspect(obj, false, null, true))
+}
+
 function parse(ymlString = '', opts = {}) {
   return yaml.parse(ymlString.trim(), opts)
 }
@@ -26,8 +37,8 @@ function stringify(object, {
   deepLog('thing', contents.items)
   process.exit(1)
   /** */
-  /*
-  deepLog('comments', comments.comments)
+  //*
+  deepLog('comments', _commentData)
   process.exit(1)
   /** */
   if(_commentData && _commentData.comments && _commentData.comments.length) {

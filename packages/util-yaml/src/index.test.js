@@ -24,7 +24,7 @@ nested:
       deepKey: deepValue
 `;
 
-test('Basic Result contains comments', async () => {
+test.only('Basic Result contains comments', async () => {
   const object = parse(basic.trim());
   /*
   console.log('object', object)
