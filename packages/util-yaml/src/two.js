@@ -102,6 +102,21 @@ function extractYamlComments(yamlDocument) {
         const keyPath = path ? `${path}${numPrefix}${keyVal}` : item.key.value
         // console.log('key', key)
 
+        if (key && key.comment) {
+          comments.push({
+            key: keyPath,
+            comment: key.comment,
+            via: 'key.comment',
+          })
+        }
+        if (key && key.commentBefore) {
+          comments.push({
+            key: keyPath,
+            commentBefore: key.commentBefore,
+            via: 'key.commentBefore',
+          })
+        }
+
         // console.log(`value "${keyPath}" ${index}`, value.items)
         if (value && value.commentBefore) {
           const isPair = item instanceof Pair
@@ -286,9 +301,9 @@ function applyMatches(matchingComments, item) {
   /** */
   matchingComments.forEach((comment) => {
     // console.log('comment', comment)
-    if (comment && comment.commentBefore) {
+    if (comment && comment.commentBefore && item && item.key) {
       // const value = comment.commentBefore.split('\\n').join('\n ');
-      item.value.commentBefore = `${comment.commentBefore}`;
+      item.key.comment = `${comment.commentBefore}`;
     }
     if (comment && comment.comment) {
       // const value = comment.comment.split('\\n').join('\n ');
