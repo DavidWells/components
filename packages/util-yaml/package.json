@@ -1,6 +1,6 @@
 {
   "name": "@davidwells/yaml-utils",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Simple yaml utils",
   "main": "src/index.js",
   "repository": {
