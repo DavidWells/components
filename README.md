@@ -1,4 +1,4 @@
-# Components
+# Packages
 
 ## Repository structure
 <!-- AUTO-GENERATED-CONTENT:START (PACKAGE_LIST:dir=./packages&verbose=true) -->
