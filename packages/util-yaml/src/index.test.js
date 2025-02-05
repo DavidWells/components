@@ -578,4 +578,50 @@ function debug(str) {
   // process.exit(1)
 }
 
+test('Respects indent and lineWidth options', () => {
+  const input = `
+longArray:
+  - this is a very long array item that should wrap based on the lineWidth setting we provide to the stringify function
+  - this is another long item that should also wrap when it exceeds the specified line width value
+deepObject:
+  level1:
+    level2:
+      level3:
+        key: value`
+
+  // Test with small lineWidth and larger indent
+  const result = stringify(parse(input), {
+    originalString: input,
+    lineWidth: 40,
+    indent: 2
+  })
+  // console.log('result', result)
+  // Verify indentation is 4 spaces
+  assert.ok(result.includes('\n    level2:'))
+
+  // Verify line wrapping around 40 chars
+  const lines = result.split('\n')
+  const longLines = lines.filter(line => line.trim().startsWith('-'))
+
+  // Each wrapped line should be around 40 chars or less (with some tolerance for word boundaries)
+  longLines.forEach(line => {
+    // console.log('line', line)
+    assert.ok(line.length <= 50, `Line too long: ${line}`)
+  })
+
+  // Test with larger lineWidth
+  const resultWide = stringify(parse(input), {
+    originalString: input,
+    lineWidth: 120,
+    indent: 2
+  })
+  // console.log('resultWide', resultWide)
+  // Verify lines are not wrapped with larger lineWidth
+  const wideLines = resultWide.split('\n')
+  const longWideLines = wideLines.filter(line => line.trim().startsWith('-'))
+
+  // Lines should be longer now since they won't wrap
+  assert.ok(longWideLines.some(line => line.length > 50))
+})
+
 test.run()

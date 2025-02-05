@@ -1,5 +1,5 @@
-
 const yaml = require('yaml');
+// V1 docs https://github.com/eemeli/yaml/tree/56b873be923015bb367990f04578b6ee9895bf6e/docs
 // TODO upgrade to yaml 2+
 // const { YAMLMap, YAMLSeq } = require ('yaml')
 const { YAMLMap, YAMLSeq } = require ('yaml/types')
@@ -13,27 +13,31 @@ function parse(ymlString = '', opts = {}) {
 function stringify(object, {
   originalString = '',
   commentData,
+  indent = 2,
+  lineWidth = 120,
 }) {
+
+  // Set the line width for string folding
+  yaml.scalarOptions.str.fold.lineWidth = lineWidth
+
   const _commentData = (commentData) ? commentData : extractYamlComments(originalString.trim())
-  // yaml 2+ // const doc1 = new yaml.Document()
-  const contents = yaml.createNode(object) // yaml 2+ // doc1.createNode(object);
-  /*
-  deepLog('thing', contents.items)
-  process.exit(1)
-  /** */
-  /*
-  deepLog('comments', _commentData.comments)
-  // process.exit(1)
-  /** */
+
+  const contents = yaml.createNode(object)
+
   if(_commentData && _commentData.comments && _commentData.comments.length) {
     addComments(contents.items, _commentData.comments)
   }
-  const doc = new yaml.Document()
+
+  // Create document with formatting options
+  const doc = new yaml.Document({
+    indent,
+    // schema: 'core',
+    // version: '1.2',
+  })
+
   doc.contents = contents
   const newDocString = doc.toString()
-  // console.log('newDocString', newDocString)
   const finalStr = (_commentData.opening || '') + newDocString.trim() + (_commentData.trailing || '')
-  // console.log('finalStr', finalStr)
   return finalStr
 }
 
