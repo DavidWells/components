@@ -3,24 +3,8 @@ const yaml = require('yaml');
 // TODO upgrade to yaml 2+
 // const { YAMLMap, YAMLSeq } = require ('yaml')
 const { YAMLMap, YAMLSeq } = require ('yaml/types')
-
-
-// const comments = extractYamlComments(yamlDocumentx.trim());
-/*
-deepLog('comments', comments);
-process.exit(1)
-/** */
-
 const util = require('util')
 
-function deepLog(objOrLabel, logVal) {
-  let obj = objOrLabel
-  if (typeof objOrLabel === 'string') {
-    obj = logVal
-    console.log(objOrLabel)
-  }
-  console.log(util.inspect(obj, false, null, true))
-}
 
 function parse(ymlString = '', opts = {}) {
   return yaml.parse(ymlString.trim(), opts)
@@ -37,9 +21,9 @@ function stringify(object, {
   deepLog('thing', contents.items)
   process.exit(1)
   /** */
-  //*
-  deepLog('comments', _commentData)
-  process.exit(1)
+  /*
+  deepLog('comments', _commentData.comments)
+  // process.exit(1)
   /** */
   if(_commentData && _commentData.comments && _commentData.comments.length) {
     addComments(contents.items, _commentData.comments)
@@ -48,9 +32,16 @@ function stringify(object, {
   doc.contents = contents
   const newDocString = doc.toString()
   // console.log('newDocString', newDocString)
-  const finalStr = newDocString.trim() + (_commentData.trailing || '')
+  const finalStr = (_commentData.opening || '') + newDocString.trim() + (_commentData.trailing || '')
   // console.log('finalStr', finalStr)
   return finalStr
+}
+
+const MATCH_LEADING_COMMENTS = /^([ \t]*#.*(?:\r?\n|\r|$)|[ \t]*(?:\r?\n|\r|$))*/
+
+function getOpeningComments(yaml) {
+  return yaml.match(/^((?:#.*|[ \t]*)(?:\r?\n|\r|$))+/)
+  return yaml.match(/^([ \t]*#.*(?:\r?\n|\r|$)|[ \t]*(?:\r?\n|\r|$))*/)
 }
 
 /**
@@ -59,10 +50,30 @@ function stringify(object, {
  * @returns {Array} - Array of comments found.
  */
 function extractYamlComments(yamlDocument) {
+  // console.log('yamlDocument', yamlDocument)
+  // process.exit(1)
+  let opening = ''
+  let cleanMatch = ''
+  let openingCommentsSeparatedByNewline = false
+  const openingComments = yamlDocument.match(/^((?:#.*|[ \t]*)(?:\r?\n|\r|$))+/)
+  if (openingComments) {
+    cleanMatch = openingComments[1].replace(/^#/, '')
+    openingCommentsSeparatedByNewline = cleanMatch.trim() === ''
+    // console.log('cleanMatch', `"${cleanMatch}"`)
+    /* remove leading # from each line */
+    opening = openingComments[0]
+      .split('\n')
+      .map(line => line.replace(/^#/, ''))
+      .join('\n')
+    // console.log('opening', opening)
+    // process.exit(1)
+  }
+
   const doc = yaml.parseDocument(yamlDocument);
   /*
   deepLog('doc', doc);
-  process.exit(1)
+  // process.exit(1)
+  // commentBefore
   /** */
   const comments = [];
 
@@ -81,6 +92,7 @@ function extractYamlComments(yamlDocument) {
 
       for (let index = 0; index < itemsToIterate.length; index++) {
         const item = itemsToIterate[index];
+        // console.log('item', item)
         const key = item.key;
         const value = item.value || {};
         const keyVal = item.key && item.key.value ? `.${item.key.value}` : ''
@@ -97,12 +109,62 @@ function extractYamlComments(yamlDocument) {
         const keyPath = path ? `${path}${numPrefix}${keyVal}` : item.key.value
         // console.log('key', key)
 
+
+
+        if (item.commentBefore) {
+          const isFirstItem = index === 0
+          if (isFirstItem) {
+            // console.log('item.commentBefore', item.commentBefore)
+            // console.log("cleanMatch", cleanMatch)
+            if (!openingCommentsSeparatedByNewline) {
+              const remainder = item.commentBefore.replace(cleanMatch, '')
+              // console.log('remainder', remainder)
+              item.commentBefore = item.commentBefore.replace(remainder, '')
+              if (!item.commentBefore && cleanMatch) {
+                item.commentBefore = cleanMatch.replace(/\n$/g, '')
+              }
+              // console.log('after item.commentBefore', item.commentBefore)
+              // // console.log('match', match)
+              // console.log('before opening', opening)
+              opening = removeCommentLine(opening, cleanMatch)
+            }
+            //opening = `${opening.replace(cleanMatch, '')}`
+            // console.log('opening', `"${opening}"`)
+            // console.log('doubleNewlinesInString', doubleNewlinesInString)
+            // // prefix all opening lines that have values with a #. Exclude empty lines
+            opening = opening.split('\n').map(line => line.trim() ? `#${line}` : line).join('\n')
+            // console.log('opening', `"${opening}"`)
+            // process.exit(1)
+          }
+
+          const val = {
+            key: keyPath,
+            commentBefore: item.commentBefore,
+            via: 'item.commentBefore',
+          }
+          if (isArray) {
+            // val.isArray = true
+            val.index = index
+          }
+          comments.push(val);
+          // continue;
+        }
+
         // console.log(`value "${keyPath}" ${index}`, value.items)
         if (value && value.commentBefore) {
-          const keyFIX = (item.value instanceof YAMLMap && item.value.items) ? `.${item.value.items[0].key.value}` : ''
+          // console.log('value.commentBefore', value)
+          let keyFIX = ''
+          if (value instanceof YAMLSeq) {
+            /* Add comment above start of the array */
+            keyFIX = `[0]`
+          } else if (value instanceof YAMLMap) {
+            keyFIX = `.${value.items[0].key.value}`
+          }
+
           comments.push({
             key: keyPath + keyFIX,
             commentBefore: value.commentBefore,
+            via: 'value.commentBefore',
             // isArray
           })
         }
@@ -112,6 +174,7 @@ function extractYamlComments(yamlDocument) {
             inValue: true,
             comment: value.comment,
             inKey: value.type === 'PAIR',
+            via: 'value.comment',
             // isArray,
           })
         }
@@ -135,25 +198,13 @@ function extractYamlComments(yamlDocument) {
           searchForComments(item.items, keyPath, false)
         }
 
-        if (item.commentBefore) {
-          const val = {
-            key: keyPath,
-            commentBefore: item.commentBefore,
-          }
-          if (isArray) {
-            // val.isArray = true
-            val.index = index
-          }
-          comments.push(val);
-          // continue;
-        }
-
         if (item.comment) {
           const val = {
             key: keyPath,
             comment: item.comment,
             inValue: true,
             inKey: item.type === 'PAIR',
+            via: 'item.comment',
           }
           if (isArray) {
             // val.isArray = true
@@ -176,8 +227,15 @@ function extractYamlComments(yamlDocument) {
 
   return {
     comments,
+    opening,
     trailing
   };
+}
+
+function removeCommentLine(str, prefix) {
+  const pat = new RegExp(`.*${prefix}.*\n*`, 'g')
+  // console.log('pat', pat)
+  return str.replace(pat, '')
 }
 
 const TRAILING_COMMENTS = /(\n#([^\n]+))*\n*$/
@@ -289,6 +347,15 @@ function applyMatches(matchingComments, item) {
   console.log('new item', item)
   console.log('──────DONE─────────────────────────')
   ** */
+}
+
+function deepLog(objOrLabel, logVal) {
+  let obj = objOrLabel
+  if (typeof objOrLabel === 'string') {
+    obj = logVal
+    console.log(objOrLabel)
+  }
+  console.log(util.inspect(obj, false, null, true))
 }
 
 function getTopLevelKeys(yamlString = '') {

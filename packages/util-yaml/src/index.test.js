@@ -1,5 +1,6 @@
 const path = require('path')
 const fs = require('fs')
+const util = require('util')
 const { test } = require('uvu')
 const assert = require('uvu/assert')
 const { stringify, parse } = require('./')
@@ -7,9 +8,8 @@ const { stringify, parse } = require('./')
 const FRONTMATTER = path.join(__dirname, '../fixtures/file-with-frontmatter.md')
 const HIDDEN_FRONTMATTER = path.join(__dirname, '../fixtures/file-with-hidden-frontmatter.md')
 
-function read(filePath) {
-  return fs.readFileSync(filePath, 'utf-8')
-}
+const DEBUG = false
+const logger = DEBUG ? logger : () => {}
 
 const basic = `
 # This is a comment
@@ -24,22 +24,145 @@ nested:
       deepKey: deepValue
 `;
 
-test.only('Basic Result contains comments', async () => {
+
+test('Basic Result contains comments', async () => {
   const object = parse(basic.trim());
+  debug(basic)
   /*
-  console.log('object', object)
+  logger('object', object)
   /** */
 
   const yml = stringify(object, {
     originalString: basic,
   })
-  /*
-  console.log('basic', basic.trim())
-  console.log('yml', yml)
+  //*
+  logger('basic', basic.trim())
+  logger('yml', yml)
   /** */
   assert.is(typeof yml, 'string')
   assert.equal(yml, basic.trim())
 })
+
+
+const yml2 = `
+# opening comment prefixed
+
+# tutorial comment prefixed
+tutorial: #nesting level 1
+  # before yaml ONE
+  - yaml: #nesting level 2 (2 spaces used for indentation)
+      name: YAML Ain't Markup Language #string [literal] #nesting level 3 (4 spaces used for indentation)
+      type: awesome #string [literal]
+      born: 2001 #number [literal]
+  # before yaml TWO
+  - yaml:
+      name: foo # Foo comment
+      type: bar
+      born: 1999 #word
+# trailing comment
+# here
+`;
+
+test('Yaml with opening comment', async () => {
+  const object = parse(yml2.trim());
+  debug(yml2)
+  /*
+  logger('object', object)
+  /** */
+
+  const yml = stringify(object, {
+    originalString: yml2,
+  })
+  //*
+  logger('original', yml2.trim())
+  logger('output', yml)
+  /** */
+  assert.is(typeof yml, 'string')
+  assert.equal(yml, yml2.trim())
+})
+
+
+const yamlMultilineOpener = `
+# opening comment prefixed
+# With multiple lines
+# And a trailing comment
+
+# With splits
+
+# tutorial comment prefixed
+tutorial: #nesting level 1
+  # before yaml ONE
+  - yaml: #nesting level 2 (2 spaces used for indentation)
+      name: YAML Ain't Markup Language #string [literal] #nesting level 3 (4 spaces used for indentation)
+      type: awesome #string [literal]
+      born: 2001 #number [literal]
+  # before yaml TWO
+  - yaml:
+      name: foo # Foo comment
+      type: bar
+      born: 1999 #word
+# trailing comment
+# here
+`;
+
+test('yamlMultilineOpener', async () => {
+  const object = parse(yamlMultilineOpener.trim());
+  debug(yamlMultilineOpener)
+  /*
+  logger('object', object)
+  /** */
+
+  const result = stringify(object, {
+    originalString: yamlMultilineOpener,
+  })
+  //*
+  logger('original', yamlMultilineOpener.trim())
+  logger('result', result)
+  /** */
+  assert.is(typeof result, 'string')
+  assert.equal(result, yamlMultilineOpener.trim())
+})
+
+// const originalString = `
+// tutorial: #nesting level 1
+//   - yaml: #nesting level 2 (2 spaces used for indentation)
+//       name: YAML Ain't Markup Language #string [literal] #nesting level 3 (4 spaces used for indentation)
+//       type: awesome #string [literal]
+//       born: 2001 #number [literal]`
+// const originalYamlDoc = yaml.parseDocument(originalString.trim());
+// const outputTest = new yaml.Document(originalYamlDoc)
+// const outputTestStr = outputTest.toString()
+// logger(outputTestStr)
+
+const basicTwo = `
+tutorial: #nesting level 1
+  - yaml: #nesting level 2 (2 spaces used for indentation)
+      name: YAML Ain't Markup Language #string [literal] #nesting level 3 (4 spaces used for indentation)
+      type: awesome #string [literal]
+      born: 2001 #number [literal]`;
+
+test('Basic Result contains comments two', async () => {
+  // const doc = yaml.parseDocument(basicTwo.trim());
+  // deepLog('doc', doc.contents)
+
+  // process.exit(1)
+  /** */
+  const object = parse(basicTwo.trim());
+  /*
+  logger('object', object)
+  /** */
+
+  const yml = stringify(object, {
+    originalString: basicTwo,
+  })
+  //*
+  logger('basic', basicTwo.trim())
+  logger('yml', yml)
+  /** */
+  assert.is(typeof yml, 'string')
+  assert.equal(yml, basicTwo.trim())
+})
+
 
 const simple = `
 # comment before
@@ -65,15 +188,15 @@ id: bf909406-4212-4d07-b2fb-fa228108683c
 test('Basic Result contains comments', async () => {
   const object = parse(simple.trim());
   /*
-  console.log('object', object)
+  logger('object', object)
   /** */
 
   const yml = stringify(object, {
     originalString: simple,
   })
   /*
-  console.log('simple', simple.trim())
-  console.log('yml', yml)
+  logger('simple', simple.trim())
+  logger('yml', yml)
   /** */
   assert.is(typeof yml, 'string')
   assert.equal(yml, simple.trim())
@@ -125,15 +248,15 @@ id: bf909406-4212-4d07-b2fb-fa228108683c
 test('Tiny Result contains comments', async () => {
   const object = parse(tinyYaml.trim());
   /*
-  console.log('object', object)
+  logger('object', object)
   /** */
 
   const yml = stringify(object, {
     originalString: tinyYaml,
   })
   /*
-  console.log('simple', simple.trim())
-  console.log('yml', yml)
+  logger('simple', simple.trim())
+  logger('yml', yml)
   /** */
   assert.is(typeof yml, 'string')
   assert.equal(yml, tinyYaml.trim())
@@ -253,7 +376,7 @@ test('Result contains comments', async () => {
     originalString: largeYaml,
   })
   /*
-  console.log('yml', yml)
+  logger('yml', yml)
   /** */
   assert.is(typeof yml, 'string')
   assert.equal(yml, largeYaml.trim())
@@ -267,8 +390,11 @@ const blockToMove = `
 funky: true`
 
 function result(start, dest) {
-  return `${dest}
+  return `
 # comment before
+
+# funky
+${dest}
 # Multiline
 title: Improving Event Listener DX
 date: 2023-12-29
@@ -371,7 +497,8 @@ company:
 # after comment
 `
 }
-  const object = parse(result(blockToMove, '').trim());
+  const originalString = result(blockToMove, '')
+  const object = parse(originalString.trim());
   /* reorder object */
   const newObject = {
     funky: true,
@@ -384,41 +511,71 @@ company:
   }
 
   const yml = stringify(x, {
-    originalString: largeYaml,
+    originalString: originalString,
   })
-  /*
-  console.log('yml', yml)
+  //*
+  logger('original', originalString.trim())
+  logger('result', yml)
+  const expected = result('', blockToMove).trim()
+  logger('expected', expected)
   /** */
 
   assert.is(typeof yml, 'string')
-  assert.equal(yml, result('', blockToMove).trim())
+  assert.equal(yml, expected)
 })
 
 
-const basicTwo = `
+const basicThree = `
+# before
+nice:
+  # Comment before one
+  - one
+  - two # Comment after two
+  - three
 tutorial: #nesting level 1
-  - yaml: #nesting level 2 (2 spaces used for indentation)
-      name: YAML Ain't Markup Language #string [literal] #nesting level 3 (4 spaces used for indentation)
-      type: awesome #string [literal]
-      born: 2001 #number [literal]`;
+  # before wow
+  - wow: #nesting level 2 (2 spaces used for indentation)
+      foo: YAML Ain't Markup Language #string [literal] #nesting level 3 (4 spaces used for indentation)
+      bar: awesome #string [literal]
+      baz: 2001 #number [literal]
+  # before wow 2
+  - wow:
+      foo: two #sick
+# after`;
 
-test('Basic Result contains comments two', async () => {
-  const object = parse(basicTwo.trim());
-  /*
-  console.log('object', object)
-  /** */
 
+test('basicThree', () => {
+  const object = parse(basicThree.trim());
   const yml = stringify(object, {
-    originalString: basicTwo,
+    originalString: basicThree,
   })
-  /*
-  console.log('basic', basicTwo.trim())
-  console.log('yml', yml)
+
+  logger('original', basicThree.trim())
+  logger('result', yml)
   /** */
   assert.is(typeof yml, 'string')
-  assert.equal(yml, basicTwo.trim())
+  assert.equal(yml, basicThree.trim())
 })
 
 
+function read(filePath) {
+  return fs.readFileSync(filePath, 'utf-8')
+}
+
+
+function deepLog(objOrLabel, logVal) {
+  let obj = objOrLabel
+  if (typeof objOrLabel === 'string') {
+    obj = logVal
+    logger(objOrLabel)
+  }
+  logger(util.inspect(obj, false, null, true))
+}
+
+function debug(str) {
+  // const doc = yaml.parseDocument(str.trim());
+  // deepLog('doc', doc.contents)
+  // process.exit(1)
+}
 
 test.run()
