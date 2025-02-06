@@ -33,6 +33,9 @@ function testLogger({ label, object, input, output, expected }) {
   logger(`Input string${postFix}`, input)
   logger(`Output string${postFix}`, output)
   logger(`Expected string${postFix}`, expected)
+  const line = '──────────────────────────────────────────────────────────────────────────────────────────────────────────────────'
+  // wrap line in white bold text
+  logger(`\x1b[37m\x1b[1m${line}\x1b[0m`)
 }
 
 const basic = `
@@ -50,7 +53,7 @@ nested:
 
 const basicCommentsLabel = 'Preserves basic comments in YAML'
 test(basicCommentsLabel, async () => {
-  const object = parse(basic.trim())
+  const object = parse(basic)
   const result = stringify(object, {
     originalString: basic,
   })
@@ -89,7 +92,7 @@ tutorial: #nesting level 1
 
 const openingCommentLabel = 'Preserves opening comments and nested structure'
 test(openingCommentLabel, async () => {
-  const object = parse(yml2.trim())
+  const object = parse(yml2)
   const result = stringify(object, {
     originalString: yml2,
   })
@@ -132,7 +135,7 @@ tutorial: #nesting level 1
 
 const multilineOpenerLabel = 'Handles multiline opening comments with splits'
 test(multilineOpenerLabel, async () => {
-  const object = parse(yamlMultilineOpener.trim())
+  const object = parse(yamlMultilineOpener)
   const result = stringify(object, {
     originalString: yamlMultilineOpener,
   })
@@ -171,7 +174,7 @@ tutorial: #nesting level 1
 const basicResultLabel =
 'Handles comments in a basic yaml string'
 test(basicResultLabel, async () => {
-  const object = parse(basicTwo.trim());
+  const object = parse(basicTwo);
   const ymlStringResult = stringify(object, {
     originalString: basicTwo,
   })
@@ -211,19 +214,24 @@ updatedAt: 2024-03-07T23:25:10.015Z
 id: bf909406-4212-4d07-b2fb-fa228108683c
 `
 
-test('Basic Result contains comments', async () => {
-  const object = parse(simple.trim());
-  const ymlStringResult = stringify(object, {
+const tinyYamlLabel = 'Basic Result contains comments'
+test(tinyYamlLabel, async () => {
+  const object = parse(simple)
+  const result = stringify(object, {
     originalString: simple,
   })
+  const expected = wrapDateString(simple.trim(), '2023-12-29')
   //*
-  logger('object', object)
-  logger('input string', simple.trim())
-  logger('output string', ymlStringResult)
+  testLogger({
+    label: tinyYamlLabel,
+    object,
+    input: simple,
+    output: result,
+    expected,
+  })
   /** */
-  assert.is(typeof ymlStringResult, 'string')
-  const cleanDate = wrapDateString(simple.trim(), '2023-12-29')
-  assert.equal(ymlStringResult, cleanDate)
+  assert.is(typeof result, 'string')
+  assert.equal(result, expected)
 })
 
 const tinyYaml = `
@@ -269,22 +277,24 @@ id: bf909406-4212-4d07-b2fb-fa228108683c
 # after comment
 `
 
-test('Tiny Result contains all comments', async () => {
-  const object = parse(tinyYaml.trim());
-  /*
-  logger('object', object)
-  /** */
-
-  const yml = stringify(object, {
+const allCommentsLabel = 'Tiny Result contains all comments'
+test(allCommentsLabel, async () => {
+  const object = parse(tinyYaml)
+  const result = stringify(object, {
     originalString: tinyYaml,
   })
-  /*
-  logger('simple', simple.trim())
-  logger('yml', yml)
+  const expected = wrapDateString(tinyYaml.trim(), '2023-12-29')
+  //*
+  testLogger({
+    label: allCommentsLabel,
+    object,
+    input: tinyYaml,
+    output: result,
+    expected,
+  })
   /** */
-  assert.is(typeof yml, 'string')
-  const cleanDate = wrapDateString(tinyYaml.trim(), '2023-12-29')
-  assert.equal(yml, cleanDate)
+  assert.is(typeof result, 'string')
+  assert.equal(result, expected)
 })
 
 const largeYaml = `
@@ -395,20 +405,24 @@ funky: true
 # after comment
 `
 
-test('Result contains comments', async () => {
-  const object = parse(largeYaml.trim());
-  const yml = stringify(object, {
+const largeYamlLabel = 'Result contains comments in large YAML'
+test(largeYamlLabel, async () => {
+  const object = parse(largeYaml)
+  const result = stringify(object, {
     originalString: largeYaml,
   })
-  /*
-  logger('original', largeYaml.trim())
-  logger('yml', yml)
-  process.exit(1)
+  const expected = wrapDateString(largeYaml.trim(), '2023-12-29')
+  //*
+  testLogger({
+    label: largeYamlLabel,
+    object,
+    input: largeYaml,
+    output: result,
+    expected,
+  })
   /** */
-  assert.is(typeof yml, 'string')
-  const cleanDate = wrapDateString(largeYaml.trim(), '2023-12-29')
-  // console.log('cleanDate', cleanDate)
-  assert.equal(yml, cleanDate)
+  assert.is(typeof result, 'string')
+  assert.equal(result, expected)
 })
 
 test('Moved key has comment', async () => {
@@ -527,7 +541,7 @@ company:
 `
 }
   const originalString = result(blockToMove, '')
-  const object = parse(originalString.trim());
+  const object = parse(originalString);
   /* reorder object */
   const newObject = {
     funky: true,
@@ -573,18 +587,24 @@ tutorial: #nesting level 1
       foo: two #sick
 # after`;
 
-
-test('basicThree', () => {
-  const object = parse(basicThree.trim());
-  const yml = stringify(object, {
+const basicThreeLabel = 'Handles nested arrays with comments'
+test(basicThreeLabel, () => {
+  const object = parse(basicThree)
+  const result = stringify(object, {
     originalString: basicThree,
   })
-
-  logger('original', basicThree.trim())
-  logger('result', yml)
+  const expected = basicThree.trim()
+  //*
+  testLogger({
+    label: basicThreeLabel,
+    object,
+    input: basicThree,
+    output: result,
+    expected,
+  })
   /** */
-  assert.is(typeof yml, 'string')
-  assert.equal(yml, basicThree.trim())
+  assert.is(typeof result, 'string')
+  assert.equal(result, expected)
 })
 
 
@@ -634,7 +654,92 @@ deepObject:
   assert.ok(longWideLines.some(line => line.length > 50))
 })
 
-test('Wraps dates like "2012-10-17" when singleQuoteStrings is true', () => {
+const indentOptionsLabel = 'Respects indent and lineWidth options'
+test(indentOptionsLabel, () => {
+  const input = `
+longArray:
+  - this is a very long array item that should wrap based on the lineWidth setting we provide to the stringify function
+  - this is another long item that should also wrap when it exceeds the specified line width value
+deepObject:
+  level1:
+    level2:
+      level3:
+        key: value`
+
+  const result = stringify(parse(input), {
+    originalString: input,
+    lineWidth: 40,
+    indent: 2
+  })
+
+  const expectedSkinny =
+`longArray:
+  - this is a very long array item that
+    should wrap based on the lineWidth
+    setting we provide to the stringify
+    function
+  - this is another long item that
+    should also wrap when it exceeds the
+    specified line width value
+deepObject:
+  level1:
+    level2:
+      level3:
+        key: value`
+
+  //*
+  testLogger({
+    label: indentOptionsLabel + ' - lineWidth 40',
+    input,
+    output: result,
+    expected: expectedSkinny,
+  })
+  /** */
+
+  const resultWide = stringify(parse(input), {
+    originalString: input,
+    lineWidth: 120,
+    indent: 2
+  })
+
+
+  const expectedLong =
+`longArray:
+  - this is a very long array item that should wrap based on the lineWidth setting we provide to the stringify function
+  - this is another long item that should also wrap when it exceeds the specified line width value
+deepObject:
+  level1:
+    level2:
+      level3:
+        key: value`
+
+  //*
+  testLogger({
+    label: indentOptionsLabel + ' - lineWidth 120',
+    input,
+    output: resultWide,
+    expected: expectedLong,
+  })
+  /** */
+
+  assert.ok(result.includes('\n    level2:'))
+
+  assert.equal(result, expectedSkinny)
+  assert.equal(resultWide, expectedLong)
+
+  const lines = result.split('\n')
+  const longLines = lines.filter(line => line.trim().startsWith('-'))
+  longLines.forEach(line => {
+    assert.ok(line.length <= 50, `Line too long: ${line}`)
+  })
+
+  const wideLines = resultWide.split('\n')
+  const longWideLines = wideLines.filter(line => line.trim().startsWith('-'))
+  assert.ok(longWideLines.some(line => line.length > 50))
+})
+
+const dateWrappingLabel = 'Wraps dates like "2012-10-17" when singleQuoteStrings is true'
+test(dateWrappingLabel, () => {
   const input = `
 version: 2012-10-17
 name: test
@@ -647,14 +752,21 @@ deep:
     singleQuoteStrings: true,
   })
 
-  logger('result', result)
+  //*
+  testLogger({
+    label: dateWrappingLabel,
+    input,
+    output: result,
+  })
+  /** */
 
   assert.ok(result.includes(`version: '2012-10-17'`))
   assert.ok(result.includes(`name: 'test'`))
   assert.ok(result.includes(`date: '2023-01-01'`))
 })
 
-test('Wraps dates like "2012-10-17" uses default quote type "', () => {
+const defaultQuoteLabel = 'Wraps dates like "2012-10-17" uses default quote type'
+test(defaultQuoteLabel, () => {
   const input = `
 version: 2012-10-17
 name: test
@@ -669,7 +781,13 @@ deep:
     originalString: input,
   })
 
-  logger('result', result)
+  //*
+  testLogger({
+    label: defaultQuoteLabel,
+    input,
+    output: result,
+  })
+  /** */
 
   // Strings should be quoted
   assert.ok(result.includes('version: "2012-10-17"'))
@@ -682,9 +800,8 @@ deep:
   assert.ok(result.includes('number: 123'))
 })
 
-
-test('Can quote strings while preserving other types', () => {
-
+const preserveTypesLabel = 'Can quote strings while preserving other types'
+test(preserveTypesLabel, () => {
   const input = `
 Resources:
   Wow:
@@ -708,9 +825,8 @@ Resources:
             HostedZoneId: "Z2FDTNDATAQYW2" # Hosted zone ID for CloudFront
             DNSName: !GetAtt CloudFrontDistribution.DomainName
 `
-
   const expected =
-  `Resources:
+`Resources:
   Wow:
     - cool
     - rad
@@ -732,14 +848,18 @@ Resources:
             HostedZoneId: Z2FDTNDATAQYW2 # Hosted zone ID for CloudFront
             DNSName: !GetAtt CloudFrontDistribution.DomainName`
 
-
   const result = stringify(parse(input), {
     originalString: input,
-    //singleQuoteStrings: true,
-    //doubleQuoteStrings: true
   })
 
-  logger('result', result)
+  //*
+  testLogger({
+    label: preserveTypesLabel,
+    input,
+    output: result,
+    expected,
+  })
+  /** */
 
   assert.equal(result, expected)
 })
@@ -803,7 +923,14 @@ settings: # comment ON settings key
     singleQuoteStrings: true
   })
 
-  logger('result', result)
+  //*
+  testLogger({
+    label: singleQuoteLabel,
+    input: stub,
+    output: result,
+    expected,
+  })
+  /** */
 
   assert.equal(result, expected)
 })
