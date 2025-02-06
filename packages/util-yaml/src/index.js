@@ -113,6 +113,9 @@ function fixYaml(yamlString, opts) {
   if (!quoteType) {
     pattern = FIX_DOUBLE_QUOTE_PATTERN
   }
+  if (quoteType === 'QUOTE_SINGLE') {
+    return yamlString.replace(FIX_DOUBLE_QUOTE_PATTERN, `$1'$2':`)
+  }
   if (!pattern) return yamlString
   return yamlString.replace(pattern, '$1$2:')
 }
@@ -136,12 +139,17 @@ function quoteStringValues(items, parentNode = {}, opts) {
 
   return items.map(item => {
     /*
+    console.log('───────────────────────────────')
     console.log('item', item)
-    console.log('parent', parent)
+    console.log('parentNode', parentNode)
     /** */
 
     /* Quote array values */
-    if (item.value && typeof item.value === 'string' && Object.keys(item).length === 1) {
+    if (
+        item.value
+        && typeof item.value === 'string'
+        // && Object.keys(item).length === 1
+      ) {
       // item.key.type = 'PLAIN'
       const quoteType = chooseQuoteType(item.value, opts)
       const isInArray = parentNode && parentNode.value instanceof YAMLSeq

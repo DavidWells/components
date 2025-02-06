@@ -6,11 +6,34 @@ const assert = require('uvu/assert')
 const { stringify, parse } = require('./')
 const YAML = require('js-yaml')
 
-const FRONTMATTER = path.join(__dirname, '../fixtures/file-with-frontmatter.md')
-const HIDDEN_FRONTMATTER = path.join(__dirname, '../fixtures/file-with-hidden-frontmatter.md')
+let DEBUG = process.argv.includes('--debug') ? true : false
+// DEBUG = true
+const logger = DEBUG ? deepLog : () => {}
 
-const DEBUG = false
-const logger = DEBUG ? console.log : () => {}
+function deepLog(objOrLabel, logVal) {
+  let obj = objOrLabel
+  if (typeof objOrLabel === 'string') {
+    obj = logVal
+    const prefix = (arguments.length > 1) ? '> ' : ``
+    console.log(`\x1b[33m\n${prefix}${objOrLabel}\x1b[0m`)
+  }
+  if (typeof obj === 'object') {
+    console.log(util.inspect(obj, false, null, true))
+    return
+  }
+  if (arguments.length <= 1) return
+  console.log(arguments[1])
+}
+
+function testLogger({ label, object, input, output, expected }) {
+  const postFix = (label) ? ` - ${label}` : ''
+  if (object) {
+    logger(`Parsed object${postFix}`, object)
+  }
+  logger(`Input string${postFix}`, input)
+  logger(`Output string${postFix}`, output)
+  logger(`Expected string${postFix}`, expected)
+}
 
 const basic = `
 # This is a comment
@@ -25,25 +48,25 @@ nested:
       deepKey: deepValue
 `;
 
-
-test('Basic Result contains comments', async () => {
-  const object = parse(basic.trim());
-  debug(basic)
-  /*
-  logger('object', object)
-  /** */
-
-  const yml = stringify(object, {
+const basicCommentsLabel = 'Preserves basic comments in YAML'
+test(basicCommentsLabel, async () => {
+  const object = parse(basic.trim())
+  const result = stringify(object, {
     originalString: basic,
   })
+  const expected = basic.trim()
   //*
-  logger('basic', basic.trim())
-  logger('yml', yml)
+  testLogger({
+    label: basicCommentsLabel,
+    object,
+    input: basic,
+    output: result,
+    expected,
+  })
   /** */
-  assert.is(typeof yml, 'string')
-  assert.equal(yml, basic.trim())
+  assert.is(typeof result, 'string')
+  assert.equal(result, expected)
 })
-
 
 const yml2 = `
 # opening comment prefixed
@@ -64,24 +87,25 @@ tutorial: #nesting level 1
 # here
 `;
 
-test('Yaml with opening comment', async () => {
-  const object = parse(yml2.trim());
-  debug(yml2)
-  /*
-  logger('object', object)
-  /** */
-
-  const yml = stringify(object, {
+const openingCommentLabel = 'Preserves opening comments and nested structure'
+test(openingCommentLabel, async () => {
+  const object = parse(yml2.trim())
+  const result = stringify(object, {
     originalString: yml2,
   })
+  const expected = yml2.trim()
   //*
-  logger('original', yml2.trim())
-  logger('output', yml)
+  testLogger({
+    label: openingCommentLabel,
+    object,
+    input: yml2,
+    output: result,
+    expected,
+  })
   /** */
-  assert.is(typeof yml, 'string')
-  assert.equal(yml, yml2.trim())
+  assert.is(typeof result, 'string')
+  assert.equal(result, expected)
 })
-
 
 const yamlMultilineOpener = `
 # opening comment prefixed
@@ -106,22 +130,24 @@ tutorial: #nesting level 1
 # here
 `;
 
-test('yamlMultilineOpener', async () => {
-  const object = parse(yamlMultilineOpener.trim());
-  debug(yamlMultilineOpener)
-  /*
-  logger('object', object)
-  /** */
-
+const multilineOpenerLabel = 'Handles multiline opening comments with splits'
+test(multilineOpenerLabel, async () => {
+  const object = parse(yamlMultilineOpener.trim())
   const result = stringify(object, {
     originalString: yamlMultilineOpener,
   })
+  const expected = yamlMultilineOpener.trim()
   //*
-  logger('original', yamlMultilineOpener.trim())
-  logger('result', result)
+  testLogger({
+    label: multilineOpenerLabel,
+    object,
+    input: yamlMultilineOpener,
+    output: result,
+    expected,
+  })
   /** */
   assert.is(typeof result, 'string')
-  assert.equal(result, yamlMultilineOpener.trim())
+  assert.equal(result, expected)
 })
 
 // const originalString = `
@@ -142,26 +168,25 @@ tutorial: #nesting level 1
       type: awesome #string [literal]
       born: 2001 #number [literal]`;
 
-test('Basic Result contains comments two', async () => {
-  // const doc = yaml.parseDocument(basicTwo.trim());
-  // deepLog('doc', doc.contents)
-
-  // process.exit(1)
-  /** */
+const basicResultLabel =
+'Handles comments in a basic yaml string'
+test(basicResultLabel, async () => {
   const object = parse(basicTwo.trim());
-  /*
-  logger('object', object)
-  /** */
-
-  const yml = stringify(object, {
+  const ymlStringResult = stringify(object, {
     originalString: basicTwo,
   })
+  const expected = basicTwo.trim()
   //*
-  logger('basic', basicTwo.trim())
-  logger('yml', yml)
+  testLogger({
+    label: basicResultLabel,
+    object,
+    input: basicTwo,
+    output: ymlStringResult,
+    expected,
+  })
   /** */
-  assert.is(typeof yml, 'string')
-  assert.equal(yml, basicTwo.trim())
+  assert.is(typeof ymlStringResult, 'string')
+  assert.equal(ymlStringResult, expected)
 })
 
 
@@ -188,20 +213,17 @@ id: bf909406-4212-4d07-b2fb-fa228108683c
 
 test('Basic Result contains comments', async () => {
   const object = parse(simple.trim());
-  /*
-  logger('object', object)
-  /** */
-
-  const yml = stringify(object, {
+  const ymlStringResult = stringify(object, {
     originalString: simple,
   })
-  /*
-  logger('simple', simple.trim())
-  logger('yml', yml)
+  //*
+  logger('object', object)
+  logger('input string', simple.trim())
+  logger('output string', ymlStringResult)
   /** */
-  assert.is(typeof yml, 'string')
-  const cleanDate = nudgeDate(simple.trim(), '2023-12-29')
-  assert.equal(yml, cleanDate)
+  assert.is(typeof ymlStringResult, 'string')
+  const cleanDate = wrapDateString(simple.trim(), '2023-12-29')
+  assert.equal(ymlStringResult, cleanDate)
 })
 
 const tinyYaml = `
@@ -247,7 +269,7 @@ id: bf909406-4212-4d07-b2fb-fa228108683c
 # after comment
 `
 
-test('Tiny Result contains comments', async () => {
+test('Tiny Result contains all comments', async () => {
   const object = parse(tinyYaml.trim());
   /*
   logger('object', object)
@@ -261,7 +283,7 @@ test('Tiny Result contains comments', async () => {
   logger('yml', yml)
   /** */
   assert.is(typeof yml, 'string')
-  const cleanDate = nudgeDate(tinyYaml.trim(), '2023-12-29')
+  const cleanDate = wrapDateString(tinyYaml.trim(), '2023-12-29')
   assert.equal(yml, cleanDate)
 })
 
@@ -384,7 +406,7 @@ test('Result contains comments', async () => {
   process.exit(1)
   /** */
   assert.is(typeof yml, 'string')
-  const cleanDate = nudgeDate(largeYaml.trim(), '2023-12-29')
+  const cleanDate = wrapDateString(largeYaml.trim(), '2023-12-29')
   // console.log('cleanDate', cleanDate)
   assert.equal(yml, cleanDate)
 })
@@ -524,7 +546,7 @@ company:
   logger('original', originalString.trim())
   logger('result', yml)
   const expected = result('', blockToMove).trim()
-  const cleanDate = nudgeDate(expected, '2023-12-29')
+  const cleanDate = wrapDateString(expected, '2023-12-29')
   logger('expected', expected)
   /** */
 
@@ -565,26 +587,6 @@ test('basicThree', () => {
   assert.equal(yml, basicThree.trim())
 })
 
-
-function read(filePath) {
-  return fs.readFileSync(filePath, 'utf-8')
-}
-
-
-function deepLog(objOrLabel, logVal) {
-  let obj = objOrLabel
-  if (typeof objOrLabel === 'string') {
-    obj = logVal
-    logger(objOrLabel)
-  }
-  logger(util.inspect(obj, false, null, true))
-}
-
-function debug(str) {
-  // const doc = yaml.parseDocument(str.trim());
-  // deepLog('doc', doc.contents)
-  // process.exit(1)
-}
 
 test('Respects indent and lineWidth options', () => {
   const input = `
@@ -632,7 +634,7 @@ deepObject:
   assert.ok(longWideLines.some(line => line.length > 50))
 })
 
-test('Can quote string values including dates', () => {
+test('Wraps dates like "2012-10-17" when singleQuoteStrings is true', () => {
   const input = `
 version: 2012-10-17
 name: test
@@ -642,17 +644,17 @@ deep:
 `
   const result = stringify(parse(input), {
     originalString: input,
-    quoteStrings: true
+    singleQuoteStrings: true,
   })
 
   logger('result', result)
 
-  assert.ok(result.includes('version: "2012-10-17"'))
-  assert.ok(result.includes('name: test'))
-  assert.ok(result.includes('date: "2023-01-01"'))
+  assert.ok(result.includes(`version: '2012-10-17'`))
+  assert.ok(result.includes(`name: 'test'`))
+  assert.ok(result.includes(`date: '2023-01-01'`))
 })
 
-test('Can quote strings while preserving other types', () => {
+test('Wraps dates like "2012-10-17" uses default quote type "', () => {
   const input = `
 version: 2012-10-17
 name: test
@@ -665,7 +667,6 @@ deep:
 `
   const result = stringify(parse(input), {
     originalString: input,
-    quoteStrings: true
   })
 
   logger('result', result)
@@ -734,10 +735,122 @@ Resources:
 
   const result = stringify(parse(input), {
     originalString: input,
-    // singleQuoteStrings: true
+    //singleQuoteStrings: true,
+    //doubleQuoteStrings: true
   })
 
   logger('result', result)
+
+  assert.equal(result, expected)
+})
+
+const stub =
+`
+# comment before
+# Multiline
+title: Improving Event Listener DX
+date: 2023-12-29
+description: Making DX of event listeners nice and crisp
+slug: improving-event-listener-dx
+nested:
+  foo: bar
+  # Comment on nested
+  baz: qux
+# comment BEFORE settings key
+settings: # comment ON settings key
+  - type: content
+    # Comment BEFORE content key on array item index 0
+    content: Content here...
+  # BEFORE Comment before array
+  - type: content-two
+    # Comment BEFORE content key on array item index 1
+    content: Content here... # comment on content KEY index 1
+    deeperArray:
+      - foo
+      - bar # comment on DEEP array item
+      - baz
+`
+
+const singleQuoteLabel = 'Wraps string values in single quotes'
+test(singleQuoteLabel, () => {
+  const expected =
+`# comment before
+# Multiline
+title: 'Improving Event Listener DX'
+date: '2023-12-29'
+description: 'Making DX of event listeners nice and crisp'
+slug: 'improving-event-listener-dx'
+nested:
+  foo: 'bar'
+  # Comment on nested
+  baz: 'qux'
+# comment BEFORE settings key
+settings: # comment ON settings key
+  - type: 'content'
+    # Comment BEFORE content key on array item index 0
+    content: 'Content here...'
+  # BEFORE Comment before array
+  - type: 'content-two'
+    # Comment BEFORE content key on array item index 1
+    content: 'Content here...' # comment on content KEY index 1
+    deeperArray:
+      - 'foo'
+      - 'bar' # comment on DEEP array item
+      - 'baz'`
+
+  const result = stringify(parse(stub), {
+    originalString: stub,
+    singleQuoteStrings: true
+  })
+
+  logger('result', result)
+
+  assert.equal(result, expected)
+})
+
+const handleDoubleQuoteStringValuesLabel = 'Handles double quote string values'
+test(handleDoubleQuoteStringValuesLabel, () => {
+
+  const expected =
+`# comment before
+# Multiline
+title: "Improving Event Listener DX"
+date: "2023-12-29"
+description: "Making DX of event listeners nice and crisp"
+slug: "improving-event-listener-dx"
+nested:
+  foo: "bar"
+  # Comment on nested
+  baz: "qux"
+# comment BEFORE settings key
+settings: # comment ON settings key
+  - type: "content"
+    # Comment BEFORE content key on array item index 0
+    content: "Content here..."
+  # BEFORE Comment before array
+  - type: "content-two"
+    # Comment BEFORE content key on array item index 1
+    content: "Content here..." # comment on content KEY index 1
+    deeperArray:
+      - "foo"
+      - "bar" # comment on DEEP array item
+      - "baz"`
+
+  const object = parse(stub)
+  const result = stringify(object, {
+    originalString: stub,
+    doubleQuoteStrings: true
+  })
+
+  //*
+  testLogger({
+    label: handleDoubleQuoteStringValuesLabel,
+    object,
+    input: stub,
+    output: undefined,
+    expected,
+  })
+  /** */
 
   assert.equal(result, expected)
 })
@@ -765,9 +878,29 @@ function testDump(input) {
   return resultx
 }
 
-function nudgeDate(str, date, quoteType = `"`)  {
+function wrapDateString(str, date, quoteType = `"`)  {
   const pattern = new RegExp(`${date}`, 'g')
   return str.replace(pattern, `${quoteType}${date}${quoteType}`)
+}
+
+
+function read(filePath) {
+  return fs.readFileSync(filePath, 'utf-8')
+}
+
+function deepLog(objOrLabel, logVal) {
+  let obj = objOrLabel
+  if (typeof objOrLabel === 'string') {
+    obj = logVal
+    const prefix = (arguments.length > 1) ? '> ' : ``
+    console.log(`\x1b[33m\n${prefix}${objOrLabel}\x1b[0m`)
+  }
+  if (typeof obj === 'object') {
+    console.log(util.inspect(obj, false, null, true))
+    return
+  }
+  if (arguments.length <= 1) return
+  console.log(arguments[1])
 }
 
 function getCfnSchema() {
