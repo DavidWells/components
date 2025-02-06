@@ -2,7 +2,7 @@ const yaml = require('yaml');
 // V1 docs https://github.com/eemeli/yaml/tree/56b873be923015bb367990f04578b6ee9895bf6e/docs
 // TODO upgrade to yaml 2+
 // const { YAMLMap, YAMLSeq } = require ('yaml')
-const { YAMLMap, YAMLSeq } = require ('yaml/types')
+const { YAMLMap, YAMLSeq, Scalar } = require ('yaml/types')
 const util = require('util')
 
 
@@ -15,30 +15,171 @@ function stringify(object, {
   commentData,
   indent = 2,
   lineWidth = 120,
+  singleQuoteStrings = false,
+  doubleQuoteStrings = false,
+  defaultForceQuoteType = 'QUOTE_DOUBLE', // 'PLAIN' / 'QUOTE_SINGLE' / 'QUOTE_DOUBLE'
 }) {
-
   // Set the line width for string folding
   yaml.scalarOptions.str.fold.lineWidth = lineWidth
+  // yaml.scalarOptions.str.defaultStyle = 'PLAIN'
 
   const _commentData = (commentData) ? commentData : extractYamlComments(originalString.trim())
 
+  const doc = new yaml.Document({
+    indent,
+    schema: 'core',
+    version: '1.2',
+  })
+
   const contents = yaml.createNode(object)
+
+  /*
+  const inputItems = removeSchemaFromNodes(contents.items)
+  deepLog('inputItems', inputItems)
+  process.exit(1)
+  /** */
 
   if(_commentData && _commentData.comments && _commentData.comments.length) {
     addComments(contents.items, _commentData.comments)
   }
 
-  // Create document with formatting options
-  const doc = new yaml.Document({
-    indent,
-    // schema: 'core',
-    // version: '1.2',
+  let quoteType = ''
+  if (singleQuoteStrings) {
+    quoteType = 'QUOTE_SINGLE'
+  } else if (doubleQuoteStrings) {
+    quoteType = 'QUOTE_DOUBLE'
+  }
+
+  // quoteType = ''
+  // process.exit(1)
+
+  /* Update string values */
+  contents.items = quoteStringValues(contents.items, undefined, {
+    defaultForceQuoteType: defaultForceQuoteType || quoteType || 'QUOTE_DOUBLE',
+    quoteType,
+    // arrayQuoteType: 'PLAIN',
   })
 
   doc.contents = contents
+
   const newDocString = doc.toString()
   const finalStr = (_commentData.opening || '') + newDocString.trim() + (_commentData.trailing || '')
-  return finalStr
+
+  //*
+  const cleanItems = removeSchemaFromNodes(contents.items)
+  deepLog('contents', cleanItems)
+  /** */
+
+  // console.log('finalStr', finalStr)
+  return fixYaml(finalStr, {
+    quoteType: quoteType,
+  })
+}
+
+const FIX_SINGLE_QUOTE_PATTERN = /^(\s*- )'(.*)':$/gm
+const FIX_DOUBLE_QUOTE_PATTERN = /^(\s*- )"(.*)":$/gm
+
+function fixYaml(yamlString, opts) {
+  const { quoteType } = opts
+  let pattern
+  if (!quoteType) {
+    pattern = FIX_DOUBLE_QUOTE_PATTERN
+  }
+  if (!pattern) return yamlString
+  return yamlString.replace(pattern, '$1$2:')
+}
+
+function isDate(value) {
+  return value && typeof value === 'string' && value.match(/^\d{4}-\d{2}-\d{2}$/)
+}
+
+function chooseQuoteType(value, opts) {
+  const { defaultForceQuoteType, quoteType } = opts
+  const dateQuoteType = (quoteType !== 'PLAIN') ? quoteType : defaultForceQuoteType
+  if (isDate(value)) {
+    return quoteType || defaultForceQuoteType
+  }
+  return isDate(value) ? dateQuoteType : quoteType
+}
+
+
+function quoteStringValues(items, parentNode = {}, opts) {
+  if (!items) return items
+
+  return items.map(item => {
+    /*
+    console.log('item', item)
+    console.log('parent', parent)
+    /** */
+
+    /* Quote array values */
+    if (item.value && typeof item.value === 'string' && Object.keys(item).length === 1) {
+      // item.key.type = 'PLAIN'
+      const quoteType = chooseQuoteType(item.value, opts)
+      const isInArray = parentNode && parentNode.value instanceof YAMLSeq
+
+      if (isInArray && !quoteType) {
+        return item
+      }
+      if (quoteType) {
+        item.type = quoteType
+      }
+      return item
+    }
+
+    // console.log('item', item)
+    if (item.key && typeof item.key.value === 'string' && item.value && item.value instanceof YAMLMap) {
+      const parentIsMap = parentNode && parentNode.value && parentNode.value instanceof YAMLMap
+      const parentIsSeq = parentNode && parentNode.value && parentNode.value instanceof YAMLSeq
+      const hasMapAsValue = item.value && item.value instanceof YAMLMap
+      /*
+      console.log('───────────────────────────────')
+      console.log('parentNode', parentNode)
+      console.log('item', item)
+      console.log('parentIsMap', parentIsMap)
+      console.log('parentIsSeq', parentIsSeq)
+      /** */
+
+      const quoteType = chooseQuoteType(item.value, opts)
+      // console.log('quoteType', quoteType)
+      if (quoteType && !parentIsMap && !hasMapAsValue) {
+        item.key.type = quoteType
+      }
+
+      item.value.items = quoteStringValues(item.value.items, item, opts)
+      // process.exit(1)
+      return item
+    }
+    // Handle scalar values directly
+    if (item.type === 'SCALAR' && typeof item.value === 'string') {
+      const quoteType = chooseQuoteType(item.value, opts)
+      if(quoteType) {
+        item.type = quoteType
+      }
+      return item
+    }
+    // Handle pair values
+    if (item.type === 'PAIR') {
+      // If value is a scalar with string value, quote it
+      if (item.value && item.value.value && typeof item.value.value === 'string') {
+        const quoteType = chooseQuoteType(item.value.value, opts)
+        if (quoteType) {
+          item.value.type = quoteType
+        }
+      }
+      // If value is a YAMLMap or YAMLSeq, process its items
+      if (item.value && item.value.items) {
+        item.value.items = quoteStringValues(item.value.items, item, opts)
+      }
+    }
+
+    // Process nested items
+    if (item.items) {
+      item.items = quoteStringValues(item.items, item, opts)
+    }
+
+    return item
+  })
 }
 
 const MATCH_LEADING_COMMENTS = /^([ \t]*#.*(?:\r?\n|\r|$)|[ \t]*(?:\r?\n|\r|$))*/
@@ -191,7 +332,7 @@ function extractYamlComments(yamlDocument) {
           /** */
           // const typeOfItems = value.items.map(x => x.constructor.name)
           // const type = typeOfItems[0]
-          // const isSame = typeOfItems.every((x, i, arr) => x === type)
+          // const isSame = typeOfItems.every((x, i, arr) => x === quoteType)
           // console.log(`isSame ${type}`, isSame)
           // searchForComments(value.items, keyPath, (isSame && type !== 'Pair') ? true : false);
           searchForComments(value.items, keyPath, value instanceof YAMLSeq);
@@ -368,6 +509,35 @@ function getTopLevelKeys(yamlString = '') {
     return doc.contents.items.map((item) => item.key.value)
   }
   return []
+}
+
+function removeSchemaFromNodes(items) {
+  if (!items) return items
+
+  return items.map(item => {
+    // Create a copy without schema
+    const cleanItem = { ...item }
+    delete cleanItem.schema
+
+    // Clean key and value if they exist
+    if (cleanItem.key && cleanItem.key.schema) {
+      delete cleanItem.key.schema
+    }
+    if (cleanItem.value) {
+      if (cleanItem.value.schema) {
+        delete cleanItem.value.schema
+      }
+      // Recursively clean items in value
+      if (cleanItem.value.items) {
+        cleanItem.value.items = removeSchemaFromNodes(cleanItem.value.items)
+      }
+    }
+    // Clean items in the item itself
+    if (cleanItem.items) {
+      cleanItem.items = removeSchemaFromNodes(cleanItem.items)
+    }
+    return cleanItem
+  })
 }
 
 module.exports = {

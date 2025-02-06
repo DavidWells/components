@@ -16,6 +16,7 @@
   "author": "David Wells",
   "license": "MIT",
   "dependencies": {
+    "js-yaml": "^4.1.0",
     "yaml": "^1.10.2"
   },
   "devDependencies": {

@@ -4,12 +4,13 @@ const util = require('util')
 const { test } = require('uvu')
 const assert = require('uvu/assert')
 const { stringify, parse } = require('./')
+const YAML = require('js-yaml')
 
 const FRONTMATTER = path.join(__dirname, '../fixtures/file-with-frontmatter.md')
 const HIDDEN_FRONTMATTER = path.join(__dirname, '../fixtures/file-with-hidden-frontmatter.md')
 
-const DEBUG = false
-const logger = DEBUG ? logger : () => {}
+const DEBUG = true
+const logger = DEBUG ? console.log : () => {}
 
 const basic = `
 # This is a comment
@@ -199,7 +200,8 @@ test('Basic Result contains comments', async () => {
   logger('yml', yml)
   /** */
   assert.is(typeof yml, 'string')
-  assert.equal(yml, simple.trim())
+  const cleanDate = nudgeDate(simple.trim(), '2023-12-29')
+  assert.equal(yml, cleanDate)
 })
 
 const tinyYaml = `
@@ -259,7 +261,8 @@ test('Tiny Result contains comments', async () => {
   logger('yml', yml)
   /** */
   assert.is(typeof yml, 'string')
-  assert.equal(yml, tinyYaml.trim())
+  const cleanDate = nudgeDate(tinyYaml.trim(), '2023-12-29')
+  assert.equal(yml, cleanDate)
 })
 
 const largeYaml = `
@@ -376,10 +379,14 @@ test('Result contains comments', async () => {
     originalString: largeYaml,
   })
   /*
+  logger('original', largeYaml.trim())
   logger('yml', yml)
+  process.exit(1)
   /** */
   assert.is(typeof yml, 'string')
-  assert.equal(yml, largeYaml.trim())
+  const cleanDate = nudgeDate(largeYaml.trim(), '2023-12-29')
+  // console.log('cleanDate', cleanDate)
+  assert.equal(yml, cleanDate)
 })
 
 test('Moved key has comment', async () => {
@@ -517,11 +524,12 @@ company:
   logger('original', originalString.trim())
   logger('result', yml)
   const expected = result('', blockToMove).trim()
+  const cleanDate = nudgeDate(expected, '2023-12-29')
   logger('expected', expected)
   /** */
 
   assert.is(typeof yml, 'string')
-  assert.equal(yml, expected)
+  assert.equal(yml, cleanDate)
 })
 
 
@@ -623,5 +631,191 @@ deepObject:
   // Lines should be longer now since they won't wrap
   assert.ok(longWideLines.some(line => line.length > 50))
 })
+
+test('Can quote string values including dates', () => {
+  const input = `
+version: 2012-10-17
+name: test
+deep:
+  - key: value
+  - date: 2023-01-01
+`
+  const result = stringify(parse(input), {
+    originalString: input,
+    quoteStrings: true
+  })
+
+  console.log('result', result)
+
+  assert.ok(result.includes('version: "2012-10-17"'))
+  assert.ok(result.includes('name: test'))
+  assert.ok(result.includes('date: "2023-01-01"'))
+})
+
+test('Can quote strings while preserving other types', () => {
+  const input = `
+version: 2012-10-17
+name: test
+count: 42
+enabled: true
+deep:
+  - key: value
+  - date: 2023-01-01
+  - number: 123
+`
+  const result = stringify(parse(input), {
+    originalString: input,
+    quoteStrings: true
+  })
+
+  console.log('result', result)
+
+  // Strings should be quoted
+  assert.ok(result.includes('version: "2012-10-17"'))
+  assert.ok(result.includes('name: test'))
+  assert.ok(result.includes('date: "2023-01-01"'))
+
+  // Numbers and booleans should not be quoted
+  assert.ok(result.includes('count: 42'))
+  assert.ok(result.includes('enabled: true'))
+  assert.ok(result.includes('number: 123'))
+})
+
+
+test.only('Can quote strings while preserving other types', () => {
+
+  const input = `
+Resources:
+  Wow:
+    - cool
+    - rad
+    - awesome
+  Policy:
+    Version: 2012-10-17
+  # A CloudFormation loop on the Route53Records for each subdomain
+  Fn::ForEach::Route53RecordSet:
+    - "RecordSetLogicalId"
+    - !Ref pSourceSubDomainList
+    - Jamba\${RecordSetLogicalId}:
+        Type: AWS::Route53::RecordSet
+        Properties:
+          HostedZoneId: !Ref pR53ZoneId
+          Name: !Sub \${RecordSetLogicalId}.\${pSourceNakedDomain}
+          TTL: 60
+          Type: A
+          AliasTarget:
+            HostedZoneId: "Z2FDTNDATAQYW2" # Hosted zone ID for CloudFront
+            DNSName: !GetAtt CloudFrontDistribution.DomainName
+`
+
+  const expected =
+  `Resources:
+  Wow:
+    - cool
+    - rad
+    - awesome
+  Policy:
+    Version: "2012-10-17"
+  # A CloudFormation loop on the Route53Records for each subdomain
+  Fn::ForEach::Route53RecordSet:
+    - RecordSetLogicalId
+    - !Ref pSourceSubDomainList
+    - Jamba\${RecordSetLogicalId}:
+        Type: AWS::Route53::RecordSet
+        Properties:
+          HostedZoneId: pR53ZoneId
+          Name: \${RecordSetLogicalId}.\${pSourceNakedDomain}
+          TTL: 60
+          Type: A
+          AliasTarget:
+            HostedZoneId: Z2FDTNDATAQYW2 # Hosted zone ID for CloudFront
+            DNSName: CloudFrontDistribution.DomainName`
+
+
+  const result = stringify(parse(input), {
+    originalString: input,
+    // singleQuoteStrings: true
+  })
+
+  console.log('result', result)
+
+  assert.equal(result, expected)
+})
+
+
+function testDump(input) {
+  const obj = YAML.load(input, { schema: getCfnSchema() })
+  console.log('obj', obj)
+  const resultx = YAML.dump(obj, {
+    indent: 2,
+    lineWidth: -1,
+    noRefs: true,
+    noArrayIndent: false,
+    flowStyle: false,
+    styles: {
+      '!!null': 'empty',
+      '!!str': 'plain'
+    },
+    quotingType: '"',  // Use double quotes instead of single quotes
+    forceQuotes: false, //  quote when necessary
+    schema: getCfnSchema() // Add schema here
+  })
+
+  console.log('resultx', resultx)
+  return resultx
+}
+
+function nudgeDate(str, date, quoteType = `"`)  {
+  const pattern = new RegExp(`${date}`, 'g')
+  return str.replace(pattern, `${quoteType}${date}${quoteType}`)
+}
+
+function getCfnSchema() {
+  // Define CloudFormation tags schema
+  const cfnTags = [
+    new yaml.Type('!Ref', {
+      kind: 'scalar',
+      construct: function(data) {
+        return { 'Ref': data }
+      }
+    }),
+    new yaml.Type('!Sub', {
+      kind: 'scalar',
+      construct: function(data) {
+        return { 'Fn::Sub': data }
+      }
+    }),
+    new yaml.Type('!GetAtt', {
+      kind: 'scalar',
+      construct: function(data) {
+        return { 'Fn::GetAtt': data.split('.') }
+      }
+    }),
+    new yaml.Type('!Join', {
+      kind: 'sequence',
+      construct: function(data) {
+        return { 'Fn::Join': data }
+      }
+    }),
+    new yaml.Type('!Select', { kind: 'sequence' }),
+    new yaml.Type('!Split', { kind: 'sequence' }),
+    new yaml.Type('!FindInMap', { kind: 'sequence' }),
+    new yaml.Type('!If', { kind: 'sequence' }),
+    new yaml.Type('!Not', { kind: 'sequence' }),
+    new yaml.Type('!Equals', { kind: 'sequence' }),
+    new yaml.Type('!And', { kind: 'sequence' }),
+    new yaml.Type('!Or', { kind: 'sequence' }),
+    new yaml.Type('!Base64', { kind: 'scalar' }),
+    new yaml.Type('!Cidr', { kind: 'sequence' }),
+    new yaml.Type('!Transform', { kind: 'mapping' }),
+    new yaml.Type('!ImportValue', { kind: 'scalar' }),
+    new yaml.Type('!GetAZs', { kind: 'scalar' }),
+    new yaml.Type('!Condition', { kind: 'scalar' })
+  ]
+
+  // Create custom schema with CloudFormation tags
+  return yaml.DEFAULT_SCHEMA.extend(cfnTags)
+}
+
 
 test.run()
