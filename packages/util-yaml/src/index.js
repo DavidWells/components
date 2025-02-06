@@ -67,6 +67,11 @@ function stringify(object, {
 
   const contents = yaml.createNode(object)
 
+  /*
+  const cleanItems = removeSchemaFromNodes(contents.items)
+  deepLog('contents', cleanItems)
+  /** */
+
   if(_commentData && _commentData.comments && _commentData.comments.length) {
     addComments(contents.items, _commentData.comments)
   }
@@ -89,8 +94,10 @@ function stringify(object, {
   const newDocString = doc.toString()
   const finalStr = (_commentData.opening || '') + newDocString.trim() + (_commentData.trailing || '')
 
+  /*
   const cleanItems = removeSchemaFromNodes(contents.items)
   deepLog('contents', cleanItems)
+  /** */
 
   return fixYaml(finalStr, {
     quoteType: quoteType,

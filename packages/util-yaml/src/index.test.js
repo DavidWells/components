@@ -9,7 +9,7 @@ const YAML = require('js-yaml')
 const FRONTMATTER = path.join(__dirname, '../fixtures/file-with-frontmatter.md')
 const HIDDEN_FRONTMATTER = path.join(__dirname, '../fixtures/file-with-hidden-frontmatter.md')
 
-const DEBUG = true
+const DEBUG = false
 const logger = DEBUG ? console.log : () => {}
 
 const basic = `
@@ -645,7 +645,7 @@ deep:
     quoteStrings: true
   })
 
-  console.log('result', result)
+  logger('result', result)
 
   assert.ok(result.includes('version: "2012-10-17"'))
   assert.ok(result.includes('name: test'))
@@ -668,7 +668,7 @@ deep:
     quoteStrings: true
   })
 
-  console.log('result', result)
+  logger('result', result)
 
   // Strings should be quoted
   assert.ok(result.includes('version: "2012-10-17"'))
@@ -737,7 +737,7 @@ Resources:
     // singleQuoteStrings: true
   })
 
-  console.log('result', result)
+  logger('result', result)
 
   assert.equal(result, expected)
 })
