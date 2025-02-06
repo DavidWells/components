@@ -682,7 +682,7 @@ deep:
 })
 
 
-test.only('Can quote strings while preserving other types', () => {
+test('Can quote strings while preserving other types', () => {
 
   const input = `
 Resources:
@@ -723,13 +723,13 @@ Resources:
     - Jamba\${RecordSetLogicalId}:
         Type: AWS::Route53::RecordSet
         Properties:
-          HostedZoneId: pR53ZoneId
-          Name: \${RecordSetLogicalId}.\${pSourceNakedDomain}
+          HostedZoneId: !Ref pR53ZoneId
+          Name: !Sub \${RecordSetLogicalId}.\${pSourceNakedDomain}
           TTL: 60
           Type: A
           AliasTarget:
             HostedZoneId: Z2FDTNDATAQYW2 # Hosted zone ID for CloudFront
-            DNSName: CloudFrontDistribution.DomainName`
+            DNSName: !GetAtt CloudFrontDistribution.DomainName`
 
 
   const result = stringify(parse(input), {

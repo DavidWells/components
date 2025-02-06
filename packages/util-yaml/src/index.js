@@ -1,10 +1,46 @@
 const yaml = require('yaml');
-// V1 docs https://github.com/eemeli/yaml/tree/56b873be923015bb367990f04578b6ee9895bf6e/docs
-// TODO upgrade to yaml 2+
-// const { YAMLMap, YAMLSeq } = require ('yaml')
-const { YAMLMap, YAMLSeq, Scalar } = require ('yaml/types')
+const { YAMLMap, YAMLSeq, Scalar } = require('yaml/types')
+const { stringifyString } = require('yaml/util')
 const util = require('util')
 
+// Define CloudFormation tags
+const cfnTags = [
+  {
+    identify: value => value && value.Ref,
+    tag: '!Ref',
+    resolve(doc, cst) {
+      return { Ref: cst.strValue }
+    },
+    stringify(item, ctx, onComment, onChompKeep) {
+      return stringifyString({ value: item.value.Ref }, ctx, onComment, onChompKeep)
+    }
+  },
+  {
+    identify: value => value && value['Fn::Sub'],
+    tag: '!Sub',
+    resolve(doc, cst) {
+      return { 'Fn::Sub': cst.strValue }
+    },
+    stringify(item, ctx, onComment, onChompKeep) {
+      return stringifyString({ value: item.value['Fn::Sub'] }, ctx, onComment, onChompKeep)
+    }
+  },
+  {
+    identify: value => value && value['Fn::GetAtt'],
+    tag: '!GetAtt',
+    resolve(doc, cst) {
+      return { 'Fn::GetAtt': cst.strValue.split('.') }
+    },
+    stringify(item, ctx, onComment, onChompKeep) {
+      return stringifyString({
+        value: item.value['Fn::GetAtt'].join('.')
+      }, ctx, onComment, onChompKeep)
+    }
+  }
+]
+
+// Set custom tags globally
+yaml.defaultOptions.customTags = cfnTags
 
 function parse(ymlString = '', opts = {}) {
   return yaml.parse(ymlString.trim(), opts)
@@ -21,23 +57,15 @@ function stringify(object, {
 }) {
   // Set the line width for string folding
   yaml.scalarOptions.str.fold.lineWidth = lineWidth
-  // yaml.scalarOptions.str.defaultStyle = 'PLAIN'
 
   const _commentData = (commentData) ? commentData : extractYamlComments(originalString.trim())
 
   const doc = new yaml.Document({
     indent,
-    schema: 'core',
     version: '1.2',
   })
 
   const contents = yaml.createNode(object)
-
-  /*
-  const inputItems = removeSchemaFromNodes(contents.items)
-  deepLog('inputItems', inputItems)
-  process.exit(1)
-  /** */
 
   if(_commentData && _commentData.comments && _commentData.comments.length) {
     addComments(contents.items, _commentData.comments)
@@ -50,14 +78,10 @@ function stringify(object, {
     quoteType = 'QUOTE_DOUBLE'
   }
 
-  // quoteType = ''
-  // process.exit(1)
-
   /* Update string values */
   contents.items = quoteStringValues(contents.items, undefined, {
     defaultForceQuoteType: defaultForceQuoteType || quoteType || 'QUOTE_DOUBLE',
     quoteType,
-    // arrayQuoteType: 'PLAIN',
   })
 
   doc.contents = contents
@@ -65,12 +89,9 @@ function stringify(object, {
   const newDocString = doc.toString()
   const finalStr = (_commentData.opening || '') + newDocString.trim() + (_commentData.trailing || '')
 
-  //*
   const cleanItems = removeSchemaFromNodes(contents.items)
   deepLog('contents', cleanItems)
-  /** */
 
-  // console.log('finalStr', finalStr)
   return fixYaml(finalStr, {
     quoteType: quoteType,
   })
