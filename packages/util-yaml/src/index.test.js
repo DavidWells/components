@@ -910,7 +910,7 @@ settings: # comment ON settings key
 
 
 const manyTagsLabel = 'Handles many tags'
-test.only(manyTagsLabel, () => {
+test(manyTagsLabel, () => {
   const inputx = `
   IsMultiAZ: !Or
     - !Equals [!Ref Environment, 'prod']
