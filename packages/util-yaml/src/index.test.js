@@ -3,40 +3,13 @@ const fs = require('fs')
 const util = require('util')
 const { test } = require('uvu')
 const assert = require('uvu/assert')
-const { stringify, parse } = require('./')
+const { stringify, parse, isIntrinsicFn } = require('./')
 const YAML = require('js-yaml')
+const { testLogger, deepLog } = require('../tests/utils')
 
 let DEBUG = process.argv.includes('--debug') ? true : false
 // DEBUG = true
 const logger = DEBUG ? deepLog : () => {}
-
-function deepLog(objOrLabel, logVal) {
-  let obj = objOrLabel
-  if (typeof objOrLabel === 'string') {
-    obj = logVal
-    const prefix = (arguments.length > 1) ? '> ' : ``
-    console.log(`\x1b[33m\n${prefix}${objOrLabel}\x1b[0m`)
-  }
-  if (typeof obj === 'object') {
-    console.log(util.inspect(obj, false, null, true))
-    return
-  }
-  if (arguments.length <= 1) return
-  console.log(arguments[1])
-}
-
-function testLogger({ label, object, input, output, expected }) {
-  const postFix = (label) ? ` - ${label}` : ''
-  if (object) {
-    logger(`Parsed object${postFix}`, object)
-  }
-  logger(`Input string${postFix}`, input)
-  logger(`Output string${postFix}`, output)
-  logger(`Expected string${postFix}`, expected)
-  const line = '──────────────────────────────────────────────────────────────────────────────────────────────────────────────────'
-  // wrap line in white bold text
-  logger(`\x1b[37m\x1b[1m${line}\x1b[0m`)
-}
 
 const basic = `
 # This is a comment
@@ -935,6 +908,128 @@ settings: # comment ON settings key
   assert.equal(result, expected)
 })
 
+
+const manyTagsLabel = 'Handles many tags'
+test.only(manyTagsLabel, () => {
+  const inputx = `
+  IsMultiAZ: !Or
+    - !Equals [!Ref Environment, 'prod']
+    - !Equals [!Ref Environment, 'rad']
+`
+const inputy =
+`Resources:
+  MyLoadBalancer:
+    Type: AWS::ElasticLoadBalancing::LoadBalancer
+    Condition: !Condition IsProd
+    Properties:
+      AvailabilityZones: !GetAZs 'us-east-1'
+      UserData: !Base64 |
+        #!/bin/bash
+        yum update -y
+  # with
+  MyDBInstance: #comments
+    Type: AWS::RDS::DBInstance`
+
+  const input = `
+AWSTemplateFormatVersion: '2010-09-09'
+Conditions:
+  IsDev:
+    Fn::Equals:
+      - Ref: Environment
+      - dev
+  IsMultiAZTwo:
+    Fn::Or:
+      - Fn::Equals:
+          - Ref: Environment
+          - dev
+      - Fn::Equals:
+          - Ref: Environment
+          - staging
+  IsProd: !Equals [!Ref Environment, 'prod']
+  IsMultiAZ: !Or
+    - !Equals [!Ref Environment, 'prod']
+    - !Equals [!Ref Environment, 'rad']
+
+Resources:
+  MyVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Cidr
+        - !Ref BaseIP
+        - 2
+        - 8
+
+  MyLoadBalancer:
+    Type: AWS::ElasticLoadBalancing::LoadBalancer
+    Condition: !Condition IsProd
+    Properties:
+      AvailabilityZones: !GetAZs 'us-east-1'
+      UserData: !Base64 |
+        #!/bin/bash
+        yum update -y
+
+  # with
+  MyDBInstance: #comments
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBName: !ImportValue SharedDBName
+  `
+
+  const expected = `AWSTemplateFormatVersion: "2010-09-09"
+Conditions:
+  IsDev: !Equals [!Ref Environment, 'dev']
+  IsMultiAZTwo: !Or
+    - !Equals [!Ref Environment, 'dev']
+    - !Equals [!Ref Environment, 'staging']
+  IsProd: !Equals [!Ref Environment, 'prod']
+  IsMultiAZ: !Or
+    - !Equals [!Ref Environment, 'prod']
+    - !Equals [!Ref Environment, 'rad']
+
+Resources:
+  MyVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Cidr
+        - !Ref BaseIP
+        - 2
+        - 8
+
+  MyLoadBalancer:
+    Type: AWS::ElasticLoadBalancing::LoadBalancer
+    Condition: !Condition IsProd
+    Properties:
+      AvailabilityZones: !GetAZs us-east-1
+      UserData: !Base64 |
+        #!/bin/bash
+        yum update -y
+
+  # with
+  MyDBInstance: #comments
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBName: !ImportValue SharedDBName`
+
+  const result = stringify(parse(input), {
+    originalString: input,
+  })
+
+  console.log('result', result)
+  // process.exit(0)
+
+  /*
+  testLogger({
+    label: manyTagsLabel,
+    input,
+    output: result,
+    expected,
+  })
+  /** */
+
+  assert.equal(result, expected)
+})
+
+
 const handleDoubleQuoteStringValuesLabel = 'Handles double quote string values'
 test(handleDoubleQuoteStringValuesLabel, () => {
 
@@ -982,6 +1077,115 @@ settings: # comment ON settings key
   assert.equal(result, expected)
 })
 
+const resourceWithMultilineString =
+`
+Resources:
+  SolutionHelper4825923B:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        ZipFile: |2-
+
+                  const response = require('cfn-response');
+                  const https = require('https');
+
+                  async function post(url, data) {
+                    const dataString = JSON.stringify(data)
+                    const options = {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        timeout: 1000, // in ms
+                    }
+
+                    return new Promise((resolve, reject) => {
+                        const req = https.request(url, options, (res) => {
+                            if (res.statusCode < 200 || res.statusCode > 299) {
+                                return reject(new Error('HTTP status code: ', res.statusCode))
+                            }
+                            const body = []
+                            res.on('data', (chunk) => body.push(chunk))
+                            res.on('end', () => {
+                                const resString = Buffer.concat(body).toString()
+                                resolve(resString)
+                            })
+                        })
+                        req.on('error', (err) => {
+                            reject(err)
+                        })
+                        req.on('timeout', () => {
+                            req.destroy()
+                            reject(new Error('Request time out'))
+                        })
+                        req.write(dataString)
+                        req.end()
+                    })
+                  }
+
+                  function uuidv4() {
+                    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                        return v.toString(16);
+                    });
+                  }
+
+
+                  function sanitizeData(resourceProperties) {
+                    const keysToExclude = ['ServiceToken', 'Resource', 'SolutionId', 'UUID'];
+                    return Object.keys(resourceProperties).reduce((sanitizedData, key) => {
+                        if (!keysToExclude.includes(key)) {
+                            sanitizedData[key] = resourceProperties[key];
+                        }
+                        return sanitizedData;
+                    }, {})
+                  }
+
+                  exports.handler = async function (event, context) {
+                    console.log(JSON.stringify(event, null, 4));
+                    const requestType = event.RequestType;
+                    const resourceProperties = event.ResourceProperties;
+                    const resource = resourceProperties.Resource;
+                    let data = {};
+                    try {
+                        if (resource === 'UUID' && requestType === 'Create') {
+                            data['UUID'] = uuidv4();
+                        }
+                        if (resource === 'AnonymousMetric') {
+                            const currentDate = new Date()
+                            data = sanitizeData(resourceProperties);
+                            data['RequestType'] = requestType;
+                            const payload = {
+                                Solution: resourceProperties.SolutionId,
+                                UUID: resourceProperties.UUID,
+                                TimeStamp: currentDate.toISOString(),
+                                Data: data
+                            }
+
+                            console.log('Sending metrics data: ', JSON.stringify(payload, null, 2));
+                            await post('https://metrics.awssolutionsbuilder.com/generic', payload);
+                            console.log('Sent Data');
+                        }
+                    } catch (error) {
+                        console.log(error);
+                    }
+
+                    if (requestType === 'Create') {
+                      await response.send(event, context, response.SUCCESS, data);
+                    }
+                    else {
+                      await response.send(event, context, response.SUCCESS, data, event.PhysicalResourceId);
+                    }
+                    return;
+                  }`
+
+test('Handles multiline string values', () => {
+  const result = stringify(parse(resourceWithMultilineString), {
+    originalString: resourceWithMultilineString,
+  })
+
+  console.log('result', result)
+})
 
 function testDump(input) {
   const obj = YAML.load(input, { schema: getCfnSchema() })
@@ -1015,85 +1219,130 @@ function read(filePath) {
   return fs.readFileSync(filePath, 'utf-8')
 }
 
-// function deepLog(objOrLabel, logVal) {
-//   let obj = objOrLabel
-//   if (typeof objOrLabel !== 'object') {
-//     obj = logVal
-//     const prefix = (arguments.length > 1) ? '> ' : ``
-//     console.log(`\x1b[33m\n${prefix}${objOrLabel}\x1b[0m`)
-//   }
-//   if (typeof obj === 'object') {
-//     console.log(util.inspect(obj, false, null, true))
-//     return
-//   }
-//   if (arguments.length <= 1) return
-//   console.log(arguments[1])
-// }
-
-function logValue(value, isFirst, isLast) {
-  const prefix = `${isFirst ? '> ' : ''}`
-  if (typeof value === 'object') {
-    console.log(`${prefix}${util.inspect(value, false, null, true)}\n`)
-    return
-  }
-  if (isFirst) {
-    console.log(`\n\x1b[33m${prefix}${value}\x1b[0m`)
-    return
-  }
-  console.log((typeof value === 'string' && value.includes('\n')) ? `\`${value}\`` : value)
-  // isLast && console.log(`\x1b[37m\x1b[1m${'─'.repeat(94)}\x1b[0m\n`)
-}
-
-function deepLog() {
-  for (let i = 0; i < arguments.length; i++) logValue(arguments[i], i === 0, i === arguments.length - 1)
-}
-
 function getCfnSchema() {
-  // Define CloudFormation tags schema
   const cfnTags = [
-    new yaml.Type('!Ref', {
+    new YAML.Type('!Ref', {
       kind: 'scalar',
       construct: function(data) {
-        return { 'Ref': data }
+        return { 'Fn::Ref': data }
       }
     }),
-    new yaml.Type('!Sub', {
+    new YAML.Type('!Sub', {
       kind: 'scalar',
       construct: function(data) {
         return { 'Fn::Sub': data }
       }
     }),
-    new yaml.Type('!GetAtt', {
+    new YAML.Type('!GetAtt', {
       kind: 'scalar',
       construct: function(data) {
         return { 'Fn::GetAtt': data.split('.') }
       }
     }),
-    new yaml.Type('!Join', {
+    new YAML.Type('!Join', {
       kind: 'sequence',
       construct: function(data) {
         return { 'Fn::Join': data }
       }
     }),
-    new yaml.Type('!Select', { kind: 'sequence' }),
-    new yaml.Type('!Split', { kind: 'sequence' }),
-    new yaml.Type('!FindInMap', { kind: 'sequence' }),
-    new yaml.Type('!If', { kind: 'sequence' }),
-    new yaml.Type('!Not', { kind: 'sequence' }),
-    new yaml.Type('!Equals', { kind: 'sequence' }),
-    new yaml.Type('!And', { kind: 'sequence' }),
-    new yaml.Type('!Or', { kind: 'sequence' }),
-    new yaml.Type('!Base64', { kind: 'scalar' }),
-    new yaml.Type('!Cidr', { kind: 'sequence' }),
-    new yaml.Type('!Transform', { kind: 'mapping' }),
-    new yaml.Type('!ImportValue', { kind: 'scalar' }),
-    new yaml.Type('!GetAZs', { kind: 'scalar' }),
-    new yaml.Type('!Condition', { kind: 'scalar' })
+    new YAML.Type('!Equals', {
+      kind: 'sequence',
+      construct: function(data) {
+        return { 'Fn::Equals': data }
+      }
+    }),
+    new YAML.Type('!Or', {
+      kind: 'sequence',
+      construct: function(data) {
+        return { 'Fn::Or': data }
+      }
+    }),
+    new YAML.Type('!Cidr', {
+      kind: 'sequence',
+      construct: function(data) {
+        return { 'Fn::Cidr': data }
+      }
+    }),
+    new YAML.Type('!Condition', {
+      kind: 'scalar',
+      construct: function(data) {
+        return { 'Fn::Condition': data }
+      }
+    }),
+    new YAML.Type('!GetAZs', {
+      kind: 'scalar',
+      construct: function(data) {
+        return { 'Fn::GetAZs': data }
+      }
+    }),
+    new YAML.Type('!Base64', {
+      kind: 'scalar',
+      construct: function(data) {
+        return { 'Fn::Base64': data }
+      }
+    }),
+    new YAML.Type('!ImportValue', {
+      kind: 'scalar',
+      construct: function(data) {
+        return { 'Fn::ImportValue': data }
+      }
+    })
   ]
 
-  // Create custom schema with CloudFormation tags
-  return yaml.DEFAULT_SCHEMA.extend(cfnTags)
+  return YAML.DEFAULT_SCHEMA.extend(cfnTags)
 }
 
+const intrinsicFnLabel = 'Detects CloudFormation intrinsic functions'
+test(intrinsicFnLabel, () => {
+  const validFns = [
+    '!Ref MyParameter',
+    '!Sub ${MyParameter}',
+    '!GetAtt MyResource.Arn',
+    '!Join ["", ["a", "b"]]',
+    '!Select [0, !GetAZs ""]',
+    '!Split [",", "a,b,c"]',
+    '!FindInMap [MapName, TopKey, SecondKey]',
+    '!GetAZs "us-east-1"',
+    '!ImportValue MyExport',
+    '!Condition MyCondition',
+    '!Equals [!Ref Env, prod]',
+    '!And [!Equals [1, 1], !Equals [2, 2]]',
+    '!Or [!Equals [1, 1], !Equals [2, 2]]',
+    '!Not [!Equals [1, 2]]',
+    '!If [Condition, Value1, Value2]',
+    '!Base64 UserData',
+    '!Cidr [IpBlock, Count, CidrBits]'
+  ]
+
+  const invalidFns = [
+    'Ref MyParameter',
+    'Sub ${MyParameter}',
+    'GetAtt MyResource.Arn',
+    'Just a string',
+    '123',
+    '',
+    null,
+    undefined
+  ]
+
+  //*
+  testLogger({
+    label: intrinsicFnLabel,
+    input: validFns,
+    output: validFns.map(isIntrinsicFn),
+    expected: validFns.map(() => true)
+  })
+  /** */
+
+  // All valid functions should return true
+  validFns.forEach(fn => {
+    assert.ok(isIntrinsicFn(fn), `Should detect ${fn} as intrinsic function`)
+  })
+
+  // All invalid functions should return false
+  invalidFns.forEach(fn => {
+    assert.ok(!isIntrinsicFn(fn), `Should not detect ${fn} as intrinsic function`)
+  })
+})
 
 test.run()
