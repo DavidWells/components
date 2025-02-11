@@ -3,9 +3,10 @@ const fs = require('fs')
 const util = require('util')
 const { test } = require('uvu')
 const assert = require('uvu/assert')
-const { stringify, parse, isIntrinsicFn } = require('./')
-const YAML = require('js-yaml')
-const { testLogger, deepLog } = require('../tests/utils')
+const { stringify, parse } = require('../src')
+const { getTags, isIntrinsicFn } = require('../src/tags')
+const { deepLog } = require('./utils')
+const { testLogger } = require('./utils')
 
 let DEBUG = process.argv.includes('--debug') ? true : false
 // DEBUG = true

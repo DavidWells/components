@@ -1,7 +1,7 @@
 const { test } = require('uvu')
 const assert = require('uvu/assert')
-const { stringify, parse } = require('./')
-const { testLogger } = require('../tests/utils')
+const { stringify, parse } = require('../src')
+const { testLogger } = require('./utils')
 
 const base64Fixtures =
 `# Basic string

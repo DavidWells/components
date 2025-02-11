@@ -1,7 +1,7 @@
 const { test } = require('uvu')
 const assert = require('uvu/assert')
 const { stringify, parse } = require('../src')
-const { testLogger } = require('./utils')
+const { testLogger, deepLog } = require('./utils')
 
 const arrayFixtures = `
 Simple: !Join
@@ -27,8 +27,18 @@ test(arrayLabel, () => {
   const result = stringify(object, {
     originalString: arrayFixtures,
   })
-  const expected = arrayFixtures.trim()
+  const expected =
+`Simple: !Join [ 'y', ['x', 'z', !Ref StackName] ]
 
+# In a Join
+Command: !Join
+  - 'y'
+  - - !Base64 'Hello'
+    - !Base64 'World'
+    -  !Join
+      - 'x'
+      - - !Base64 'bye'
+        - !Base64 'joe'`
   //*
   testLogger({
     label: arrayLabel,
@@ -39,10 +49,13 @@ test(arrayLabel, () => {
   })
   /** */
 
+    // Test individual cases from parsed object
+  const parsed = parse(result)
+
+  // deepLog('parsed', parsed)
+
   assert.equal(result, expected)
 
-  // Test individual cases from parsed object
-  const parsed = parse(result)
 
   // Simple Join
   assert.equal(

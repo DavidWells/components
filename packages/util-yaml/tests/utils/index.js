@@ -1,5 +1,9 @@
 const util = require('util')
 
+let DEBUG = process.argv.includes('--debug') ? true : false
+DEBUG = true
+const logger = DEBUG ? deepLog : () => {}
+
 function logValue(value, isFirst, isLast) {
   const prefix = `${isFirst ? '> ' : ''}`
   if (typeof value === 'object') {
@@ -30,11 +34,8 @@ function testLogger({ label, object, input, output, expected }) {
   logger(`\x1b[37m\x1b[1m${line}\x1b[0m`)
 }
 
-let DEBUG = process.argv.includes('--debug') ? true : false
-const logger = DEBUG ? deepLog : () => {}
-
 module.exports = {
   testLogger,
   deepLog,
   logger
-} 
+}
