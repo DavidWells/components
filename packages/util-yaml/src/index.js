@@ -131,7 +131,16 @@ function quotify(v = '') {
 
 function checkYamlKeySpacing(yaml, key) {
   const pattern = new RegExp(`^(${key}):\\s*(.*\\n(?:(?!${key}:)[\\s\\S])*?)(\\n{2,})`, 'm')
-  return pattern.test(yaml)
+  console.log('pattern', pattern)
+  const hasMatch = yaml.match(pattern)
+  console.log('hasMatch', hasMatch)
+  if (hasMatch) {
+    // newline count
+    const newlineCount = hasMatch[3].split('\n').length - 1
+    console.log('newlineCount', newlineCount)
+    return hasMatch[3].replace('\n', '')
+  }
+  return ''
 }
 
 function escapeStringRegexp(string) {
@@ -419,8 +428,26 @@ function getTags(originalString) {
       resolve(doc, cst) {
         // deepLog('JOIN cst', cst)
         debugApi('JOIN', cst)
+        const originalValue = (getStringSlice(originalString, cst.range.start, cst.range.end) || '').trim()
+        console.log('originalValue', originalValue)
 
-        const find = checkYamlKeySpacing(originalString, 'Command')
+
+        const findKeyPattern = new RegExp(`^([a-zA-Z]+):\\s*${escapeStringRegexp(originalValue)}`, 'm')
+        console.log('findKeyPattern', findKeyPattern)
+        const findKey = originalString.match(findKeyPattern)
+
+        let trailingNewLines = ''
+        if (findKey) {
+          const key = findKey[1]
+          console.log('key', key)
+          const findTrailingNewlines = checkYamlKeySpacing(originalString, key)
+          if (findTrailingNewlines) {
+            trailingNewLines = findTrailingNewlines
+            // console.log('trailingNewLines', trailingNewLines)
+            // process.exit(0)
+          }
+        }
+
 
         const result = cst.items
           .filter((item) => item.rawValue)
@@ -435,7 +462,12 @@ function getTags(originalString) {
           // result.push('\n')
         }
 
+        if (trailingNewLines) {
+          result.push(trailingNewLines)
+        }
+
         console.log('result', result)
+        // ctx.foobar = 'foobar'
         // process.exit(0)
         return {
           'Fn::Join': result,
@@ -443,6 +475,11 @@ function getTags(originalString) {
       },
       stringify(item, ctx, onComment, onChompKeep) {
         const indent = ctx.indent || '  ' // Default to 2 spaces if not set
+        const originalItem = item.value && item.value['Fn::Join']
+        console.log('originalItem', originalItem)
+        // console.log('ctx.foobar', item)
+        // process.exit(0)
+
         /*
         deepLog('JOIN item', item)
         /** */
@@ -475,10 +512,11 @@ function getTags(originalString) {
         }
 
         if (test.items && totalLength < 120) {
-          const lastItemHasNewLine = values[values.length - 1].includes('\n')
-          // console.log('lastItemHasNewLine', lastItemHasNewLine)
+          const lastItemHasNewLine = originalItem[originalItem.length - 1].includes('\n')
+          // console.log('lastItemHasNewLine',  `"${values[values.length - 1]}"`)
           // process.exit(0)
-          const addNewLine = lastItemHasNewLine ? '\n' : ''
+          const addNewLine = lastItemHasNewLine ? originalItem[originalItem.length - 1] : ''
+          console.log('addNewLine', addNewLine)
           return `[ ${test.delimiter}, [${test.items.filter(Boolean).join(', ')}] ]${addNewLine}`
         }
 
