@@ -1,8 +1,9 @@
 const yaml = require('yaml')
 const { YAMLMap, YAMLSeq, Scalar } = require('yaml/types')
 const { deepLog } = require('./utils/logger')
-const { getTags, isIntrinsicFn } = require('./tags')
+const { getTags, isIntrinsicFn } = require('./tags/index')
 const { extractYamlComments } = require('./extract-comments')
+const { ALL_TAGS_OR_REGEX_PATTERN } = require('./tags/_constants')
 
 function stringify(
   object,
@@ -69,13 +70,14 @@ function stringify(
 
 const FIX_SINGLE_QUOTE_PATTERN = /^(\s*- )'(.*)':$/gm
 const FIX_DOUBLE_QUOTE_PATTERN = /^(\s*- )"(.*)":$/gm
-const FIX_TRAILING_EMPTY_SPACES = /(!Or|!Join|!Cidr)([ \t]*)$/gm
+/* Fix all trailing empty spaces on intrinsic function Defs */
+const FIX_TRAILING_EMPTY_SPACES = new RegExp(`!(${ALL_TAGS_OR_REGEX_PATTERN})([ \t]*)$`, 'gm')
 
 function fixYamlOutput(yamlString, opts) {
   const { quoteType } = opts
 
   // Intrinsic functions that are multiline should not have trailing spaces
-  yamlString = yamlString.replace(FIX_TRAILING_EMPTY_SPACES, '$1')
+  yamlString = yamlString.replace(FIX_TRAILING_EMPTY_SPACES, '!$1')
   // Fix colliding multiline comments https://regex101.com/r/1EIWQd/1
   yamlString = yamlString.replace(/#FIXME(!([A-Za-z0-9_-]*))\s*(#.*)((\n\s*)!\2\s*)/gm, '$1 $3$5')
 

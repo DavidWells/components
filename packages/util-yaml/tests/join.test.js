@@ -242,4 +242,259 @@ const input =
   assert.equal(result, expected)
 })
 
+const deep =
+`Array:
+  - !Join
+    - ''
+    - - 'arn:aws:states:'
+      - !Join
+        - ':'
+        - - !Ref AWS::Region
+          - !Join
+            - '/'
+            - - !Ref AWS::AccountId
+              - !Join
+                - '-'
+                - - 'stateMachine'
+                  - !Ref Environment
+                  - !Ref ServiceName`
+
+test('FN Join CF', () => {
+
+const inputDeepNested =
+`Resources:
+  DefaultLambdaHanderRoleA44A3BA8:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: apigateway.amazonaws.com
+        Version: "2012-10-17"
+    Metadata:
+      aws:cdk:path: PowerTunerInfraStack/DefaultLambdaHanderRole/Resource
+  DefaultLambdaHanderRoleDefaultPolicy40E2D129:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action: states:StartExecution
+            Effect: Allow
+            Resource:
+              Fn::Join:
+                - ''
+                - - 'arn:aws:states:'
+                  - Fn::Join:
+                      - ':'
+                      - - !Ref AWS::Region
+                        - Fn::Join:
+                            - '/'
+                            - - !Ref AWS::AccountId
+                              - Fn::Join:
+                                  - '-'
+                                  - - 'stateMachine'
+                                    - !Ref Environment
+                                    - !Ref ServiceName`
+
+  const result = stringify(parse(inputDeepNested), {
+    originalString: inputDeepNested,
+  })
+
+  console.log('result', result)
+
+  const deepNestedExpected =
+`Resources:
+  DefaultLambdaHanderRoleA44A3BA8:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: apigateway.amazonaws.com
+        Version: "2012-10-17"
+    Metadata:
+      aws:cdk:path: PowerTunerInfraStack/DefaultLambdaHanderRole/Resource
+  DefaultLambdaHanderRoleDefaultPolicy40E2D129:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action: states:StartExecution
+            Effect: Allow
+            Resource: !Join
+              - ''
+              - - 'arn:aws:states:'
+                - !Join
+                  - ':'
+                  - - !Ref AWS::Region
+                    - !Join
+                      - '/'
+                      - - !Ref AWS::AccountId
+                        - !Join
+                          - '-'
+                          - - 'stateMachine'
+                            - !Ref Environment
+                            - !Ref ServiceName`
+
+  const expected =
+`Conditions:
+  ShortJoin: !Join [ "-", ["foo", "bar"] ]
+  ShortJoinWithRef: !Join [ "-", ["foo", "bar", !Ref Environment] ]
+  # With comments
+  ShortJoinMultiline: !Join [ "/", ["fold", "bar", "more"] ]
+  LongJoinMultiline: !Join
+    - "-"
+    - - "fold"
+    - - "bar"
+    - - "more"
+    - - "lines"
+    - - "fold"
+    - - !Ref Environment
+    - - "more"
+    - - "lines"
+    - - "fold"
+    - - "bar"
+    - - "more"
+  JoinedCondition: !Join
+    - ""
+    - - !Join
+      - "-"
+      - - !Ref Environment
+        - !Join
+          - "/"
+          - - !Ref AWS::StackName
+            - !Join
+              - "."
+              - - !Ref AWS::Region
+                - !Ref AWS::AccountId`
+
+  //*
+  testLogger({
+    label: 'join cf',
+    input: inputDeepNested,
+    output: result,
+    expected: deepNestedExpected,
+  })
+  /** */
+
+  // process.exit(0)
+
+  assert.equal(result, deepNestedExpected)
+})
+
+
+test.skip('DEEEEEEEEP', () => {
+
+const inputDeepNested =
+`Resources:
+  DefaultLambdaHanderRoleA44A3BA8:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: apigateway.amazonaws.com
+        Version: "2012-10-17"
+    Metadata:
+      aws:cdk:path: PowerTunerInfraStack/DefaultLambdaHanderRole/Resource
+  DefaultLambdaHanderRoleDefaultPolicy40E2D129:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action: states:StartExecution
+            Effect: Allow
+            Resource:
+              Fn::Join:
+                - ''
+                - - 'arn:aws:states:'
+                  - Fn::Join:
+                      - ':'
+                      - - !Ref AWS::Region
+                        - Fn::Join:
+                            - '/'
+                            - - !Ref AWS::AccountId
+                              - Fn::Join:
+                                  - '-'
+                                  - - 'stateMachine'
+                                    - !Ref Environment
+                                    - !Ref ServiceName`
+
+  const result = stringify(parse(inputDeepNested), {
+    originalString: inputDeepNested,
+  })
+
+  console.log('result', result)
+
+  const deepNestedExpected =
+`Resources:
+  DefaultLambdaHanderRoleA44A3BA8:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: apigateway.amazonaws.com
+        Version: "2012-10-17"
+    Metadata:
+      aws:cdk:path: PowerTunerInfraStack/DefaultLambdaHanderRole/Resource
+  DefaultLambdaHanderRoleDefaultPolicy40E2D129:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action: states:StartExecution
+            Effect: Allow
+            Resource: !Join
+              - ''
+              - - 'arn:aws:states:'
+                - !Join
+                  - ':'
+                  - - !Ref AWS::Region
+                    - !Join
+                      - '/'
+                      - - !Ref AWS::AccountId
+                        - !Join
+                          - '-'
+                          - - 'stateMachine'
+                            - !Ref Environment
+                            - !Ref ServiceName`
+
+
+  //*
+  testLogger({
+    label: 'join cf',
+    input: inputDeepNested,
+    output: result,
+    expected: deepNestedExpected,
+  })
+  /** */
+
+  assert.equal(result, deepNestedExpected)
+})
+
 test.run()

@@ -22,8 +22,8 @@ Conditions:
         - dev
   IsProd:
     !Equals [!Ref Environment, "prod", 'wooo']
-  Spaz:
-    IsMultiAZ: !Or
+  NestedKey:
+    TagStyleOr: !Or
       - !Equals [!Ref Environment, 'prod']
       - !Equals [!Ref Environment, 'staging']
 `
@@ -34,8 +34,8 @@ Conditions:
   Deeper:
     IsDev: !Equals [!Ref Environment, 'dev']
   IsProd: !Equals [!Ref Environment, "prod", 'wooo']
-  Spaz:
-    IsMultiAZ: !Or
+  NestedKey:
+    TagStyleOr: !Or
       - !Equals [!Ref Environment, 'prod']
       - !Equals [!Ref Environment, 'staging']`
 
@@ -56,19 +56,15 @@ Conditions:
   assert.equal(result, expected)
 })
 
-test.only('FN OR with equals', () => {
+test('FN OR Maintains new line spacing', () => {
   const input = `
 Conditions:
-  Spaz:
-    deep:
-      Rad: !Or
-        - !Equals [!Ref Environment, 'production']
-        - !Equals [!Ref Environment, "staging"]
-    # chill
-    NICEEEEEEEEEEEEEEEE: !Or
+  NestedKey:
+    TagStyleOr: !Or
       - !Equals [!Ref Environment, 'production']
       - !Equals [!Ref Environment, "staging"]
-  IsMultiAZ:
+
+  MultiLineFnOr:
     Fn::Or:
       - Fn::Equals:
           - Ref: Environment
@@ -80,11 +76,12 @@ Conditions:
 
   const expected =
   `Conditions:
-  Spaz:
-    IsMultiAZ: !Or
+  NestedKey:
+    TagStyleOr: !Or
       - !Equals [!Ref Environment, 'production']
       - !Equals [!Ref Environment, "staging"]
-  IsMultiAZ: !Or
+
+  MultiLineFnOr: !Or
     - !Equals [!Ref Environment, 'prod']
     - !Equals [!Ref Environment, 'foo']`
 
@@ -95,6 +92,55 @@ Conditions:
   //*
   testLogger({
     label: 'FN OR with equals',
+    input,
+    output: result,
+    expected,
+  })
+  /** */
+
+  assert.equal(result, expected)
+})
+
+test('FN OR Maintains new line spacing with comments', () => {
+  const input = `
+Conditions:
+  NestedKey:
+    TagStyleOr: !Or
+      - !Equals [!Ref Environment, 'production']
+      - !Equals [!Ref Environment, "staging"]
+
+
+  # comment here
+  MultiLineFnOr:
+    Fn::Or:
+      - Fn::Equals:
+          - Ref: Environment
+          - prod
+      - Fn::Equals:
+          - Ref: Environment
+          - foo
+`
+
+  const expected =
+  `Conditions:
+  NestedKey:
+    TagStyleOr: !Or
+      - !Equals [!Ref Environment, 'production']
+      - !Equals [!Ref Environment, "staging"]
+
+
+  # comment here
+  MultiLineFnOr: !Or
+    - !Equals [!Ref Environment, 'prod']
+    - !Equals [!Ref Environment, 'foo']`
+
+  const result = stringify(parse(input), {
+    originalString: input,
+  })
+
+  //*
+  testLogger({
+    label: 'FN OR Maintains new line spacing with comments',
     input,
     output: result,
     expected,
