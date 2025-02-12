@@ -355,9 +355,9 @@ test('handles deeply nested objects in arrays', () => {
             String: 'value4',
             Number: 42,
             Boolean: true,
-            Ref: { Ref: 'MyResource' },
-            Join: { 'Fn::Join': ['/', ['a', 'b', 'c']] },
-            Sub: { 'Fn::Sub': '${AWS::Region}' }
+            RefExample: { Ref: 'MyResource' },
+            JoinExample: { 'Fn::Join': ['/', ['a', 'b', 'c']] },
+            SubExample: { 'Fn::Sub': '${AWS::Region}' }
           }
         }
       },
@@ -387,13 +387,13 @@ test('handles deeply nested objects in arrays', () => {
           String: value4
           Number: 42
           Boolean: true
-          Ref: !Ref MyResource
-          Join: !Join
+          RefExample: !Ref MyResource
+          JoinExample: !Join
             - '/'
             - - a
               - b
               - c
-          Sub: !Sub '\${AWS::Region}'
+          SubExample: !Sub "\${AWS::Region}"
     EndLevel: end
   - finish`
   assert.equal(result, expected)

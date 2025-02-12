@@ -12,17 +12,20 @@ result += `${spaces}- ${indentedYamlStr}`
 function arrayToYaml(arr, indent = 0, options = {}) {
   // console.log('arrayToYaml', arr)
   let result = ''
-  const { quoteType = 'none' } = options
+  const { quoteType = 'none', defaultForceQuoteType = 'double' } = options
 
-  function getQuotedString(str) {
-    if (quoteType === 'none') return str
-
-    const quote = quoteType === 'double' ? '"' : "'"
+  function getQuotedString(str, forceQuotes) {
+    if (quoteType === 'none' && !forceQuotes) {
+      return str
+    }
+    /* Set actual quote type to use */
+    const _quoteType = (forceQuotes && quoteType === 'none') ? defaultForceQuoteType : quoteType
+    const quote = (_quoteType === 'double') ? '"' : "'"
 
     // When quoteType is set, always quote strings
-    if (quoteType === 'single' || quoteType === 'double') {
+    if (_quoteType === 'single' || _quoteType === 'double') {
       // Escape quotes of the same type
-      if (quoteType === 'single') {
+      if (_quoteType === 'single') {
         // For single quotes, escape with backslash
         return `'${str.replace(/'/g, "\\'")}'`
       } else {
@@ -39,8 +42,9 @@ function arrayToYaml(arr, indent = 0, options = {}) {
       str.includes(': ') ||
       str.includes(' #') ||
       str.includes('- ') ||
-      (quoteType === 'single' && str.includes("'")) ||
-      (quoteType === 'double' && str.includes('"'))
+      (_quoteType === 'single' && str.includes("'")) ||
+      (_quoteType === 'double' && str.includes('"')) ||
+      forceQuotes
     )
 
     if (!needsQuotes) {
@@ -48,7 +52,7 @@ function arrayToYaml(arr, indent = 0, options = {}) {
     }
 
     // For unforced quotes, use YAML spec escaping
-    if (quoteType === 'single') {
+    if (_quoteType === 'single') {
       // For single quotes, double them (YAML spec)
       return `'${str.replace(/'/g, "''")}'`
     } else {
@@ -56,30 +60,39 @@ function arrayToYaml(arr, indent = 0, options = {}) {
     }
   }
 
-  function formatObject(obj, level, isNested = false) {
+  function formatObject(obj, level, isNested = false, nestedIntrinsic = false) {
     let output = ''
     const baseIndent = (!isNested) ? '' : ' '.repeat(level)
 
     Object.entries(obj).forEach(([key, value], index) => {
       // Calculate proper indentation based on nesting
       const keyIndent = isNested ? baseIndent : (index === 0 ? '' : baseIndent)
+      const nestedNewLineIndent = (nestedIntrinsic) ? ' ' : keyIndent
 
       // Handle special YAML tags
-      if (key === 'Ref') {
-        output += `${keyIndent}Ref: !Ref ${(typeof value === 'string') ? value : value.Ref}\n`
+      if (key === 'Ref' || key === 'Fn::Sub') {
+        const isNotRef = (key !== 'Ref') ? true : false
+        const valueMaybeWrapped = (isNotRef) ? getQuotedString(value, true) : value
+        output += `${nestedNewLineIndent}!${key.replace('Fn::', '')} ${valueMaybeWrapped}\n`
         return
       }
 
+      // if (key === 'Sub') {
+      //   output += `${keyIndent}Sub: !Sub '${JSON.stringify(value)}'\n`
+      //   return
+      // }
+
       if (key === 'Fn::Join') {
-        output += `${keyIndent}Join: !Join\n`
+        output += `${nestedNewLineIndent}!Join\n`
         const [delimiter, values] = value
-        output += `${baseIndent}  - '${delimiter}'\n`
-        output += `${baseIndent}  - ${arrayToYaml(values, level + 2).trimLeft()}\n`
+        const delimiterIndent = (nestedIntrinsic) ? ' '.repeat(level - 2) : baseIndent
+        output += `${delimiterIndent}  - '${delimiter}'\n`
+        output += `${delimiterIndent}  - ${arrayToYaml(values, level + 2).trimLeft()}\n`
         return
       }
 
       if (key === 'Fn::Sub') {
-        output += `${keyIndent}Sub: !Sub '${value}'\n`
+        output += `${keyIndent}!Sub '${value}'\n`
         return
       }
 
@@ -94,9 +107,21 @@ function arrayToYaml(arr, indent = 0, options = {}) {
           output += '\n'
         }
       } else if (typeof value === 'object' && value !== null) {
-        output += `${keyIndent}${key}:\n`
+        const objectKeys = Object.keys(value)
+        let nestedIntrinsic = false
+        // If intrinsic function value, just output the key
+        if (objectKeys.length === 1 && (objectKeys[0].startsWith('Fn::') || objectKeys[0] === 'Ref')) {
+          nestedIntrinsic = true
+        }
+
+        if (nestedIntrinsic) {
+          output += `${keyIndent}${key}:`
+        } else {
+          output += `${keyIndent}${key}:\n`
+        }
+
         // Nested objects are always indented
-        const nestedOutput = formatObject(value, level + 2, true)
+        const nestedOutput = formatObject(value, level + 2, true, nestedIntrinsic)
         output += nestedOutput
         // Add newline after nested object if not the last item
         if (!nestedOutput.endsWith('\n')) {
