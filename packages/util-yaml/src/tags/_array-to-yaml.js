@@ -66,7 +66,7 @@ function arrayToYaml(arr, indent = 0, options = {}) {
 
       // Handle special YAML tags
       if (key === 'Ref') {
-        output += `${keyIndent}Ref: !Ref ${value}\n`
+        output += `${keyIndent}Ref: !Ref ${(typeof value === 'string') ? value : value.Ref}\n`
         return
       }
 
@@ -74,7 +74,7 @@ function arrayToYaml(arr, indent = 0, options = {}) {
         output += `${keyIndent}Join: !Join\n`
         const [delimiter, values] = value
         output += `${baseIndent}  - '${delimiter}'\n`
-        output += `${baseIndent}  - ${arrayToYaml(values, level + 4).trimLeft()}`
+        output += `${baseIndent}  - ${arrayToYaml(values, level + 2).trimLeft()}\n`
         return
       }
 
@@ -87,11 +87,21 @@ function arrayToYaml(arr, indent = 0, options = {}) {
       if (Array.isArray(value)) {
         output += `${keyIndent}${key}:\n`
         // Arrays get indented relative to their key
-        output += arrayToYaml(value, level + 2, options)
+        const arrayOutput = arrayToYaml(value, level + 2, options)
+        output += arrayOutput
+        // Add newline after array if not the last item
+        if (!arrayOutput.endsWith('\n')) {
+          output += '\n'
+        }
       } else if (typeof value === 'object' && value !== null) {
         output += `${keyIndent}${key}:\n`
         // Nested objects are always indented
-        output += formatObject(value, level + 2, true)
+        const nestedOutput = formatObject(value, level + 2, true)
+        output += nestedOutput
+        // Add newline after nested object if not the last item
+        if (!nestedOutput.endsWith('\n')) {
+          output += '\n'
+        }
       } else {
         output += `${keyIndent}${key}: ${value}\n`
       }
@@ -153,7 +163,7 @@ function arrayToYaml(arr, indent = 0, options = {}) {
         result += `${spaces}- !Condition ${item['Condition']}`
       } else {
         // Use formatObject for regular objects
-        const formatted = formatObject(item, indent, false)
+        const formatted = formatObject(item, 0, false)
           .split('\n')
           .map((line, i) => {
             if (i === 0) return `${spaces}- ${line}`
