@@ -56,22 +56,22 @@ function arrayToYaml(arr, indent = 0, options = {}) {
     }
   }
 
-  function formatObject(obj, level) {
+  function formatObject(obj, level, isNested = false) {
     let output = ''
-    const baseIndent = ' '.repeat(level)
+    const baseIndent = (!isNested) ? '' : ' '.repeat(level)
 
     Object.entries(obj).forEach(([key, value], index) => {
-      // First line has no indent (comes after dash), subsequent lines indent by 2
-      const lineIndent = index === 0 ? '' : ' '.repeat(2)
+      // Calculate proper indentation based on nesting
+      const keyIndent = isNested ? baseIndent : (index === 0 ? '' : baseIndent)
 
       // Handle special YAML tags
       if (key === 'Ref') {
-        output += `${lineIndent}${key}: !Ref ${value}\n`
+        output += `${keyIndent}Ref: !Ref ${value}\n`
         return
       }
 
       if (key === 'Fn::Join') {
-        output += `${lineIndent}Join: !Join\n`
+        output += `${keyIndent}Join: !Join\n`
         const [delimiter, values] = value
         output += `${baseIndent}  - '${delimiter}'\n`
         output += `${baseIndent}  - ${arrayToYaml(values, level + 4).trimLeft()}`
@@ -79,19 +79,21 @@ function arrayToYaml(arr, indent = 0, options = {}) {
       }
 
       if (key === 'Fn::Sub') {
-        output += `${lineIndent}Sub: !Sub '${value}'\n`
+        output += `${keyIndent}Sub: !Sub '${value}'\n`
         return
       }
 
       // Handle regular values
       if (Array.isArray(value)) {
-        output += `${lineIndent}${key}:\n`
+        output += `${keyIndent}${key}:\n`
+        // Arrays get indented relative to their key
         output += arrayToYaml(value, level + 2, options)
       } else if (typeof value === 'object' && value !== null) {
-        output += `${lineIndent}${key}:\n`
-        output += formatObject(value, level + 2)
+        output += `${keyIndent}${key}:\n`
+        // Nested objects are always indented
+        output += formatObject(value, level + 2, true)
       } else {
-        output += `${lineIndent}${key}: ${value}\n`
+        output += `${keyIndent}${key}: ${value}\n`
       }
     })
 
@@ -151,11 +153,11 @@ function arrayToYaml(arr, indent = 0, options = {}) {
         result += `${spaces}- !Condition ${item['Condition']}`
       } else {
         // Use formatObject for regular objects
-        const formatted = formatObject(item, indent)
+        const formatted = formatObject(item, indent, false)
           .split('\n')
           .map((line, i) => {
             if (i === 0) return `${spaces}- ${line}`
-            return `${spaces}${line}`
+            return `${spaces}  ${line}` // Always indent subsequent lines by 2
           })
           .filter(Boolean)
           .join('\n')
