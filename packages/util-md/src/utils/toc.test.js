@@ -2,6 +2,59 @@ const util = require('util')
 const { test } = require('uvu')
 const assert = require('uvu/assert')
 const { makeToc, normalizeTocLevels } = require('../find-headings')
+const fs = require('fs')
+const path = require('path')
+
+const FIXTURES_PATH = path.resolve(__dirname, '../../fixtures')
+
+const largeTable = fs.readFileSync(`${FIXTURES_PATH}/large-table.md`, 'utf8')
+
+test.skip('Generates Toc largeTable', () => {
+  const toc = makeNormalizedToc(largeTable)
+  deepLog(toc)
+  assert.equal(toc, [
+    {
+      level: 1,
+      text: 'GitHub Stars',
+      slug: 'github-stars',
+      match: '# GitHub Stars',
+      children: [
+        {
+          level: 2,
+          text: 'Stars by date',
+          slug: 'stars-by-date',
+          match: '## Stars by date'
+        },
+        {
+          level: 2,
+          text: 'About this repo',
+          slug: 'about-this-repo',
+          match: '## About this repo',
+          children: [
+            {
+              level: 3,
+              text: 'Features',
+              slug: 'features',
+              match: '### Features'
+            },
+            {
+              level: 3,
+              text: 'Usage',
+              slug: 'usage',
+              match: '### Usage'
+            },
+            {
+              level: 3,
+              text: 'Props',
+              slug: 'props',
+              match: '### Props'
+            }
+          ]
+        }
+      ]
+    }
+  ])
+})
 
 const simpleMD = `
 # Heading 1

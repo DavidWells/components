@@ -1,6 +1,7 @@
 const { parseMarkdown } = require('./parse')
 const { parseFrontmatter } = require('./frontmatter')
 const dedentString = require('./utils/dedent')
+const { makeToc } = require('./find-headings')
 
 const FIRST_H1_ATX = /^# (.*)/
 const FIRST_H1_SETEXT = /^(.*)\n?===+/
@@ -25,5 +26,6 @@ module.exports = {
   parseMarkdown,
   parseFrontmatter,
   removeLeadingH1,
-  dedentString
+  dedentString,
+  generateToc: makeToc,
 }
