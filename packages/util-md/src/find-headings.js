@@ -73,7 +73,9 @@ function findHeadings(text, userOpts = {}) {
       htmlText, // 10
     ] = matches
 
+
     /*
+    // console.log(_match)
     console.log('level', level)
     console.log('text', text)
     console.log('setextH1Text', setextH1Text)

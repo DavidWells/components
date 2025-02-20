@@ -9,6 +9,7 @@ const {
   normalizeLevels,
   generateToc
 } = require('./toc')
+const { deepLog } = require('../_test-utils')
 
 const FIXTURES_PATH = path.resolve(__dirname, '../../fixtures')
 
@@ -123,149 +124,6 @@ test('Generates Toc', async () => {
       ],
     },
   ])
-})
-
-const multipleLayers = `
-# Heading 1
-
-stuff
-
-## Heading 2
-
-more stuff
-
-### Heading 3
-
-even more stuff
-
-# 2nd Heading 1
-
-stuff
-
-## 2nd Heading 2
-
-more stuff
-
-### 2nd Heading 3
-
-even more stuff
-`
-
-test('Generates Toc multipleLayers', () => {
-  const toc = normalizedTocObject(multipleLayers)
-
-  deepLog(toc)
-  assert.equal(toc, [
-    {
-      level: 1,
-      text: 'Heading 1',
-      slug: 'heading-1',
-      match: '# Heading 1',
-      children: [
-        {
-          level: 2,
-          text: 'Heading 2',
-          slug: 'heading-2',
-          match: '## Heading 2',
-          children: [
-            {
-              level: 3,
-              text: 'Heading 3',
-              slug: 'heading-3',
-              match: '### Heading 3',
-            },
-          ],
-        },
-      ],
-    },
-    {
-      level: 1,
-      text: '2nd Heading 1',
-      slug: '2nd-heading-1',
-      match: '# 2nd Heading 1',
-      children: [
-        {
-          level: 2,
-          text: '2nd Heading 2',
-          slug: '2nd-heading-2',
-          match: '## 2nd Heading 2',
-          children: [
-            {
-              level: 3,
-              text: '2nd Heading 3',
-              slug: '2nd-heading-3',
-              match: '### 2nd Heading 3',
-            },
-          ],
-        },
-      ],
-    },
-  ])
-
-  const tocText = processTocTree(toc)
-  // console.log('tocText', tocText)
-
-  assert.equal(tocText,
-`
-- [Heading 1](#heading-1)
-  - [Heading 2](#heading-2)
-    - [Heading 3](#heading-3)
-- [2nd Heading 1](#2nd-heading-1)
-  - [2nd Heading 2](#2nd-heading-2)
-    - [2nd Heading 3](#2nd-heading-3)
-`.trim(), 'tocText')
-
-  const tocTextNoH1s = processTocTree(toc, { skipH1: true })
-  // console.log('tocTextNoH1s', tocTextNoH1s)
-  assert.equal(tocTextNoH1s,
-`
-- [Heading 2](#heading-2)
-  - [Heading 3](#heading-3)
-- [2nd Heading 2](#2nd-heading-2)
-  - [2nd Heading 3](#2nd-heading-3)
-`.trim(), 'tocTextNoH1s')
-
-  const tocTextNoFirstH1 = processTocTree(toc, { stripFirstH1: true })
-  // console.log('tocTextNoFirstH1', tocTextNoFirstH1)
-  assert.equal(tocTextNoFirstH1,
-`
-- [Heading 2](#heading-2)
-  - [Heading 3](#heading-3)
-- [2nd Heading 1](#2nd-heading-1)
-  - [2nd Heading 2](#2nd-heading-2)
-    - [2nd Heading 3](#2nd-heading-3)
-`.trim(), 'tocTextNoFirstH1')
-
-  // Only show up to level 2
-  const tocTextMaxDepth2 = processTocTree(toc, { maxDepth: 2 })
-  // console.log('tocTextMaxDepth2', tocTextMaxDepth2)
-  assert.equal(tocTextMaxDepth2,
-`
-- [Heading 1](#heading-1)
-  - [Heading 2](#heading-2)
-- [2nd Heading 1](#2nd-heading-1)
-  - [2nd Heading 2](#2nd-heading-2)
-`.trim(), 'tocTextMaxDepth2')
-
-  // Only show first level
-  const tocTextMaxDepth1 = processTocTree(toc, { maxDepth: 1 })
-  // console.log('tocTextMaxDepth1', tocTextMaxDepth1)
-  assert.equal(tocTextMaxDepth1,
-`
-- [Heading 1](#heading-1)
-- [2nd Heading 1](#2nd-heading-1)
-`.trim(), 'tocTextMaxDepth1')
-
-  const tocTextNoFirstH1MaxDepth2 = processTocTree(toc, { stripFirstH1: true, maxDepth: 2 })
-  // console.log('tocTextNoFirstH1MaxDepth2', tocTextNoFirstH1MaxDepth2)
-  assert.equal(tocTextNoFirstH1MaxDepth2,
-`
-- [Heading 2](#heading-2)
-  - [Heading 3](#heading-3)
-- [2nd Heading 1](#2nd-heading-1)
-  - [2nd Heading 2](#2nd-heading-2)
-`.trim(), 'tocTextNoFirstH1MaxDepth2')
-
 })
 
 const multipleLayersWithMultipleChildren = `
@@ -386,7 +244,7 @@ test('Generates Toc multipleLayersWithMultipleChildren', () => {
   const tocText = processTocTree(toc)
   // console.log('tocText', tocText)
 
-  assert.equal(tocText,
+  assert.equal(tocText.text,
   `
 - [Heading 1](#heading-1)
   - [Heading 2](#heading-2)
@@ -789,7 +647,7 @@ even more stuff
   const tocText = processTocTree(toc)
   // console.log('tocText html', tocText)
 
-  assert.equal(tocText,
+  assert.equal(tocText.text,
   `
 - [Heading 1 html](#heading-1-html)
   - [Heading 2](#heading-2)
@@ -1178,44 +1036,106 @@ This is blah blah blah
 This is blah blah blah
 `
 
-test.only('Filter out Table of Contents heading', () => {
-  const toc = normalizedTocObject(mdWithSubSections, {
-    // filterSection: /Table of Contents/i,
-  })
+test('Get Sub-Section manually', () => {
+  const toc = normalizedTocObject(mdWithSubSections)
+  /*
   deepLog(toc)
   console.log(toc[0].children[0])
+  // process.exit(1)
+  /** */
 
-  const normal = normalizeLevels([toc[0].children[0]], 1)
-  console.log('normal', normal)
-  const subSectionToc = processTocTree(normal)
-  deepLog(subSectionToc)
-  process.exit(1)
 
-  assert.equal(toc, [
+  const normalized = normalizeLevels([toc[0].children[0]], 1)
+  const subSectionToc = processTocTree(normalized)
+  /*
+  console.log('normalized', normalized)
+  deepLog(subSectionToc.text)
+  // process.exit(1)
+  /** */
+
+  assert.equal(subSectionToc.text,
+`- [Heading 2](#heading-2)
+  - [Heading 3](#heading-3)
+  - [Heading 3 2](#heading-3-2)
+`.trim(), 'subSectionToc.text')
+
+  assert.equal(subSectionToc.tocItems, [
     {
       level: 1,
-      text: 'Heading 1',
-      slug: 'heading-1',
-      match: '# Heading 1',
+      text: 'Heading 2',
+      slug: 'heading-2',
+      match: '## Heading 2',
+      originalLevel: 2,
       children: [
         {
           level: 2,
-          text: 'Heading 2',
-          slug: 'heading-2',
-          match: '## Heading 2',
-          children: [
-            {
-              level: 3,
-              text: 'Heading 3',
-              slug: 'heading-3',
-              match: '### Heading 3'
-            }
-          ]
+          text: 'Heading 3',
+          slug: 'heading-3',
+          match: '### Heading 3',
+          originalLevel: 3
+        },
+        {
+          level: 2,
+          text: 'Heading 3 2',
+          slug: 'heading-3-2',
+          match: '### Heading 3 2',
+          originalLevel: 3
         }
       ]
     }
   ])
 })
+
+
+test('Get Sub-Section via options.subSection', () => {
+  const subSectionTree = normalizedTocObject(mdWithSubSections, {
+    subSection: {
+      match: /Heading 2/,
+      index: 37
+    },
+    // subSection: /Heading 2/,
+    // subSection: 'Heading 2',
+    // subSection: 'Heading 2',
+    // filterSection: /Table of Contents/i,
+  })
+  deepLog(subSectionTree)
+
+  const subSectionToc = processTocTree(subSectionTree)
+  deepLog(subSectionToc)
+
+  assert.equal(subSectionToc.text, `
+- [Heading 2](#heading-2)
+  - [Heading 3](#heading-3)
+  - [Heading 3 2](#heading-3-2)
+`.trim(), 'subSectionToc.text')
+
+  assert.equal(subSectionToc.tocItems, [
+    {
+      level: 1,
+      text: 'Heading 2',
+      slug: 'heading-2',
+      match: '## Heading 2',
+      originalLevel: 2,
+      children: [
+        {
+          level: 2,
+          text: 'Heading 3',
+          slug: 'heading-3',
+          match: '### Heading 3',
+          originalLevel: 3
+        },
+        {
+          level: 2,
+          text: 'Heading 3 2',
+          slug: 'heading-3-2',
+          match: '### Heading 3 2',
+          originalLevel: 3
+        }
+      ]
+    }
+  ])
+})
+
 
 function normalizedTocObject(str, opts = {}) {
   const toc = generateTocTree(str, opts)
@@ -1228,15 +1148,6 @@ function removeIndexFromObj(obj) {
     rest.children = children.map(removeIndexFromObj)
   }
   return rest
-}
-
-function deepLog(objOrLabel, logVal) {
-  let obj = objOrLabel
-  if (typeof objOrLabel === 'string') {
-    obj = logVal
-    console.log(objOrLabel)
-  }
-  console.log(util.inspect(obj, false, null, true))
 }
 
 test.run()

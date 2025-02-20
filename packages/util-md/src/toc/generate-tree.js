@@ -1,7 +1,7 @@
 const { smartSlugger } = require('../utils/slugger')
 const { findHeadings } = require('../find-headings')
 const { normalizeLevels } = require('./normalize')
-const { filterSection } = require('./filter')
+const { filterSection, checkItem } = require('./filter')
 
 const matchTextEscaped = '.*?'
 // /^#{1}\s+(.*)/
@@ -86,17 +86,54 @@ function generateTocTree(contents, opts = {}) {
   const result = flattenToc((options.filterSection) ? filterSection(navigation, options.filterSection) : navigation)
   // console.log('result', result)
   // process.exit(1)
+
   if (options.subSection) {
-    // Recurse thru result and find matching sub tree item.
+    // Find matching subsection recursively
+    const subSections = findMatchingSubSections(result, options.subSection)
+
+    if (!subSections) {
+      const msg = 'Error: No sub-section found.'
+      console.log(msg)
+      console.log(' via options.subSection', options.subSection)
+      throw new Error(msg + ' Unable to generate ToC for sub-section')
+    }
+
+    if (subSections && subSections.length > 1) {
+      const msg = 'Error: Multiple subSections found.'
+      console.log(msg)
+      console.log(subSections.map((s) => `- "${s.match}" at index: ${s.index}`).join('\n'))
+      console.log(' via options.subSection', options.subSection)
+      throw new Error(msg + ' Provide index of heading or rename conflicting headings')
+    }
+
+    return normalizeLevels([subSections[0]], 1)
   }
-
-
 
   if (options.normalizeLevels) {
     return normalizeLevels(result)
   }
 
   return result
+}
+
+function findMatchingSubSections(items, matcher) {
+  let matches = []
+
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i]
+    if (checkItem(item, matcher)) {
+      // Found matching section
+      matches.push(item)
+    }
+    if (item.children) {
+      const found = findMatchingSubSections(item.children, matcher)
+      if (found && found.length) {
+        matches = matches.concat(found)
+      }
+    }
+  }
+
+  return matches.length ? matches : null
 }
 
 function findLocation(navigation, depth) {
