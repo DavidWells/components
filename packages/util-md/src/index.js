@@ -1,6 +1,6 @@
 const { parseMarkdown } = require('./parse')
 const { parseFrontmatter } = require('./frontmatter')
-const { treeBuild } = require('./toc')
+const { generateToc } = require('./toc')
 const dedentString = require('./utils/dedent')
 
 const FIRST_H1_ATX = /^# (.*)/
@@ -25,7 +25,7 @@ function removeLeadingH1(content = '') {
 module.exports = {
   parseMarkdown,
   parseFrontmatter,
+  generateToc,
   removeLeadingH1,
   dedentString,
-  generateToc: treeBuild,
 }
