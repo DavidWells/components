@@ -4,7 +4,7 @@ const util = require('util')
 const { test } = require('uvu')
 const assert = require('uvu/assert')
 const { findHeadings } = require('./find-headings')
-const { generateTocTree } = require('./toc')
+const { treeBuild } = require('./toc')
 const FILE_WITH_HEADERS = path.join(__dirname, '../fixtures/file-with-headings.md')
 
 function read(filePath) {
@@ -380,9 +380,9 @@ function normalizeObject(obj) {
   return rest
 }
 
-test('generateTocTree', async () => {
+test('treeBuild', async () => {
   const contents = read(FILE_WITH_HEADERS)
-  const toc = generateTocTree(contents, { excludeIndex: true })
+  const toc = treeBuild(contents, { excludeIndex: true })
   const headerToc = toc.map(normalizeObject)
   /*
   deepLog('headerToc', headerToc)
@@ -545,14 +545,14 @@ test('generateTocTree', async () => {
   ])
 })
 
-test('generateTocTree with filterSection trim h1 and children', async () => {
+test('treeBuild with removeTocItems trim h1 and children', async () => {
   const contents = read(FILE_WITH_HEADERS)
-  const headerToc = generateTocTree(contents, {
+  const headerToc = treeBuild(contents, {
     excludeIndex: true,
-    filterSection: (api) => {
+    removeTocItems: (api) => {
       // console.log('api', api)
       const { text } = api
-      return !text.match(/This is a first level heading 2/)
+      return text.match(/This is a first level heading 2/)
     }
   })
   /*
@@ -675,12 +675,12 @@ test('generateTocTree with filterSection trim h1 and children', async () => {
 })
 
 
-test('generateTocTree with filterSection trim h2 and children', async () => {
+test('treeBuild with removeTocItems trim h2 and children', async () => {
   const contents = read(FILE_WITH_HEADERS)
-  const headerToc = generateTocTree(contents, {
+  const headerToc = treeBuild(contents, {
     // excludeIndex: true,
-    filterSection: ({ text }) => {
-      return !text.match(/^Heading 2 with paragraph 2/)
+    removeTocItems: ({ text }) => {
+      return text.match(/^Heading 2 with paragraph 2/)
     }
   })
   /*
@@ -822,7 +822,7 @@ const headingWithFootnotes = `
 `
 
 test('Heading with footnote', () => {
-  const headerToc = generateTocTree(headingWithFootnotes)
+  const headerToc = treeBuild(headingWithFootnotes)
   //*
   deepLog('headerToc', headerToc)
   /** */

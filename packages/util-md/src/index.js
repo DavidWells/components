@@ -1,7 +1,7 @@
 const { parseMarkdown } = require('./parse')
 const { parseFrontmatter } = require('./frontmatter')
+const { treeBuild } = require('./toc')
 const dedentString = require('./utils/dedent')
-const { generateTocTree } = require('./toc')
 
 const FIRST_H1_ATX = /^# (.*)/
 const FIRST_H1_SETEXT = /^(.*)\n?===+/
@@ -27,5 +27,5 @@ module.exports = {
   parseFrontmatter,
   removeLeadingH1,
   dedentString,
-  generateToc: generateTocTree,
+  generateToc: treeBuild,
 }

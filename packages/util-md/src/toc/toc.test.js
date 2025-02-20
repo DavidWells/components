@@ -1,32 +1,104 @@
 const fs = require('fs')
 const path = require('path')
-const util = require('util')
 const { test } = require('uvu')
 const assert = require('uvu/assert')
 const {
-  generateTocTree,
-  processTocTree,
+  generateToc,
+  treeBuild,
+  treeProcess,
   normalizeLevels,
-  generateToc
-} = require('./toc')
-const { deepLog } = require('../_test-utils')
+} = require('./')
+const { deepLog, clearIndexValues } = require('../_test-utils')
 
 const FIXTURES_PATH = path.resolve(__dirname, '../../fixtures')
 
 const largeTable = fs.readFileSync(`${FIXTURES_PATH}/large-table.md`, 'utf8')
 
-test.skip('Generates Toc largeTable', () => {
+test('Generates Toc largeTable and skip all h1s', () => {
   const toc = generateToc(largeTable, { skipH1: true })
 
-  assert.equal(toc,
+  deepLog(toc)
+
+  assert.equal(toc.text,
 `- [Stars by date](#stars-by-date)
 - [About this repo](#about-this-repo)
   - [Features](#features)
   - [Usage](#usage)
   - [Props](#props)
 `.trim(), 'toc')
-  deepLog(toc)
-  assert.equal(toc, [
+
+  const tocItems = clearIndexValues(toc.tocItems)
+  assert.equal(tocItems,
+  [
+    {
+      level: 2,
+      text: 'Stars by date',
+      slug: 'stars-by-date',
+      match: '## Stars by date'
+    },
+    {
+      level: 2,
+      text: 'About this repo',
+      slug: 'about-this-repo',
+      match: '## About this repo',
+      children: [
+        {
+          level: 3,
+          text: 'Features',
+          slug: 'features',
+          match: '### Features'
+        },
+        { level: 3, text: 'Usage', slug: 'usage', match: '### Usage' },
+        { level: 3, text: 'Props', slug: 'props', match: '### Props' }
+      ]
+    }
+  ])
+  // normalize levels
+  const normalizedTocItems = normalizeLevels(tocItems, 1)
+  deepLog(normalizedTocItems)
+  assert.equal(normalizedTocItems,
+  [
+    {
+      level: 1,
+      text: 'Stars by date',
+      slug: 'stars-by-date',
+      match: '## Stars by date',
+      originalLevel: 2
+    },
+    {
+      level: 1,
+      text: 'About this repo',
+      slug: 'about-this-repo',
+      match: '## About this repo',
+      children: [
+        {
+          level: 2,
+          text: 'Features',
+          slug: 'features',
+          match: '### Features',
+          originalLevel: 3
+        },
+        {
+          level: 2,
+          text: 'Usage',
+          slug: 'usage',
+          match: '### Usage',
+          originalLevel: 3
+        },
+        {
+          level: 2,
+          text: 'Props',
+          slug: 'props',
+          match: '### Props',
+          originalLevel: 3
+        }
+      ],
+      originalLevel: 2
+    }
+  ])
+
+  assert.equal(clearIndexValues(toc.tree),
+  [
     {
       level: 1,
       text: 'GitHub Stars',
@@ -241,7 +313,7 @@ test('Generates Toc multipleLayersWithMultipleChildren', () => {
     },
   ])
 
-  const tocText = processTocTree(toc)
+  const tocText = treeProcess(toc)
   // console.log('tocText', tocText)
 
   assert.equal(tocText.text,
@@ -644,7 +716,7 @@ even more stuff
       ],
     },
   ])
-  const tocText = processTocTree(toc)
+  const tocText = treeProcess(toc)
   // console.log('tocText html', tocText)
 
   assert.equal(tocText.text,
@@ -918,13 +990,13 @@ test('Deeply nested md toc', () => {
 # Heading 1 3
 `
   const toc = normalizedTocObject(md, {
-    // filterSection: ['Heading 1 2'],
-    // filterSection: ['# Heading 1 2'],
-    // filterSection: ['Heading 1 2', 'Heading 1 3'],
-    // filterSection: /Heading 2/,
-    //filterSection: /# Heading 1 3/,
-    // filterSection: [/Heading 3 2 2/, /Heading 4 2/],
-    // filterSection: (item) => {
+    // removeTocItems: ['Heading 1 2'],
+    // removeTocItems: ['# Heading 1 2'],
+    // removeTocItems: ['Heading 1 2', 'Heading 1 3'],
+    // removeTocItems: /Heading 2/,
+    //removeTocItems: /# Heading 1 3/,
+    // removeTocItems: [/Heading 3 2 2/, /Heading 4 2/],
+    // removeTocItems: (item) => {
     //   if (item.text === 'Heading 1 2') {
     //     return false
     //   }
@@ -935,7 +1007,7 @@ test('Deeply nested md toc', () => {
   deepLog('og toc', toc)
   // process.exit(1)
 
-  const tocText = processTocTree(toc, {
+  const tocText = treeProcess(toc, {
     stripFirstH1: false,
     maxDepth: 3,
   })
@@ -977,7 +1049,7 @@ This is blah blah blah
 
 test('Filter out Table of Contents heading', () => {
   const toc = normalizedTocObject(mdWithTableOfContents, {
-    filterSection: /Table of Contents/i,
+    removeTocItems: /Table of Contents/i,
   })
   assert.equal(toc, [
     {
@@ -1046,7 +1118,7 @@ test('Get Sub-Section manually', () => {
 
 
   const normalized = normalizeLevels([toc[0].children[0]], 1)
-  const subSectionToc = processTocTree(normalized)
+  const subSectionToc = treeProcess(normalized)
   /*
   console.log('normalized', normalized)
   deepLog(subSectionToc.text)
@@ -1096,11 +1168,11 @@ test('Get Sub-Section via options.subSection', () => {
     // subSection: /Heading 2/,
     // subSection: 'Heading 2',
     // subSection: 'Heading 2',
-    // filterSection: /Table of Contents/i,
+    // removeTocItems: /Table of Contents/i,
   })
   deepLog(subSectionTree)
 
-  const subSectionToc = processTocTree(subSectionTree)
+  const subSectionToc = treeProcess(subSectionTree)
   deepLog(subSectionToc)
 
   assert.equal(subSectionToc.text, `
@@ -1138,7 +1210,7 @@ test('Get Sub-Section via options.subSection', () => {
 
 
 function normalizedTocObject(str, opts = {}) {
-  const toc = generateTocTree(str, opts)
+  const toc = treeBuild(str, opts)
   return toc.map(removeIndexFromObj)
 }
 

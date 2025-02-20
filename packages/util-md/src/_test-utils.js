@@ -8,6 +8,10 @@ function removeIndexFromObj(obj) {
   return rest
 }
 
+function clearIndexValues(arr) {
+  return arr.map(removeIndexFromObj)
+}
+
 function logValue(value, isFirst, isLast) {
   const prefix = `${isFirst ? '> ' : ''}`
   if (typeof value === 'object') {
@@ -28,5 +32,6 @@ function deepLog() {
 
 module.exports = {
   deepLog,
-  removeIndexFromObj
+  removeIndexFromObj,
+  clearIndexValues,
 }

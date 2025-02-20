@@ -5,7 +5,7 @@ const { findLinks } = require('./find-links')
 const { findDate } = require('./find-date')
 const { findCodeBlocks } = require('./find-code-blocks')
 const { findFootnotes } = require('./find-footnotes')
-const { generateTocTree } = require('./toc/generate-tree')
+const { treeBuild } = require('./toc/generate-tree')
 
 // const { getLineCount } = require('./utils')
 
@@ -128,7 +128,7 @@ function parseMarkdown(text, opts = {}) {
   parseResult.data = frontmatter
 
   if (includeToc) {
-    parseResult.toc = generateTocTree(content, {
+    parseResult.toc = treeBuild(content, {
       codeBlocks: codeBlocks,
       includeHtmlHeaders: true
     })

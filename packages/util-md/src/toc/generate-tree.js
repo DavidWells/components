@@ -1,7 +1,7 @@
 const { smartSlugger } = require('../utils/slugger')
 const { findHeadings } = require('../find-headings')
 const { normalizeLevels } = require('./normalize')
-const { filterSection, checkItem } = require('./filter')
+const { removeTocItems, matchItem } = require('./filter')
 
 const matchTextEscaped = '.*?'
 // /^#{1}\s+(.*)/
@@ -16,7 +16,7 @@ const defaultTocOptions = {
   includeHtmlHeaders: true,
 }
 
-function generateTocTree(contents, opts = {}) {
+function treeBuild(contents, opts = {}) {
   const options = Object.assign({}, defaultTocOptions, opts)
   let content = (contents || '').trim()
 
@@ -83,7 +83,7 @@ function generateTocTree(contents, opts = {}) {
     location.push(leaf)
   }
 
-  const result = flattenToc((options.filterSection) ? filterSection(navigation, options.filterSection) : navigation)
+  const result = flattenToc((options.removeTocItems) ? removeTocItems(navigation, options.removeTocItems) : navigation)
   // console.log('result', result)
   // process.exit(1)
 
@@ -121,7 +121,7 @@ function findMatchingSubSections(items, matcher) {
 
   for (let i = 0; i < items.length; i++) {
     const item = items[i]
-    if (checkItem(item, matcher)) {
+    if (matchItem(item, matcher)) {
       // Found matching section
       matches.push(item)
     }
@@ -172,5 +172,5 @@ function flattenToc(arr) {
 }
 
 module.exports = {
-  generateTocTree,
+  treeBuild,
 }

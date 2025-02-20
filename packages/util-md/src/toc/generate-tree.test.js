@@ -2,7 +2,7 @@ const fs = require('fs')
 const path = require('path')
 const { test } = require('uvu')
 const assert = require('uvu/assert')
-const { generateTocTree, processTocTree } = require('./toc')
+const { treeBuild, treeProcess } = require('./')
 const FILE_WITH_HEADERS = path.join(__dirname, '../../fixtures/file-with-headings.md')
 const { deepLog, removeIndexFromObj } = require('../_test-utils')
 
@@ -11,11 +11,11 @@ function read(filePath) {
 }
 
 function _generateTocTree(str, opts = {}) {
-  const toc = generateTocTree(str, opts)
+  const toc = treeBuild(str, opts)
   return toc.map(removeIndexFromObj)
 }
 
-test('generateTocTree', async () => {
+test('treeBuild', async () => {
   const contents = read(FILE_WITH_HEADERS)
   const toc = _generateTocTree(contents, { excludeIndex: true })
   /*
@@ -179,16 +179,17 @@ test('generateTocTree', async () => {
   ])
 })
 
-test('generateTocTree with filterSection trim h1 and children', async () => {
+test('treeBuild with removeTocItems trim h1 and children', async () => {
   const contents = read(FILE_WITH_HEADERS)
-  const headerToc = generateTocTree(contents, {
+  const headerToc = treeBuild(contents, {
     excludeIndex: true,
-    filterSection: (api) => {
+    removeTocItems: (api) => {
       // console.log('api', api)
       const { text } = api
-      return !text.match(/This is a first level heading 2/)
+      return text.match(/This is a first level heading 2/)
     }
   })
+
   /*
   deepLog('headerToc', headerToc)
   /** */
@@ -309,15 +310,15 @@ test('generateTocTree with filterSection trim h1 and children', async () => {
 })
 
 
-test('generateTocTree with filterSection trim h2 and children', async () => {
+test('treeBuild with removeTocItems trim h2 and children', async () => {
   const contents = read(FILE_WITH_HEADERS)
-  const headerToc = generateTocTree(contents, {
+  const headerToc = treeBuild(contents, {
     // excludeIndex: true,
-    filterSection: ({ text }) => {
-      return !text.match(/^Heading 2 with paragraph 2/)
+    removeTocItems: ({ text }) => {
+      return text.match(/^Heading 2 with paragraph 2/)
     }
   })
-  /*
+  //*
   deepLog('headerToc', headerToc)
   /** */
   assert.equal(headerToc, [
@@ -456,7 +457,7 @@ const headingWithFootnotes = `
 `
 
 test('Heading with footnote', () => {
-  const headerToc = generateTocTree(headingWithFootnotes)
+  const headerToc = treeBuild(headingWithFootnotes)
   //*
   deepLog('headerToc', headerToc)
   /** */
@@ -548,7 +549,7 @@ test('Generates Toc multipleLayers', () => {
     },
   ])
 
-  const tocText = processTocTree(toc)
+  const tocText = treeProcess(toc)
   // console.log('tocText', tocText)
 
   assert.equal(tocText.text,
@@ -561,7 +562,7 @@ test('Generates Toc multipleLayers', () => {
     - [2nd Heading 3](#2nd-heading-3)
 `.trim(), 'tocText')
 
-  const tocTextNoH1s = processTocTree(toc, { skipH1: true })
+  const tocTextNoH1s = treeProcess(toc, { skipH1: true })
   // console.log('tocTextNoH1s', tocTextNoH1s)
   assert.equal(tocTextNoH1s.text,
 `
@@ -571,7 +572,7 @@ test('Generates Toc multipleLayers', () => {
   - [2nd Heading 3](#2nd-heading-3)
 `.trim(), 'tocTextNoH1s')
 
-  const tocTextNoFirstH1 = processTocTree(toc, { stripFirstH1: true })
+  const tocTextNoFirstH1 = treeProcess(toc, { stripFirstH1: true })
   // console.log('tocTextNoFirstH1', tocTextNoFirstH1)
   assert.equal(tocTextNoFirstH1.text,
 `
@@ -583,7 +584,7 @@ test('Generates Toc multipleLayers', () => {
 `.trim(), 'tocTextNoFirstH1')
 
   // Only show up to level 2
-  const tocTextMaxDepth2 = processTocTree(toc, { maxDepth: 2 })
+  const tocTextMaxDepth2 = treeProcess(toc, { maxDepth: 2 })
   // console.log('tocTextMaxDepth2', tocTextMaxDepth2)
   assert.equal(tocTextMaxDepth2.text,
 `
@@ -594,7 +595,7 @@ test('Generates Toc multipleLayers', () => {
 `.trim(), 'tocTextMaxDepth2')
 
   // Only show first level
-  const tocTextMaxDepth1 = processTocTree(toc, { maxDepth: 1 })
+  const tocTextMaxDepth1 = treeProcess(toc, { maxDepth: 1 })
   // console.log('tocTextMaxDepth1', tocTextMaxDepth1)
   assert.equal(tocTextMaxDepth1.text,
 `
@@ -602,7 +603,7 @@ test('Generates Toc multipleLayers', () => {
 - [2nd Heading 1](#2nd-heading-1)
 `.trim(), 'tocTextMaxDepth1')
 
-  const tocTextNoFirstH1MaxDepth2 = processTocTree(toc, { stripFirstH1: true, maxDepth: 2 })
+  const tocTextNoFirstH1MaxDepth2 = treeProcess(toc, { stripFirstH1: true, maxDepth: 2 })
   // console.log('tocTextNoFirstH1MaxDepth2', tocTextNoFirstH1MaxDepth2)
   assert.equal(tocTextNoFirstH1MaxDepth2.text,
 `

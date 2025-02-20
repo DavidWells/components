@@ -1,7 +1,7 @@
 const { deepLog } = require('../utils/logger')
 
 
-function processTocTree(tocTree, options = {
+function treeProcess(tocTree, options = {
   skipH1: false,
   stripFirstH1: false,
   maxDepth: Infinity,
@@ -85,5 +85,5 @@ function removeTocFromToc(contents) {
 }
 
 module.exports = {
-  processTocTree,
+  treeProcess,
 }
