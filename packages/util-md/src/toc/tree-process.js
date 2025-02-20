@@ -1,6 +1,5 @@
 const { deepLog } = require('../utils/logger')
 
-
 function treeProcess(tocTree, options = {
   skipH1: false,
   stripFirstH1: false,

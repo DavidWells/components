@@ -5,7 +5,7 @@ const { findLinks } = require('./find-links')
 const { findDate } = require('./find-date')
 const { findCodeBlocks } = require('./find-code-blocks')
 const { findFootnotes } = require('./find-footnotes')
-const { treeBuild } = require('./toc/generate-tree')
+const { treeBuild } = require('./toc/tree-build')
 
 // const { getLineCount } = require('./utils')
 

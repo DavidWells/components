@@ -1,7 +1,6 @@
-const { treeBuild } = require('./generate-tree')
+const { treeBuild } = require('./tree-build')
+const { treeProcess } = require('./tree-process')
 const { normalizeLevels } = require('./normalize')
-const { treeProcess } = require('./process')
-
 
 /**
  * @typedef  {object}  TocOptions
