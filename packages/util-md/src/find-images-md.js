@@ -1,4 +1,4 @@
-const { onlyUnique } = require('./filters')
+const { onlyUnique } = require('./utils/filters')
 
 // https://regex101.com/r/u2DwY2/23
 const MARKDOWN_IMAGE_REGEX = /!\[[^\]]*\]\((.*?)\s*(["'](?:.*[^"'])["'])?\s*\)/g

@@ -3,8 +3,8 @@ const fs = require('fs')
 const util = require('util')
 const { test } = require('uvu')
 const assert = require('uvu/assert')
-const { findHeadings, makeToc } = require('./find-headings')
-
+const { findHeadings } = require('./find-headings')
+const { generateTocTree } = require('./toc')
 const FILE_WITH_HEADERS = path.join(__dirname, '../fixtures/file-with-headings.md')
 
 function read(filePath) {
@@ -380,9 +380,9 @@ function normalizeObject(obj) {
   return rest
 }
 
-test('makeToc', async () => {
+test('generateTocTree', async () => {
   const contents = read(FILE_WITH_HEADERS)
-  const toc = makeToc(contents, { excludeIndex: true })
+  const toc = generateTocTree(contents, { excludeIndex: true })
   const headerToc = toc.map(normalizeObject)
   /*
   deepLog('headerToc', headerToc)
@@ -545,9 +545,9 @@ test('makeToc', async () => {
   ])
 })
 
-test('makeToc with filterSection trim h1 and children', async () => {
+test('generateTocTree with filterSection trim h1 and children', async () => {
   const contents = read(FILE_WITH_HEADERS)
-  const headerToc = makeToc(contents, {
+  const headerToc = generateTocTree(contents, {
     excludeIndex: true,
     filterSection: (api) => {
       // console.log('api', api)
@@ -675,9 +675,9 @@ test('makeToc with filterSection trim h1 and children', async () => {
 })
 
 
-test('makeToc with filterSection trim h2 and children', async () => {
+test('generateTocTree with filterSection trim h2 and children', async () => {
   const contents = read(FILE_WITH_HEADERS)
-  const headerToc = makeToc(contents, {
+  const headerToc = generateTocTree(contents, {
     // excludeIndex: true,
     filterSection: ({ text }) => {
       return !text.match(/^Heading 2 with paragraph 2/)
@@ -822,7 +822,7 @@ const headingWithFootnotes = `
 `
 
 test('Heading with footnote', () => {
-  const headerToc = makeToc(headingWithFootnotes)
+  const headerToc = generateTocTree(headingWithFootnotes)
   //*
   deepLog('headerToc', headerToc)
   /** */

@@ -1,4 +1,4 @@
-const { onlyUnique, isImage, isRelative } = require('./filters')
+const { onlyUnique, isImage, isRelative } = require('./utils/filters')
 const { findMarkdownImages } = require('./find-images-md')
 const { removeCode } = require('./find-code-blocks')
 // Alt https://github.com/MikeKovarik/link-extract

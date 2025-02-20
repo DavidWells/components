@@ -1,4 +1,4 @@
-const { onlyUnique, isImage, isRelative } = require('./filters')
+const { onlyUnique, isImage, isRelative } = require('./utils/filters')
 const { findLinks, findAbsoluteLinks } = require('./find-links')
 const { findMarkdownImages, MARKDOWN_IMAGE_REGEX } = require('./find-images-md')
 
